@@ -1,13 +1,26 @@
 import React from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar } from "react-native";
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text } from "react-native";
+import { useNavigation } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
+import NavBar from '../Buttons/NavBar.Js';
 
 function FeedbackScreen(props) {
+    const navigation = useNavigation();
+
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}></View>
             <View style={styles.contentContainer}></View>
-            <View style={styles.menuContainer}></View>
+            <View style={styles.menuContainer}>
+                <NavBar 
+                    activeTab="Feedback"
+                    onTabPress={(tabName) => {
+                        if (tabName === 'Analyze') {
+                            navigation.navigate('CalcHomeScreen');
+                        }
+                    }}
+                />            
+            </View>
         </SafeAreaView>
     );
 }

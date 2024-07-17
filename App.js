@@ -1,12 +1,13 @@
 import React from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, SafeAreaView } from 'react-native';
-import CalcHomeScreen from './app/UserInterface/Screens/CalcHomeScreen.Js';
+import { NavigationContainer } from '@react-navigation/native';
+import AppNavigator from './AppNavigator.Js';
 
-export default function App() {
+function App() {
   return (
-    <CalcHomeScreen />
+    <NavigationContainer>
+      <AppNavigator />
+    </NavigationContainer>
   );
 }
 
-
+export default App;

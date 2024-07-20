@@ -1,16 +1,33 @@
 import React from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text } from "react-native";
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text, TouchableOpacity } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
-import NavBar from '../Buttons/NavBar.Js';
+import NavBar from '../Components/NavBar.Js';
 
 function CalcHomeScreen(props) {
     const navigation = useNavigation();
 
+    const buttons = [
+        { name: "Rental Property Calculator", screen: "RentalCalcIn" },
+        { name: "Fix and Flip Calculator", screen: "FlipCalcIn" },
+        { name: "BRRR Calculator", screen: "BRRCalcIn" },
+        { name: "Cashflow Price Target Calculator", screen: "ProjectionCalcIn" }
+    ];
+
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}></View>
-            <View style={styles.contentContainer}></View>
+            <View style={styles.contentContainer}>
+                {buttons.map((button, index) => (
+                    <TouchableOpacity 
+                        key={index} 
+                        style={styles.button}
+                        onPress={() => navigation.navigate(button.screen)}
+                    >
+                        <Text style={styles.buttonText}>{button.name}</Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
             <View style={styles.menuContainer}>
                 <NavBar 
                     activeTab="Analyze"
@@ -48,6 +65,8 @@ const styles = StyleSheet.create({
     contentContainer: {
         flex: 8,
         backgroundColor: colors.background,
+        justifyContent: 'space-evenly',
+        alignItems: 'center',
     },
     menuContainer: {
         flex: 1,
@@ -62,7 +81,21 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 3,
         elevation: 5, // for Android shadow
-    }
+    },
+    button: {
+        width: '80%',
+        height: '15%',
+        backgroundColor: colors.accent,
+        borderRadius: 10,
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    buttonText: {
+        color: colors.background,
+        fontSize: 28,
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
 });
 
 export default CalcHomeScreen;

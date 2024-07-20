@@ -1,13 +1,32 @@
-import React from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar } from "react-native";
+import React, { useState } from 'react';
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text } from "react-native";
+import { useNavigation } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
+import NavBar from '../Components/NavBar.Js';
+import LoanInput from '../Components/LoanInputs.Js';
 
 function RentalCalcIn(props) {
+    const navigation = useNavigation();
+
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}></View>
-            <View style={styles.contentContainer}></View>
-            <View style={styles.menuContainer}></View>
+            <View style={styles.contentContainer}>
+                <LoanInput/>
+            </View>
+            <View style={styles.menuContainer}>
+                <NavBar 
+                    activeTab="Analyze"
+                    onTabPress={(tabName) => {
+                        if (tabName === 'Feedback') {
+                            navigation.navigate('FeedbackScreen');
+                        }
+                        else if (tabName === 'Analyze') {
+                            navigation.navigate('CalcHomeScreen');
+                        }
+                    }}
+                />
+            </View>
         </SafeAreaView>
     );
 }

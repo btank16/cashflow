@@ -6,6 +6,7 @@ const colors = {
     primary: '#87A96B',
     accent: '#64A038',
     basicText: '#353935',
+    fieldColor: 'white',
  
   };
   

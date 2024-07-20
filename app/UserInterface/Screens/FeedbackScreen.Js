@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
-import NavBar from '../Buttons/NavBar.Js';
+import NavBar from '../Components/NavBar.Js';
 
 function FeedbackScreen(props) {
     const navigation = useNavigation();

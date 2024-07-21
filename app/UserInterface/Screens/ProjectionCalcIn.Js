@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
@@ -17,7 +17,22 @@ function ProjectionCalcIn(props) {
     const [monthRent, setMonthRent] = useState('');
     const [capexEst, setCapexEst] = useState('');
     const [loanTerm, setLoanTerm] = useState(30);
+    const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
+
+    useEffect(() => {
+        checkFormValidity();
+    }, [monthCashflow, downPayment, interestRate, propertyTax, monthRent]);
+
+    const checkFormValidity = () => {
+        setIsFormValid(
+            monthCashflow !== '' &&
+            downPayment !== '' &&
+            interestRate !== '' &&
+            propertyTax !== '' &&
+            monthRent !== ''
+        );
+    };
 
     return (
         <SafeAreaView style={styles.masterBackground}>
@@ -39,6 +54,7 @@ function ProjectionCalcIn(props) {
                                     value={monthCashflow}
                                     onChangeText={setMonthCashflow}
                                     placeholder="ex. $1000"
+                                    isRequired={true}
                                 />
                             </View>
                             <View style={{ flex: 1 }}>
@@ -47,6 +63,7 @@ function ProjectionCalcIn(props) {
                                     value={downPayment}
                                     onChangeText={setDownPayment}
                                     placeholder="ex. 20%"
+                                    isRequired={true}
                                 />
                             </View>
                         </View>
@@ -66,6 +83,7 @@ function ProjectionCalcIn(props) {
                                     value={interestRate}
                                     onChangeText={setInterestRate}
                                     placeholder="ex. 5%"
+                                    isRequired={true}
                                 />
                             </View>
                             <View style={{ flex: 1 }}>
@@ -74,6 +92,7 @@ function ProjectionCalcIn(props) {
                                     value={propertyTax}
                                     onChangeText={setPropertyTax}
                                     placeholder="ex. 2.5%"
+                                    isRequired={true}
                                 />
                             </View>
                         </View>
@@ -86,6 +105,7 @@ function ProjectionCalcIn(props) {
                                     value={monthRent}
                                     onChangeText={setMonthRent}
                                     placeholder="ex. $1000"
+                                    isRequired={true}
                                 />
                             </View>
                             <View style={{ flex: 1 }}>
@@ -109,6 +129,7 @@ function ProjectionCalcIn(props) {
                 title="Calculate"
                 destination="ProjectionCalcOut"
                 onPress={() => console.log('Button pressed on Screen 1')}
+                disabled={!isFormValid}
                 />
             </View>
             <View style={styles.menuContainer}>

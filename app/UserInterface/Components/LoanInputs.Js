@@ -6,14 +6,16 @@ import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-nati
 import NumericInput from './NumericInputBox.Js';
 import LoanTerm from './LoanTerm.Js';
 
-const LoanInput = () => {
-  const [purchasePrice, setPurchasePrice] = useState('');
-  const [downPayment, setDownPayment] = useState('');
-  const [interestRate, setInterestRate] = useState('');
-  const [closingCost, setClosingCost] = useState('');
-  const [propertyTax, setPropertyTax] = useState('');
-  const [rehabCost, setRehabCost] = useState('');
-  const [loanTerm, setLoanTerm] = useState(30);
+const LoanInput = ({
+    purchasePrice, setPurchasePrice, 
+    downPayment, setDownPayment, 
+    interestRate, setInterestRate, 
+    propertyTax, setPropertyTax, 
+    closingCost, setClosingCost,
+    rehabCost, setRehabCost,
+    loanTerm, setLoanTerm,
+    isRequired
+}) => {
 
   return (
     <View style={styles.container}> 
@@ -24,6 +26,7 @@ const LoanInput = () => {
                     value={purchasePrice}
                     onChangeText={setPurchasePrice}
                     placeholder="ex. $225,000"
+                    isRequired={isRequired}
                 />
             </View>
             <View style={{ flex: 1 }}>
@@ -32,6 +35,7 @@ const LoanInput = () => {
                     value={downPayment}
                     onChangeText={setDownPayment}
                     placeholder="ex. 20%"
+                    isRequired={isRequired}
                 />
             </View>
         </View>   
@@ -42,6 +46,7 @@ const LoanInput = () => {
                     value={interestRate}
                     onChangeText={setInterestRate}
                     placeholder="ex. 5%"
+                    isRequired={isRequired}
                 />
             </View>
             <View style={{ flex: 1 }}>
@@ -67,6 +72,7 @@ const LoanInput = () => {
                     value={propertyTax}
                     onChangeText={setPropertyTax}
                     placeholder="ex. 2.5%"
+                    isRequired={isRequired}
                 />
             </View>
             <View style={{ flex: 2 }}>

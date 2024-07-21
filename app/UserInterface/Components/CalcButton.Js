@@ -3,7 +3,7 @@ import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import colors from '../Colors/colors.Js'
 
-const CalcButton = ({ title, onPress, destination, style }) => {
+const CalcButton = ({ title, onPress, destination, style, disabled }) => {
   const navigation = useNavigation();
 
   const handlePress = () => {
@@ -16,8 +16,12 @@ const CalcButton = ({ title, onPress, destination, style }) => {
   };
 
   return (
-    <TouchableOpacity style={[styles.button, style]} onPress={handlePress}>
-      <Text style={styles.buttonText}>{title}</Text>
+    <TouchableOpacity 
+      style={[styles.button, style, disabled ? styles.disabledButton : null]} 
+      onPress={handlePress}
+      disabled={disabled}
+    >
+      <Text style={[styles.buttonText, disabled ? styles.disabledButtonText : null]}>{title}</Text>
     </TouchableOpacity>
   );
 };
@@ -33,6 +37,19 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: colors.background,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  disabledButton: {
+    backgroundColor: '#ccc',
+    paddingHorizontal: 50,
+    borderRadius: 50,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  disabledButtonText: {
+    color: colors.basicText,
     fontSize: 16,
     fontWeight: 'bold',
   },

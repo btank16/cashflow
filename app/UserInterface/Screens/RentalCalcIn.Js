@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
@@ -10,9 +10,31 @@ import CalcButton from '../Components/CalcButton.Js';
 
 function RentalCalcIn(props) {
     const navigation = useNavigation();
+    const [purchasePrice, setPurchasePrice] = useState('');
+    const [downPayment, setDownPayment] = useState('');
+    const [interestRate, setInterestRate] = useState('');
+    const [closingCost, setClosingCost] = useState('');
+    const [propertyTax, setPropertyTax] = useState('');
+    const [rehabCost, setRehabCost] = useState('');
+    const [loanTerm, setLoanTerm] = useState(30);
     const [monthRent, setMonthRent] = useState('');
     const [capexEst, setCapexEst] = useState('');
+    const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
+
+    useEffect(() => {
+        checkFormValidity();
+    }, [purchasePrice, downPayment, interestRate, propertyTax, monthRent]);
+
+    const checkFormValidity = () => {
+        setIsFormValid(
+            purchasePrice !== '' &&
+            downPayment !== '' &&
+            interestRate !== '' &&
+            propertyTax !== '' &&
+            monthRent !== ''
+        );
+    };
 
     return (
         <SafeAreaView style={styles.masterBackground}>
@@ -26,7 +48,23 @@ function RentalCalcIn(props) {
                 contentContainerStyle={styles.contentContainer}
                 keyboardShouldPersistTaps="handled"
                 >                
-                    <LoanInput/>
+                    <LoanInput
+                        purchasePrice={purchasePrice}
+                        setPurchasePrice={setPurchasePrice}
+                        downPayment={downPayment}
+                        setDownPayment={setDownPayment}
+                        interestRate={interestRate}
+                        setInterestRate={setInterestRate}
+                        closingCost={closingCost}
+                        setClosingCost={setClosingCost}
+                        propertyTax={propertyTax}
+                        setPropertyTax={setPropertyTax}
+                        rehabCost={rehabCost}
+                        setRehabCost={setRehabCost}
+                        loanTerm={loanTerm}
+                        setLoanTerm={setLoanTerm}
+                        isRequired={true}
+                    />
                     <View style={styles.inputContainer}>
                         <View style={styles.rowCont}>
                             <View style={{ flex: 1 }}>
@@ -35,6 +73,7 @@ function RentalCalcIn(props) {
                                     value={monthRent}
                                     onChangeText={setMonthRent}
                                     placeholder="ex. $1000"
+                                    isRequired={true}
                                 />
                             </View>
                             <View style={{ flex: 1 }}>
@@ -58,6 +97,7 @@ function RentalCalcIn(props) {
                 title="Calculate"
                 destination="RentalCalcOut"
                 onPress={() => console.log('Button pressed on Screen 1')}
+                disabled={!isFormValid}
                 />
             </View>
             <View style={styles.menuContainer}>

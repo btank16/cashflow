@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
@@ -10,10 +10,32 @@ import CalcButton from '../Components/CalcButton.Js';
 
 function FlipCalcIn(props) {
     const navigation = useNavigation();
+    const [purchasePrice, setPurchasePrice] = useState('');
+    const [downPayment, setDownPayment] = useState('');
+    const [interestRate, setInterestRate] = useState('');
+    const [closingCost, setClosingCost] = useState('');
+    const [propertyTax, setPropertyTax] = useState('');
+    const [rehabCost, setRehabCost] = useState('');
+    const [loanTerm, setLoanTerm] = useState(30);
     const [afterRev, setAfterRev] = useState('');
     const [rehabTime, setRehabTime] = useState('');
     const [agentCommish, setAgentCommish] = useState('');
+    const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
+
+    useEffect(() => {
+        checkFormValidity();
+    }, [purchasePrice, downPayment, interestRate, propertyTax, afterRev]);
+
+    const checkFormValidity = () => {
+        setIsFormValid(
+            purchasePrice !== '' &&
+            downPayment !== '' &&
+            interestRate !== '' &&
+            propertyTax !== '' &&
+            afterRev !== ''
+        );
+    };
 
     return (
         <SafeAreaView style={styles.masterBackground}>
@@ -27,7 +49,23 @@ function FlipCalcIn(props) {
                 contentContainerStyle={styles.contentContainer}
                 keyboardShouldPersistTaps="handled"
                 >                
-                    <LoanInput/>
+                    <LoanInput
+                        purchasePrice={purchasePrice}
+                        setPurchasePrice={setPurchasePrice}
+                        downPayment={downPayment}
+                        setDownPayment={setDownPayment}
+                        interestRate={interestRate}
+                        setInterestRate={setInterestRate}
+                        closingCost={closingCost}
+                        setClosingCost={setClosingCost}
+                        propertyTax={propertyTax}
+                        setPropertyTax={setPropertyTax}
+                        rehabCost={rehabCost}
+                        setRehabCost={setRehabCost}
+                        loanTerm={loanTerm}
+                        setLoanTerm={setLoanTerm}
+                        isRequired={true}
+                    />
                     <View style={styles.inputContainer}>
                         <View style={styles.rowCont}>
                             <View style={{ flex: 1 }}>
@@ -36,6 +74,7 @@ function FlipCalcIn(props) {
                                     value={afterRev}
                                     onChangeText={setAfterRev}
                                     placeholder="ex. $300,000"
+                                    isRequired={true}
                                 />
                             </View>
                         </View>
@@ -71,6 +110,7 @@ function FlipCalcIn(props) {
                 title="Calculate"
                 destination="FlipCalcOut"
                 onPress={() => console.log('Button pressed on Screen 1')}
+                disabled={!isFormValid}
                 />
             </View>
             <View style={styles.menuContainer}>

@@ -7,12 +7,12 @@ import { View, TextInput, Text, StyleSheet, TouchableWithoutFeedback, Keyboard, 
 import { LinearGradient } from 'expo-linear-gradient';
 import colors from '../Colors/colors.Js';
 
-const NumericInput = ({ label, value, onChangeText, placeholder }) => {
+const NumericInput = ({ label, value, onChangeText, placeholder, isRequired }) => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
         <Text style={styles.label} numberOfLines={2} adjustsFontSizeToFit>
-          {label}
+          {label}{isRequired && <Text style={styles.requiredStar}>*</Text>}
         </Text>
         <LinearGradient
           colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0)']}
@@ -68,6 +68,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     fontSize: 16,
     backgroundColor: colors.fieldColor,
+  },
+  requiredStar: {
+    color: '#FF3131',
+    marginLeft: 5,
   },
 });
 

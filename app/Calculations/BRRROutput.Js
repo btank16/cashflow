@@ -29,7 +29,7 @@ export const BuyRefi = (
     MonthEx = Number(MonthEx)
   
     // Calculate new loan amount after refinance
-    const NewLoanAmount = AfterRep * 0.80; // Assuming 75% LTV refinance
+    const NewLoanAmount = AfterRep * 0.80; // Assuming 80% LTV refinance
   
     // Calculate new mortgage payment
     const monthlyRate = NewInterest / 12 / 100;

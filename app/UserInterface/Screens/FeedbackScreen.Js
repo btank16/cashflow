@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
         paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     logoContainer: {
-        flex: 1,
+        height: 56,
         backgroundColor: colors.background,
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(0, 0, 0, 0.1)', // Faded black line
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
         backgroundColor: colors.background,
     },
     menuContainer: {
-        flex: 1,
+        height: 56,
         backgroundColor: colors.background,
         borderTopWidth: 1,
         borderTopColor: 'rgba(0, 0, 0, 0.1)', // Faded black line

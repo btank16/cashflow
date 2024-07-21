@@ -1,16 +1,116 @@
-import React from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text } from "react-native";
+import React, { useState, useRef } from 'react';
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NavBar from '../Components/NavBar.Js';
+import NumericInput from '../Components/NumericInputBox.Js';
+import ExpenseArray from '../Components/ExpenseArray.Js';
+import LoanTerm from '../Components/LoanTerm.Js';
+import CalcButton from '../Components/CalcButton.Js';
 
 function ProjectionCalcIn(props) {
     const navigation = useNavigation();
+    const [monthCashflow, setMonthCashflow] = useState('');
+    const [downPayment, setDownPayment] = useState('');
+    const [interestRate, setInterestRate] = useState('');
+    const [propertyTax, setPropertyTax] = useState('');
+    const [monthRent, setMonthRent] = useState('');
+    const [capexEst, setCapexEst] = useState('');
+    const [loanTerm, setLoanTerm] = useState(30);
+    const scrollViewRef = useRef();
 
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}></View>
-            <View style={styles.contentContainer}></View>
+            <KeyboardAvoidingView 
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.keyContainer}
+            >
+                <ScrollView
+                ref={scrollViewRef}
+                contentContainerStyle={styles.contentContainer}
+                keyboardShouldPersistTaps="handled"
+                >                
+                    <View style={styles.inputContainer}>
+                        <View style={styles.rowCont}>
+                            <View style={{ flex: 2 }}>
+                                <NumericInput
+                                    label="Monthly Cashflow Target ($):"
+                                    value={monthCashflow}
+                                    onChangeText={setMonthCashflow}
+                                    placeholder="ex. $1000"
+                                />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <NumericInput
+                                    label="Down Payment (%):"
+                                    value={downPayment}
+                                    onChangeText={setDownPayment}
+                                    placeholder="ex. 20%"
+                                />
+                            </View>
+                        </View>
+                    </View>
+                    <View style={styles.inputContainer}>
+                        <View style={styles.rowCont}>
+                            <View style={{ flex: 1 }}>
+                                <LoanTerm
+                                    label="Loan Term (years):"
+                                    value={loanTerm}
+                                    onValueChange={(itemValue) => setLoanTerm(itemValue)}
+                                />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <NumericInput
+                                    label="Interest Rate (%):"
+                                    value={interestRate}
+                                    onChangeText={setInterestRate}
+                                    placeholder="ex. 5%"
+                                />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <NumericInput
+                                    label="Property Tax (%):"
+                                    value={propertyTax}
+                                    onChangeText={setPropertyTax}
+                                    placeholder="ex. 2.5%"
+                                />
+                            </View>
+                        </View>
+                    </View>
+                    <View style={styles.inputContainer}>
+                        <View style={styles.rowCont}>
+                            <View style={{ flex: 1 }}>
+                                <NumericInput
+                                    label="Gross Monthly Rent ($):"
+                                    value={monthRent}
+                                    onChangeText={setMonthRent}
+                                    placeholder="ex. $1000"
+                                />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <NumericInput
+                                    label="CapEx Estimate (%):"
+                                    value={capexEst}
+                                    onChangeText={setCapexEst}
+                                    placeholder="ex. 5% of Rent"
+                                />
+                            </View>
+                        </View>
+                    </View>
+                    <View style={styles.inputContainer}>
+                        <ExpenseArray/>
+                    </View>
+                    <View style={styles.buttonSpaceholder} />
+                </ScrollView>
+            </KeyboardAvoidingView>
+            <View style={styles.buttonContainer}>
+                <CalcButton
+                title="Calculate"
+                destination="ProjectionCalcOut"
+                onPress={() => console.log('Button pressed on Screen 1')}
+                />
+            </View>
             <View style={styles.menuContainer}>
                 <NavBar 
                     activeTab="Analyze"
@@ -35,7 +135,7 @@ const styles = StyleSheet.create({
         paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     logoContainer: {
-        flex: 1,
+        height: 56,
         backgroundColor: colors.background,
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(0, 0, 0, 0.1)', // Faded black line
@@ -48,12 +148,14 @@ const styles = StyleSheet.create({
         shadowRadius: 3,
         elevation: 5, // for Android shadow
     },
+    keyContainer: {
+        flex: 1,
+    },
     contentContainer: {
-        flex: 8,
         backgroundColor: colors.background,
     },
     menuContainer: {
-        flex: 1,
+        height: 56,
         backgroundColor: colors.background,
         borderTopWidth: 1,
         borderTopColor: 'rgba(0, 0, 0, 0.1)', // Faded black line
@@ -65,7 +167,26 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 3,
         elevation: 5, // for Android shadow
-    }
+    },
+    inputContainer: {
+        alignItems: 'flex-start',
+    },
+    rowCont: {
+        flexDirection: 'row',
+        justifyContent: 'space-evenly',
+        alignItems: 'flex-end',
+        width: '100%',
+      },
+    buttonSpaceholder: {
+        height: 45, 
+    },
+    buttonContainer: {
+        position: 'absolute',
+        bottom: Platform.OS === 'ios' ? 96 : 61,
+        left: 0,
+        right: 0,
+        paddingHorizontal: 50,
+    },
 });
 
 export default ProjectionCalcIn;

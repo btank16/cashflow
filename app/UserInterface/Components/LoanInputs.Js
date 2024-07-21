@@ -11,6 +11,8 @@ const LoanInput = () => {
   const [downPayment, setDownPayment] = useState('');
   const [interestRate, setInterestRate] = useState('');
   const [closingCost, setClosingCost] = useState('');
+  const [propertyTax, setPropertyTax] = useState('');
+  const [rehabCost, setRehabCost] = useState('');
   const [loanTerm, setLoanTerm] = useState(30);
 
   return (
@@ -21,7 +23,7 @@ const LoanInput = () => {
                     label="Purchase Price ($):"
                     value={purchasePrice}
                     onChangeText={setPurchasePrice}
-                    placeholder="Enter purchase price"
+                    placeholder="ex. $225,000"
                 />
             </View>
             <View style={{ flex: 1 }}>
@@ -57,7 +59,25 @@ const LoanInput = () => {
                     onValueChange={(itemValue) => setLoanTerm(itemValue)}
                 />
             </View>
-        </View>     
+        </View> 
+        <View style={styles.rowCont}>
+            <View style={{ flex: 1 }}>
+                <NumericInput
+                    label="Property Tax (%):"
+                    value={propertyTax}
+                    onChangeText={setPropertyTax}
+                    placeholder="ex. 2.5%"
+                />
+            </View>
+            <View style={{ flex: 2 }}>
+                <NumericInput
+                    label="Rehab Cost ($):"
+                    value={rehabCost}
+                    onChangeText={setRehabCost}
+                    placeholder="ex. $10,000"
+                />
+            </View>
+        </View>      
     </View>
   );
 };
@@ -71,7 +91,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     alignItems: 'flex-end',
-    marginBottom: 10,
   }
 });
 

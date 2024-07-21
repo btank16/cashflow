@@ -1,18 +1,77 @@
-import React from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text } from "react-native";
+import React, { useState, useRef } from 'react';
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NavBar from '../Components/NavBar.Js';
 import LoanInput from '../Components/LoanInputs.Js';
+import NumericInput from '../Components/NumericInputBox.Js';
+import ExpenseArray from '../Components/ExpenseArray.Js';
+import CalcButton from '../Components/CalcButton.Js';
 
 function FlipCalcIn(props) {
     const navigation = useNavigation();
+    const [afterRev, setAfterRev] = useState('');
+    const [rehabTime, setRehabTime] = useState('');
+    const [agentCommish, setAgentCommish] = useState('');
+    const scrollViewRef = useRef();
 
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}></View>
-            <View style={styles.contentContainer}>
-                <LoanInput/>
+            <KeyboardAvoidingView 
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.keyContainer}
+            >
+                <ScrollView
+                ref={scrollViewRef}
+                contentContainerStyle={styles.contentContainer}
+                keyboardShouldPersistTaps="handled"
+                >                
+                    <LoanInput/>
+                    <View style={styles.inputContainer}>
+                        <View style={styles.rowCont}>
+                            <View style={{ flex: 1 }}>
+                                <NumericInput
+                                    label="After Repair Value ($):"
+                                    value={afterRev}
+                                    onChangeText={setAfterRev}
+                                    placeholder="ex. $300,000"
+                                />
+                            </View>
+                        </View>
+                    </View>
+                    <View style={styles.inputContainer}>
+                        <View style={styles.rowCont}>
+                            <View style={{ flex: 1 }}>
+                                <NumericInput
+                                    label="Rehab Time (Months):"
+                                    value={rehabTime}
+                                    onChangeText={setRehabTime}
+                                    placeholder="ex. 10 months"
+                                />
+                            </View>
+                            <View style={{ flex: 1 }}>
+                                <NumericInput
+                                    label="Agent Commission (%):"
+                                    value={agentCommish}
+                                    onChangeText={setAgentCommish}
+                                    placeholder="ex. 6% of ARV"
+                                />
+                            </View>
+                        </View>
+                    </View>
+                    <View style={styles.inputContainer}>
+                        <ExpenseArray/>
+                    </View>
+                    <View style={styles.buttonSpaceholder} />
+                </ScrollView>
+            </KeyboardAvoidingView>
+            <View style={styles.buttonContainer}>
+                <CalcButton
+                title="Calculate"
+                destination="FlipCalcOut"
+                onPress={() => console.log('Button pressed on Screen 1')}
+                />
             </View>
             <View style={styles.menuContainer}>
                 <NavBar 
@@ -38,7 +97,7 @@ const styles = StyleSheet.create({
         paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     logoContainer: {
-        flex: 1,
+        height: 56,
         backgroundColor: colors.background,
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(0, 0, 0, 0.1)', // Faded black line
@@ -51,12 +110,14 @@ const styles = StyleSheet.create({
         shadowRadius: 3,
         elevation: 5, // for Android shadow
     },
+    keyContainer: {
+        flex: 1,
+    },
     contentContainer: {
-        flex: 8,
         backgroundColor: colors.background,
     },
     menuContainer: {
-        flex: 1,
+        height: 56,
         backgroundColor: colors.background,
         borderTopWidth: 1,
         borderTopColor: 'rgba(0, 0, 0, 0.1)', // Faded black line
@@ -68,7 +129,26 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 3,
         elevation: 5, // for Android shadow
-    }
+    },
+    inputContainer: {
+        alignItems: 'flex-start',
+    },
+    rowCont: {
+        flexDirection: 'row',
+        justifyContent: 'space-evenly',
+        alignItems: 'flex-end',
+        width: '100%',
+      },
+    buttonSpaceholder: {
+        height: 45, 
+    },
+    buttonContainer: {
+        position: 'absolute',
+        bottom: Platform.OS === 'ios' ? 96 : 61,
+        left: 0,
+        right: 0,
+        paddingHorizontal: 50,
+    },
 });
 
 export default FlipCalcIn;

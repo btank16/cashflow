@@ -7,6 +7,7 @@ import LoanInput from '../Components/LoanInputs.Js';
 import NumericInput from '../Components/NumericInputBox.Js';
 import ExpenseArray from '../Components/ExpenseArray.Js';
 import CalcButton from '../Components/CalcButton.Js';
+import { firstTranslation } from '../../FunctionCalls/RentalFlipCalls.Js';
 
 function RentalCalcIn(props) {
     const navigation = useNavigation();
@@ -19,8 +20,10 @@ function RentalCalcIn(props) {
     const [loanTerm, setLoanTerm] = useState(30);
     const [monthRent, setMonthRent] = useState('');
     const [capexEst, setCapexEst] = useState('');
+    const [expenseArray, setExpenseArray] = useState(['100', '', '']);
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
+    const [resultScreen, setResultScreen] = useState('RentalCalcOut');
 
     useEffect(() => {
         checkFormValidity();
@@ -35,6 +38,25 @@ function RentalCalcIn(props) {
             monthRent !== ''
         );
     };
+
+    const handleExpenseDataChange = (costValues) => {
+        setExpenseArray(costValues);
+      };
+
+      const onCalculatePress = () => {
+        firstTranslation({
+          purchasePrice,
+          downPayment,
+          interestRate,
+          loanTerm,
+          propertyTax,
+          capexEst,
+          expenseArray,
+          rehabCost,
+          closingCost,
+          monthRent
+        }, navigation, resultScreen);
+      };
 
     return (
         <SafeAreaView style={styles.masterBackground}>
@@ -87,17 +109,16 @@ function RentalCalcIn(props) {
                         </View>
                     </View>
                     <View style={styles.inputContainer}>
-                        <ExpenseArray/>
+                        <ExpenseArray onDataChange={handleExpenseDataChange}/>
                     </View>
                     <View style={styles.buttonSpaceholder} />
                 </ScrollView>
             </KeyboardAvoidingView>
             <View style={styles.buttonContainer}>
                 <CalcButton
-                title="Calculate"
-                destination="RentalCalcOut"
-                onPress={() => console.log('Button pressed on Screen 1')}
-                disabled={!isFormValid}
+                    title="Calculate"
+                    onPress={onCalculatePress}
+                    disabled={!isFormValid}
                 />
             </View>
             <View style={styles.menuContainer}>

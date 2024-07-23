@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, TouchableWithoutFeedback, Keyboard, ScrollView } from 'react-native';
 import Collapsible from 'react-native-collapsible';
 import colors from '../Colors/colors.Js'
 import { PlusIcon, MinusIcon } from 'react-native-heroicons/outline'
 
-const ExpenseArray = () => {
+const ExpenseArray = ({ onDataChange }) => {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [tableData, setTableData] = useState([
     { id: 1, expense: 'Insurance', cost: '100' },
@@ -12,22 +12,37 @@ const ExpenseArray = () => {
     { id: 3, expense: '', cost: '' },
   ]);
 
+  useEffect(() => {
+    updateParentData(tableData);
+  }, []);
+
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
   };
 
   const addRow = () => {
     const newId = tableData.length + 1;
-    setTableData([
+    const updatedData = [
       ...tableData,
       { id: newId, expense: '', cost: '' },
-    ]);
+    ];
+    setTableData(updatedData);
+    updateParentData(updatedData);
   };
 
   const updateCell = (id, field, value) => {
-    setTableData(tableData.map(row => 
+    const updatedData = tableData.map(row => 
       row.id === id ? { ...row, [field]: value } : row
-    ));
+    );
+    setTableData(updatedData);
+    updateParentData(updatedData);
+  };
+
+  const updateParentData = (data) => {
+    if (onDataChange) {
+      const costValues = data.map(row => row.cost);
+      onDataChange(costValues);
+    }
   };
 
   return (

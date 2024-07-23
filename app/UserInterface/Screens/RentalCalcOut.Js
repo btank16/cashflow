@@ -1,16 +1,32 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text } from "react-native";
 import { useNavigation } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NavBar from '../Components/NavBar.Js';
+import ResultDisplay from '../Components/ResultDisplay.Js';
 
 function RentalCalcOut(props) {
     const navigation = useNavigation();
+    const route = useRoute();
+    const results = route.params;
+
+
 
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}></View>
-            <View style={styles.contentContainer}></View>
+            <View style={styles.contentContainer}>
+                <ResultDisplay label="Cash Down" value={`$${results.cashDown}`} />
+                <ResultDisplay label="Mortgage Cost" value={`$${results.mortgageCost}`} />
+                <ResultDisplay label="Monthly Expenses" value={`$${results.monthEx}`} />
+                <ResultDisplay label="Total Monthly Costs" value={`$${results.monthlyCost}`} />
+                <ResultDisplay label="Monthly Cashflow" value={`$${results.cashflow}`} />
+                <ResultDisplay label="Annual Cashflow" value={`$${results.annualCashflow}`} />
+                <ResultDisplay label="Cash on Cash Return" value={`${results.cashOnCash}%`} />
+                <ResultDisplay label="Cap Rate" value={`${results.capRate}%`} />
+                <ResultDisplay label="Months to Break Even" value={results.monthsTillEven} />
+            </View>
             <View style={styles.menuContainer}>
                 <NavBar 
                     activeTab="Analyze"
@@ -49,7 +65,7 @@ const styles = StyleSheet.create({
         elevation: 5, // for Android shadow
     },
     contentContainer: {
-        flex: 8,
+        flex: 1,
         backgroundColor: colors.background,
     },
     menuContainer: {

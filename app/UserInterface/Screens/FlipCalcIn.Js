@@ -7,6 +7,7 @@ import LoanInput from '../Components/LoanInputs.Js';
 import NumericInput from '../Components/NumericInputBox.Js';
 import ExpenseArray from '../Components/ExpenseArray.Js';
 import CalcButton from '../Components/CalcButton.Js';
+import { firstTranslation } from '../../FunctionCalls/RentalFlipCalls.Js';
 
 function FlipCalcIn(props) {
     const navigation = useNavigation();
@@ -20,8 +21,10 @@ function FlipCalcIn(props) {
     const [afterRev, setAfterRev] = useState('');
     const [rehabTime, setRehabTime] = useState('');
     const [agentCommish, setAgentCommish] = useState('');
+    const [expenseArray, setExpenseArray] = useState(['100', '', '']);
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
+    const [resultScreen, setResultScreen] = useState('FlipCalcOut');
 
     useEffect(() => {
         checkFormValidity();
@@ -36,6 +39,26 @@ function FlipCalcIn(props) {
             afterRev !== ''
         );
     };
+
+    const handleExpenseDataChange = (costValues) => {
+        setExpenseArray(costValues);
+      };
+
+      const onCalculatePress = () => {
+        firstTranslation({
+          purchasePrice,
+          downPayment,
+          interestRate,
+          loanTerm,
+          propertyTax,
+          expenseArray,
+          rehabCost,
+          closingCost,
+          afterRev,
+          rehabTime,
+          agentCommish
+        }, navigation, resultScreen);
+      };
 
     return (
         <SafeAreaView style={styles.masterBackground}>
@@ -100,7 +123,7 @@ function FlipCalcIn(props) {
                         </View>
                     </View>
                     <View style={styles.inputContainer}>
-                        <ExpenseArray/>
+                        <ExpenseArray onDataChange={handleExpenseDataChange}/>
                     </View>
                     <View style={styles.buttonSpaceholder} />
                 </ScrollView>
@@ -108,8 +131,7 @@ function FlipCalcIn(props) {
             <View style={styles.buttonContainer}>
                 <CalcButton
                 title="Calculate"
-                destination="FlipCalcOut"
-                onPress={() => console.log('Button pressed on Screen 1')}
+                onPress={onCalculatePress}
                 disabled={!isFormValid}
                 />
             </View>

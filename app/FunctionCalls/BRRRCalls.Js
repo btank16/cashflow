@@ -1,7 +1,7 @@
 import { expenses } from '../Calculations/ExpenseFunction.Js';
-import { outputs } from '../Calculations/CoreOutputs.Js';
+import { BuyRefi } from '../Calculations/BRRROutput.Js';
 
-export const firstTranslation = (inputValues, navigation, destinationScreen) => {
+export const secondTranslation = (inputValues, navigation, destinationScreen) => {
   // Destructure inputValues with default values
   const {
     purchasePrice = '0',
@@ -11,13 +11,17 @@ export const firstTranslation = (inputValues, navigation, destinationScreen) => 
     propertyTax = '0',
     propertyInsurance = '0',
     capexEst = '0',
+    BRRcapexEst = '0',
     expenseArray = [],
     rehabCost = '0',
     closingCost = '0',
     monthRent = '0',
+    BRRmonthRent = '0',
     afterRev = '0',
     rehabTime = '0',
-    agentCommish = '0'
+    refinanceCost = '0',
+    newInterest = '0',
+    newloanTerm = '0'
   } = inputValues;
 
   // Helper function to convert to number and default to 0 if empty
@@ -40,14 +44,21 @@ export const firstTranslation = (inputValues, navigation, destinationScreen) => 
   );
 
   // Call CoreOutputs function
-  const outputResults = outputs(
+  const outputResults = BuyRefi(
+    toNumber(purchasePrice),
+    toNumber(downPayment),
+    toNumber(refinanceCost),
+    toNumber(newInterest),
     toNumber(afterRev),
     toNumber(rehabTime),
-    toNumber(agentCommish),
-    toNumber(monthRent),
-    toNumber(purchasePrice),
+    toNumber(BRRmonthRent),
+    toNumber(BRRcapexEst),
     expenseResults[2], // cashDown
-    expenseResults[1]  // monthlyCost
+    expenseResults[0],  // mortgageCost
+    expenseResults[1], // monthlyCost
+    expenseResults[3],  // monthEx
+    toNumber(newloanTerm),
+    expenseResults[4]  // PrincipalAmt
   );
 
   // Log the results
@@ -75,15 +86,13 @@ export const firstTranslation = (inputValues, navigation, destinationScreen) => 
     monthlyCost: expenseResults[1],
     cashDown: expenseResults[2],
     monthEx: expenseResults[3],
-    totalProfit: outputResults[0],
-    returnPerc: outputResults[1],
-    cashROI: outputResults[2],
-    cashflow: outputResults[3],
-    annualCashflow: outputResults[4],
-    cashOnCash: outputResults[5],
-    capRate: outputResults[6],
-    monthsTillEven: outputResults[7],
-    totalCashCost: outputResults[8],
+    BRRMortgageCost: outputResults[0],
+    BRRMonthlyCost: outputResults[1],
+    BRRCashflow: outputResults[2],
+    BRRAnnualCashflow: outputResults[3],
+    MaxEquity: outputResults[4],
+    EquityReturn: outputResults[5],
+    EquityReturnPerc: outputResults[6],
     inputValues: {
       purchasePrice: toNumber(purchasePrice),
       downPayment: toNumber(downPayment),
@@ -91,14 +100,15 @@ export const firstTranslation = (inputValues, navigation, destinationScreen) => 
       loanTerm: toNumber(loanTerm),
       propertyTax: toNumber(propertyTax),
       propertyInsurance: toNumber(propertyInsurance),
-      capexEst: toNumber(capexEst),
+      BRRcapexEst: toNumber(BRRcapexEst),
       expenseArray: expenseArray.map(toNumber),
       rehabCost: toNumber(rehabCost),
       closingCost: toNumber(closingCost),
-      monthRent: toNumber(monthRent),
+      BRRmonthRent: toNumber(BRRmonthRent),
       afterRev: toNumber(afterRev),
       rehabTime: toNumber(rehabTime),
-      agentCommish: toNumber(agentCommish)
+      refinanceCost: toNumber(refinanceCost),
+      newInterest: toNumber(newInterest)
     }
   });
 };

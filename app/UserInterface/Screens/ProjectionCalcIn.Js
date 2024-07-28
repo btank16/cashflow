@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView } from "react-native";
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NavBar from '../Components/NavBar.Js';
@@ -7,6 +7,7 @@ import NumericInput from '../Components/NumericInputBox.Js';
 import ExpenseArray from '../Components/ExpenseArray.Js';
 import LoanTerm from '../Components/LoanTerm.Js';
 import CalcButton from '../Components/CalcButton.Js';
+import { thirdTranslation } from '../../FunctionCalls/CashflowCalls.Js';
 
 function ProjectionCalcIn(props) {
     const navigation = useNavigation();
@@ -17,11 +18,33 @@ function ProjectionCalcIn(props) {
     const [monthRent, setMonthRent] = useState('');
     const [capexEst, setCapexEst] = useState('');
     const [loanTerm, setLoanTerm] = useState(30);
+    const [expenseArray, setExpenseArray] = useState(['100', '', '']);
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
+    const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+    const [resultScreen, setResultScreen] = useState('ProjectionCalcOut');
+
 
     useEffect(() => {
         checkFormValidity();
+
+        const keyboardDidShowListener = Keyboard.addListener(
+            'keyboardDidShow',
+            () => {
+                setKeyboardVisible(true);
+            }
+        );
+        const keyboardDidHideListener = Keyboard.addListener(
+            'keyboardDidHide',
+            () => {
+                setKeyboardVisible(false);
+            }
+        );
+
+        return () => {
+            keyboardDidShowListener.remove();
+            keyboardDidHideListener.remove();
+        };
     }, [monthCashflow, downPayment, interestRate, propertyTax, monthRent]);
 
     const checkFormValidity = () => {
@@ -33,6 +56,23 @@ function ProjectionCalcIn(props) {
             monthRent !== ''
         );
     };
+
+    const handleExpenseDataChange = (costValues) => {
+        setExpenseArray(costValues);
+      };
+
+      const onCalculatePress = () => {
+        thirdTranslation({
+            monthCashflow,
+            downPayment,
+            interestRate,
+            loanTerm,
+            propertyTax,
+            capexEst,
+            expenseArray,
+            monthRent
+        }, navigation, resultScreen);
+      };
 
     return (
         <SafeAreaView style={styles.masterBackground}>
@@ -119,19 +159,20 @@ function ProjectionCalcIn(props) {
                         </View>
                     </View>
                     <View style={styles.inputContainer}>
-                        <ExpenseArray/>
+                        <ExpenseArray onDataChange={handleExpenseDataChange}/>
                     </View>
                     <View style={styles.buttonSpaceholder} />
                 </ScrollView>
             </KeyboardAvoidingView>
-            <View style={styles.buttonContainer}>
-                <CalcButton
-                title="Calculate"
-                destination="ProjectionCalcOut"
-                onPress={() => console.log('Button pressed on Screen 1')}
-                disabled={!isFormValid}
-                />
-            </View>
+            {Platform.OS === 'ios' || !isKeyboardVisible ? (
+                <View style={styles.buttonContainer}>
+                    <CalcButton
+                        title="Calculate"
+                        onPress={onCalculatePress}
+                        disabled={!isFormValid}
+                    />
+                </View>
+            ) : null}
             <View style={styles.menuContainer}>
                 <NavBar 
                     activeTab="Analyze"

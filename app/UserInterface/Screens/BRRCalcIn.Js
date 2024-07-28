@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView } from "react-native";
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NavBar from '../Components/NavBar.Js';
@@ -7,6 +7,9 @@ import LoanInput from '../Components/LoanInputs.Js';
 import NumericInput from '../Components/NumericInputBox.Js';
 import ExpenseArray from '../Components/ExpenseArray.Js';
 import CalcButton from '../Components/CalcButton.Js';
+import { secondTranslation } from '../../FunctionCalls/BRRRCalls.Js';
+import LoanTerm from '../Components/LoanTerm.Js';
+
 
 function BRRCalcIn(props) {
     const navigation = useNavigation();
@@ -17,18 +20,41 @@ function BRRCalcIn(props) {
     const [propertyTax, setPropertyTax] = useState('');
     const [rehabCost, setRehabCost] = useState('');
     const [loanTerm, setLoanTerm] = useState(30);
-    const [monthRent, setMonthRent] = useState('');
-    const [capexEst, setCapexEst] = useState('');
+    const [newloanTerm, setnewLoanTerm] = useState(30);
+    const [BRRmonthRent, setBRRmonthRent] = useState('');
+    const [BRRcapexEst, setBRRcapexEst] = useState('');
     const [afterRev, setAfterRev] = useState('');
     const [rehabTime, setRehabTime] = useState('');
     const [refinanceCost, setRefinanceCost] = useState('');
     const [newInterest, setNewInterest] = useState('');
+    const [expenseArray, setExpenseArray] = useState(['100', '', '']);
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
+    const [resultScreen, setResultScreen] = useState('BRRCalcOut');
+    const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+    
 
     useEffect(() => {
         checkFormValidity();
-    }, [purchasePrice, downPayment, interestRate, propertyTax, monthRent, afterRev, newInterest]);
+
+        const keyboardDidShowListener = Keyboard.addListener(
+            'keyboardDidShow',
+            () => {
+                setKeyboardVisible(true);
+            }
+        );
+        const keyboardDidHideListener = Keyboard.addListener(
+            'keyboardDidHide',
+            () => {
+                setKeyboardVisible(false);
+            }
+        );
+
+        return () => {
+            keyboardDidShowListener.remove();
+            keyboardDidHideListener.remove();
+        };
+    }, [purchasePrice, downPayment, interestRate, propertyTax, BRRmonthRent, afterRev, newInterest]);
 
     const checkFormValidity = () => {
         setIsFormValid(
@@ -36,11 +62,35 @@ function BRRCalcIn(props) {
             downPayment !== '' &&
             interestRate !== '' &&
             propertyTax !== '' &&
-            monthRent !== '' &&
+            BRRmonthRent !== '' &&
             afterRev !== '' &&
             newInterest !== ''
         );
     };
+
+    const onCalculatePress = () => {
+        secondTranslation({
+            purchasePrice,
+            downPayment,
+            interestRate,
+            loanTerm,
+            propertyTax,
+            BRRcapexEst,
+            expenseArray,
+            rehabCost,
+            closingCost,
+            BRRmonthRent,
+            afterRev,
+            rehabTime,
+            refinanceCost,
+            newInterest,
+            newloanTerm
+        }, navigation, resultScreen);
+      };
+
+    const handleExpenseDataChange = (costValues) => {
+        setExpenseArray(costValues);
+      };
 
     return (
         <SafeAreaView style={styles.masterBackground}>
@@ -76,8 +126,8 @@ function BRRCalcIn(props) {
                             <View style={{ flex: 1 }}>
                                 <NumericInput
                                     label="Gross Monthly Rent ($):"
-                                    value={monthRent}
-                                    onChangeText={setMonthRent}
+                                    value={BRRmonthRent}
+                                    onChangeText={setBRRmonthRent}
                                     placeholder="ex. $1000"
                                     isRequired={true}  
                                 />
@@ -85,8 +135,8 @@ function BRRCalcIn(props) {
                             <View style={{ flex: 1 }}>
                                 <NumericInput
                                     label="CapEx Estimate (%):"
-                                    value={capexEst}
-                                    onChangeText={setCapexEst}
+                                    value={BRRcapexEst}
+                                    onChangeText={setBRRcapexEst}
                                     placeholder="ex. 5% of Rent"
                                 />
                             </View>
@@ -132,22 +182,30 @@ function BRRCalcIn(props) {
                                     isRequired={true}
                                 />
                             </View>
+                            <View style={{ flex: 1 }}>
+                                <LoanTerm
+                                    label="New Loan Term (yrs):"
+                                    value={newloanTerm}
+                                    onValueChange={(itemValue) => setnewLoanTerm(itemValue)}
+                                />
+                            </View>
                         </View>
                     </View>
                     <View style={styles.inputContainer}>
-                        <ExpenseArray/>
+                        <ExpenseArray onDataChange={handleExpenseDataChange}/>
                     </View>
                     <View style={styles.buttonSpaceholder} />
                 </ScrollView>
             </KeyboardAvoidingView>
-            <View style={styles.buttonContainer}>
-                <CalcButton
-                title="Calculate"
-                destination="BRRCalcOut"
-                onPress={() => console.log('Button pressed on Screen 1')}
-                disabled={!isFormValid}
-                />
-            </View>
+            {Platform.OS === 'ios' || !isKeyboardVisible ? (
+                <View style={styles.buttonContainer}>
+                    <CalcButton
+                        title="Calculate"
+                        onPress={onCalculatePress}
+                        disabled={!isFormValid}
+                    />
+                </View>
+            ) : null}
             <View style={styles.menuContainer}>
                 <NavBar 
                     activeTab="Analyze"

@@ -9,7 +9,8 @@ export const expenses = (
   ExpenseArray,
   RehabCost,
   ClosingCostPerc,
-  MonthRent
+  MonthRent,
+  MonthsHeld
 ) => {
   // Calculate down payment
   const DownPayment = PurchPrice * (DownPayPerc / 100);
@@ -29,6 +30,15 @@ export const expenses = (
     (LoanAmount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
     (Math.pow(1 + monthlyRate, numberOfPayments) - 1)
   ).toFixed(2);
+
+  // Calculate Principal left
+  let PrincipalAmt = LoanAmount;
+  let adjMonths = MonthsHeld;
+  while (adjMonths > 0) {
+    const PrincipalPayment = MortgageCost - (PrincipalAmt * monthlyRate);
+    PrincipalAmt = PrincipalAmt - PrincipalPayment;
+    adjMonths--;
+  }
 
   // New if statement for PMI
   if (DownPayPerc < 20) {
@@ -54,5 +64,5 @@ export const expenses = (
   const ClosingCosts = PurchPrice * (ClosingCostPerc / 100);
   const CashDown = (DownPayment + RehabCost + ClosingCosts).toFixed(2);
 
-  return [MortgageCost, MonthlyCost, CashDown, MonthEx.toFixed(2)];
+  return [MortgageCost, MonthlyCost, CashDown, MonthEx.toFixed(2), PrincipalAmt.toFixed(2)];
 };

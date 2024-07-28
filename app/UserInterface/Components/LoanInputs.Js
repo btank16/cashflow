@@ -59,7 +59,7 @@ const LoanInput = ({
             </View>
             <View style={{ flex: 1 }}>
                 <LoanTerm
-                    label="Loan Term (years):"
+                    label="Loan Term (yrs):"
                     value={loanTerm}
                     onValueChange={(itemValue) => setLoanTerm(itemValue)}
                 />

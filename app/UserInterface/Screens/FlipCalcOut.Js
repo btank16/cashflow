@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text } from "react-native";
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text , ScrollView} from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
@@ -15,15 +15,16 @@ function FlipCalcOut(props) {
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}></View>
-            <View style={styles.contentContainer}>
+            <ScrollView style={styles.contentContainer}>
                 <ResultDisplay label="Cash Down" value={`$${results.cashDown}`} />
                 <ResultDisplay label="Mortgage Cost" value={`$${results.mortgageCost}`} />
                 <ResultDisplay label="Monthly Expenses" value={`$${results.monthEx}`} />
                 <ResultDisplay label="Total Monthly Costs" value={`$${results.monthlyCost}`} />
+                <ResultDisplay label="Total Cash Costs" value={`$${results.totalCashCost}`} />
                 <ResultDisplay label="Net Profit" value={`$${results.totalProfit}`} />
                 <ResultDisplay label="ROI" value={`${results.returnPerc}%`} />
                 <ResultDisplay label="Cash on Cash ROI" value={`${results.cashROI}%`} />
-            </View>
+            </ScrollView>
             <View style={styles.menuContainer}>
                 <NavBar 
                     activeTab="Analyze"

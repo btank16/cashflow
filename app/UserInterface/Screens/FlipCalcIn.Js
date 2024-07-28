@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView } from "react-native";
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NavBar from '../Components/NavBar.Js';
@@ -25,9 +25,28 @@ function FlipCalcIn(props) {
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
     const [resultScreen, setResultScreen] = useState('FlipCalcOut');
+    const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
     useEffect(() => {
         checkFormValidity();
+
+        const keyboardDidShowListener = Keyboard.addListener(
+            'keyboardDidShow',
+            () => {
+                setKeyboardVisible(true);
+            }
+        );
+        const keyboardDidHideListener = Keyboard.addListener(
+            'keyboardDidHide',
+            () => {
+                setKeyboardVisible(false);
+            }
+        );
+
+        return () => {
+            keyboardDidShowListener.remove();
+            keyboardDidHideListener.remove();
+        };
     }, [purchasePrice, downPayment, interestRate, propertyTax, afterRev]);
 
     const checkFormValidity = () => {
@@ -128,13 +147,15 @@ function FlipCalcIn(props) {
                     <View style={styles.buttonSpaceholder} />
                 </ScrollView>
             </KeyboardAvoidingView>
-            <View style={styles.buttonContainer}>
-                <CalcButton
-                title="Calculate"
-                onPress={onCalculatePress}
-                disabled={!isFormValid}
-                />
-            </View>
+            {Platform.OS === 'ios' || !isKeyboardVisible ? (
+                <View style={styles.buttonContainer}>
+                    <CalcButton
+                        title="Calculate"
+                        onPress={onCalculatePress}
+                        disabled={!isFormValid}
+                    />
+                </View>
+            ) : null}
             <View style={styles.menuContainer}>
                 <NavBar 
                     activeTab="Analyze"

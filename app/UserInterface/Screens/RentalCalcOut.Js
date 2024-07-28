@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text } from "react-native";
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text, ScrollView } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
@@ -16,7 +16,7 @@ function RentalCalcOut(props) {
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}></View>
-            <View style={styles.contentContainer}>
+            <ScrollView style={styles.contentContainer}>
                 <ResultDisplay label="Cash Down" value={`$${results.cashDown}`} />
                 <ResultDisplay label="Mortgage Cost" value={`$${results.mortgageCost}`} />
                 <ResultDisplay label="Monthly Expenses" value={`$${results.monthEx}`} />
@@ -26,7 +26,7 @@ function RentalCalcOut(props) {
                 <ResultDisplay label="Cash on Cash Return" value={`${results.cashOnCash}%`} />
                 <ResultDisplay label="Cap Rate" value={`${results.capRate}%`} />
                 <ResultDisplay label="Months to Break Even" value={results.monthsTillEven} />
-            </View>
+            </ScrollView>
             <View style={styles.menuContainer}>
                 <NavBar 
                     activeTab="Analyze"

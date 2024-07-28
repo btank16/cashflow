@@ -8,11 +8,13 @@ export const BuyRefi = (
     AfterRep,
     MonthsHeld,
     BRRMonthRent,
+    BRRCapexPerc,
     CashDown,
     MortgageCost,
     MonthlyCost,
     MonthEx,
-    LoanTerm
+    LoanTerm,
+    PrincipalAmt
   ) => {
     // Convert inputs to numbers
     PurchPrice = Number(PurchPrice);
@@ -22,6 +24,7 @@ export const BuyRefi = (
     AfterRep = Number(AfterRep);
     MonthsHeld = Number(MonthsHeld);
     BRRMonthRent = Number(BRRMonthRent);
+    BRRCapexPerc = Number(BRRCapexPerc);
     CashDown = Number(CashDown);
     MortgageCost = Number(MortgageCost);
     MonthlyCost = Number(MonthlyCost);
@@ -40,8 +43,9 @@ export const BuyRefi = (
     ).toFixed(2);
   
     // Calculate new monthly cost
+    const monthlyCapEx = (BRRMonthRent * (BRRCapexPerc / 100)) / 12;
     const BRRMonthlyCost = (
-      parseFloat(BRRMortgageCost) + MonthEx).toFixed(2);
+      parseFloat(BRRMortgageCost) + MonthEx + monthlyCapEx).toFixed(2);
   
     // Calculate new cashflow
     const BRRCashflow = (BRRMonthRent - BRRMonthlyCost).toFixed(2);
@@ -50,7 +54,7 @@ export const BuyRefi = (
     const BRRAnnualCashflow = (BRRCashflow * 12).toFixed(2);
   
     // Calculate maximum equity
-    const MaxEquity = (AfterRep - NewLoanAmount).toFixed(2);
+    const MaxEquity = (NewLoanAmount-PrincipalAmt).toFixed(2);
   
     // Calculate equity return
     const totalInvestment = CashDown + (MonthsHeld * MonthlyCost) + RefinanceCost;

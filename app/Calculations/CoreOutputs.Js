@@ -42,5 +42,5 @@ export const outputs = (
   // Calculate Months Till Even
   const MonthsTillEven = Math.ceil(CashDown / parseFloat(Cashflow));
 
-  return [TotalProfit.toFixed(2), ReturnPerc, CashROI, Cashflow, AnnualCashflow.toFixed(2), CashOnCash, CapRate, MonthsTillEven];
+  return [TotalProfit.toFixed(2), ReturnPerc, CashROI, Cashflow, AnnualCashflow.toFixed(2), CashOnCash, CapRate, MonthsTillEven, TotalExpense.toFixed(2)];
 };

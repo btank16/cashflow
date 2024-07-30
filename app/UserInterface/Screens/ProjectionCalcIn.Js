@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard } from "react-native";
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NavBar from '../Components/NavBar.Js';
 import NumericInput from '../Components/NumericInputBox.Js';
@@ -8,9 +8,11 @@ import ExpenseArray from '../Components/ExpenseArray.Js';
 import LoanTerm from '../Components/LoanTerm.Js';
 import CalcButton from '../Components/CalcButton.Js';
 import { thirdTranslation } from '../../FunctionCalls/CashflowCalls.Js';
+import HomeButton from '../Components/HomeButton.Js';
 
 function ProjectionCalcIn(props) {
     const navigation = useNavigation();
+    const route = useRoute();
     const [monthCashflow, setMonthCashflow] = useState('');
     const [downPayment, setDownPayment] = useState('');
     const [interestRate, setInterestRate] = useState('');
@@ -47,6 +49,30 @@ function ProjectionCalcIn(props) {
         };
     }, [monthCashflow, downPayment, interestRate, propertyTax, monthRent]);
 
+    useEffect(() => {
+        if (route.params?.inputValues) {
+            const {
+                monthCashflow,
+                downPayment,
+                interestRate,
+                propertyTax,
+                loanTerm,
+                monthRent,
+                capexEst,
+                expenseArray
+            } = route.params.inputValues;
+
+            setMonthCashflow(monthCashflow?.toString() || '');
+            setDownPayment(downPayment?.toString() || '');
+            setInterestRate(interestRate?.toString() || '');
+            setPropertyTax(propertyTax?.toString() || '');
+            setLoanTerm(loanTerm?.toString() || '30');
+            setMonthRent(monthRent?.toString() || '');
+            setCapexEst(capexEst?.toString() || '');
+            setExpenseArray(expenseArray || ['100', '', '']);
+        }
+    }, [route.params?.inputValues]);
+
     const checkFormValidity = () => {
         setIsFormValid(
             monthCashflow !== '' &&
@@ -76,7 +102,9 @@ function ProjectionCalcIn(props) {
 
     return (
         <SafeAreaView style={styles.masterBackground}>
-            <View style={styles.logoContainer}></View>
+            <View style={styles.logoContainer}>
+                <HomeButton/>
+            </View>
             <KeyboardAvoidingView 
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={styles.keyContainer}
@@ -197,6 +225,7 @@ const styles = StyleSheet.create({
         paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     logoContainer: {
+        flexDirection: 'row',
         height: 56,
         backgroundColor: colors.background,
         borderBottomWidth: 1,

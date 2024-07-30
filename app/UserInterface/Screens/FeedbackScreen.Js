@@ -3,13 +3,16 @@ import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text } from "react
 import { useNavigation } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NavBar from '../Components/NavBar.Js';
+import HomeButton from '../Components/HomeButton.Js';
 
 function FeedbackScreen(props) {
     const navigation = useNavigation();
 
     return (
         <SafeAreaView style={styles.masterBackground}>
-            <View style={styles.logoContainer}></View>
+            <View style={styles.logoContainer}>
+                <HomeButton/>
+            </View>
             <View style={styles.contentContainer}></View>
             <View style={styles.menuContainer}>
                 <NavBar 
@@ -32,6 +35,7 @@ const styles = StyleSheet.create({
         paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     logoContainer: {
+        flexDirection: 'row',
         height: 56,
         backgroundColor: colors.background,
         borderBottomWidth: 1,

@@ -49,6 +49,7 @@ const styles = StyleSheet.create({
         paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     logoContainer: {
+        flexDirection: 'row',
         height: 56,
         backgroundColor: colors.background,
         borderBottomWidth: 1,

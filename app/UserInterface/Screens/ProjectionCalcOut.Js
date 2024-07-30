@@ -5,15 +5,16 @@ import colors from '../Colors/colors.Js';
 import NavBar from '../Components/NavBar.Js';
 import ResultDisplay from '../Components/ResultDisplay.Js';
 import { LinearGradient } from 'expo-linear-gradient';
+import BackButton from '../Components/BackButton.Js';
 
 function RentalCalcOut(props) {
     const navigation = useNavigation();
     const route = useRoute();
-    const { TargetPrice, NetZeroPrice, inputValues } = route.params || {};
-    const { monthCashflow } = inputValues || {};
+    const { inputValues, ...results } = route.params;
+    const { monthCashflow } = inputValues;
 
-    const targetPriceNum = Number(parseFloat(TargetPrice).toFixed(2));
-    const netZeroPriceNum = Number(parseFloat(NetZeroPrice).toFixed(2));
+    const targetPriceNum = Number(parseFloat(results.TargetPrice).toFixed(2));
+    const netZeroPriceNum = Number(parseFloat(results.NetZeroPrice).toFixed(2));
 
     const isTargetLower = targetPriceNum <= netZeroPriceNum;
 
@@ -22,7 +23,12 @@ function RentalCalcOut(props) {
 
     return (
         <SafeAreaView style={styles.masterBackground}>
-            <View style={styles.logoContainer}></View>
+            <View style={styles.logoContainer}>
+                <BackButton 
+                    inputValues={inputValues} 
+                    destinationScreen='ProjectionCalcIn'
+                />
+            </View>
             <View style={styles.contentContainer}>
                 <ResultDisplay label="Monthly Cashflow Target" value={`$${monthCashflow}`} />
                 <View style={styles.rowCont}>
@@ -88,6 +94,7 @@ const styles = StyleSheet.create({
         paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     logoContainer: {
+        flexDirection: 'row',
         height: 56,
         backgroundColor: colors.background,
         borderBottomWidth: 1,

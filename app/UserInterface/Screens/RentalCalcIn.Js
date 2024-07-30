@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard } from "react-native";
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NavBar from '../Components/NavBar.Js';
 import LoanInput from '../Components/LoanInputs.Js';
@@ -8,9 +8,11 @@ import NumericInput from '../Components/NumericInputBox.Js';
 import ExpenseArray from '../Components/ExpenseArray.Js';
 import CalcButton from '../Components/CalcButton.Js';
 import { firstTranslation } from '../../FunctionCalls/RentalFlipCalls.Js';
+import HomeButton from '../Components/HomeButton.Js';
 
 function RentalCalcIn(props) {
     const navigation = useNavigation();
+    const route = useRoute();
     const [purchasePrice, setPurchasePrice] = useState('');
     const [downPayment, setDownPayment] = useState('');
     const [interestRate, setInterestRate] = useState('');
@@ -48,6 +50,34 @@ function RentalCalcIn(props) {
         };
     }, [purchasePrice, downPayment, interestRate, propertyTax, monthRent]);
 
+    useEffect(() => {
+        if (route.params?.inputValues) {
+            const {
+                purchasePrice,
+                downPayment,
+                interestRate,
+                closingCost,
+                propertyTax,
+                rehabCost,
+                loanTerm,
+                monthRent,
+                capexEst,
+                expenseArray
+            } = route.params.inputValues;
+
+            setPurchasePrice(purchasePrice?.toString() || '');
+            setDownPayment(downPayment?.toString() || '');
+            setInterestRate(interestRate?.toString() || '');
+            setClosingCost(closingCost?.toString() || '');
+            setPropertyTax(propertyTax?.toString() || '');
+            setRehabCost(rehabCost?.toString() || '');
+            setLoanTerm(loanTerm?.toString() || '30');
+            setMonthRent(monthRent?.toString() || '');
+            setCapexEst(capexEst?.toString() || '');
+            setExpenseArray(expenseArray || ['100', '', '']);
+        }
+    }, [route.params?.inputValues]);
+
     const checkFormValidity = () => {
         setIsFormValid(
             purchasePrice !== '' &&
@@ -79,7 +109,9 @@ function RentalCalcIn(props) {
 
     return (
         <SafeAreaView style={styles.masterBackground}>
-            <View style={styles.logoContainer}></View>
+            <View style={styles.logoContainer}>
+                <HomeButton/>
+            </View>
             <KeyboardAvoidingView 
             behavior={Platform.OS === "ios" ? "padding" : "height"}
             style={styles.keyContainer}
@@ -166,6 +198,7 @@ const styles = StyleSheet.create({
         paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     logoContainer: {
+        flexDirection: 'row',
         height: 56,
         backgroundColor: colors.background,
         borderBottomWidth: 1,

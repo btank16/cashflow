@@ -5,17 +5,23 @@ import { useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NavBar from '../Components/NavBar.Js';
 import ResultDisplay from '../Components/ResultDisplay.Js';
+import BackButton from '../Components/BackButton.Js';
 
 
 function BRRCalcOut(props) {
     const navigation = useNavigation();
 
     const route = useRoute();
-    const results = route.params;
+    const { inputValues, ...results } = route.params;
 
     return (
         <SafeAreaView style={styles.masterBackground}>
-            <View style={styles.logoContainer}></View>
+            <View style={styles.logoContainer}>
+                <BackButton 
+                    inputValues={inputValues} 
+                    destinationScreen='BRRCalcIn'
+                />
+            </View>
             <ScrollView style={styles.contentContainer}>
             <ResultDisplay label="Cash Down" value={`$${results.cashDown}`} />
                 <ResultDisplay label="Mortgage Cost" value={`$${results.mortgageCost}`} />
@@ -52,6 +58,7 @@ const styles = StyleSheet.create({
         paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     logoContainer: {
+        flexDirection: 'row',
         height: 56,
         backgroundColor: colors.background,
         borderBottomWidth: 1,

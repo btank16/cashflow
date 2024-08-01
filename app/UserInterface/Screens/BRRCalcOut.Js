@@ -14,6 +14,19 @@ function BRRCalcOut(props) {
     const route = useRoute();
     const { inputValues, ...results } = route.params;
 
+    const formatDollar = (value) => {
+        const number = parseFloat(value);
+        return isNaN(number) ? '$0.00' : '$' + number.toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+      };
+    
+      const formatPercent = (value) => {
+        const number = parseFloat(value);
+        return isNaN(number) ? '0.00%' : number.toFixed(2) + '%';
+      };
+
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
@@ -23,16 +36,16 @@ function BRRCalcOut(props) {
                 />
             </View>
             <ScrollView style={styles.contentContainer}>
-            <ResultDisplay label="Cash Down" value={`$${results.cashDown}`} />
-                <ResultDisplay label="Mortgage Cost" value={`$${results.mortgageCost}`} />
-                <ResultDisplay label="Total Monthly Costs" value={`$${results.monthlyCost}`} />
-                <ResultDisplay label="Refinanced Mortgage Cost" value={`$${results.BRRMortgageCost}`} />
-                <ResultDisplay label="Refinanced Total Monthly Costs" value={`$${results.BRRMonthlyCost}`} />
-                <ResultDisplay label="Monthly Cashflow (post-Refinance)" value={`$${results.BRRCashflow}`} />
-                <ResultDisplay label="Annual Cashflow (post-Refinance)" value={`$${results.BRRAnnualCashflow}`} />
-                <ResultDisplay label="Maximum Equity Usage" value={`$${results.MaxEquity}`} />
-                <ResultDisplay label="Net Equity Return" value={`$${results.EquityReturn}`} />
-                <ResultDisplay label="Equity ROI" value={`${results.EquityReturnPerc}%`} />
+            <ResultDisplay label="Cash Down" value={formatDollar(results.cashDown)} />
+                <ResultDisplay label="Mortgage Cost" value={formatDollar(results.mortgageCost)} />
+                <ResultDisplay label="Total Monthly Costs" value={formatDollar(results.monthlyCost)} />
+                <ResultDisplay label="Refinanced Mortgage Cost" value={formatDollar(results.BRRMortgageCost)} />
+                <ResultDisplay label="Refinanced Total Monthly Costs" value={formatDollar(results.BRRMonthlyCost)} />
+                <ResultDisplay label="Monthly Cashflow (post-Refinance)" value={formatDollar(results.BRRCashflow)} />
+                <ResultDisplay label="Annual Cashflow (post-Refinance)" value={formatDollar(results.BRRAnnualCashflow)} />
+                <ResultDisplay label="Maximum Equity Usage" value={formatDollar(results.MaxEquity)} />
+                <ResultDisplay label="Net Equity Return" value={formatDollar(results.EquityReturn)} />
+                <ResultDisplay label="Equity ROI" value={formatPercent(results.EquityReturnPerc)} />
             </ScrollView>
             <View style={styles.menuContainer}>
                 <NavBar 

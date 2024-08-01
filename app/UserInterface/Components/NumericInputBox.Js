@@ -7,7 +7,22 @@ import { View, TextInput, Text, StyleSheet, TouchableWithoutFeedback, Keyboard, 
 import { LinearGradient } from 'expo-linear-gradient';
 import colors from '../Colors/colors.Js';
 
+const formatNumber = (value) => {
+  if (!value) return '';
+  return value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+};
+
+const unformatNumber = (value) => {
+  return value.replace(/,/g, '');
+};
+
 const NumericInput = ({ label, value, onChangeText, placeholder, isRequired }) => {
+  
+  const handleChangeText = (text) => {
+    const unformattedValue = unformatNumber(text);
+    onChangeText(unformattedValue);
+  };
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
@@ -21,8 +36,8 @@ const NumericInput = ({ label, value, onChangeText, placeholder, isRequired }) =
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
-              onChangeText={onChangeText}
-              value={value}
+              onChangeText={handleChangeText}
+              value={formatNumber(value)}
               placeholder={placeholder}
               keyboardType="numeric"
               returnKeyType="done"

@@ -21,6 +21,19 @@ function RentalCalcOut(props) {
     const leftPrice = isTargetLower ? targetPriceNum : netZeroPriceNum;
     const rightPrice = isTargetLower ? netZeroPriceNum : targetPriceNum;
 
+    const formatDollar = (value) => {
+        const number = parseFloat(value);
+        return isNaN(number) ? '$0.00' : '$' + number.toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+      };
+    
+      const formatPercent = (value) => {
+        const number = parseFloat(value);
+        return isNaN(number) ? '0.00%' : number.toFixed(2) + '%';
+      };
+
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
@@ -41,7 +54,7 @@ function RentalCalcOut(props) {
                             style={styles.gradientContainer}
                         >
                             <View style={styles.priceValueContainer}>
-                                <Text style={styles.priceValue} adjustsFontSizeToFit>${leftPrice.toFixed(2)}</Text>
+                                <Text style={styles.priceValue} adjustsFontSizeToFit>{formatDollar(leftPrice)}</Text>
                             </View>
                         </LinearGradient>
                         <View style={styles.arrow} />
@@ -55,7 +68,7 @@ function RentalCalcOut(props) {
                             style={styles.gradientContainer}
                         >
                             <View style={styles.priceValueContainer}>
-                                <Text style={styles.priceValue} adjustsFontSizeToFit>${rightPrice.toFixed(2)}</Text>
+                                <Text style={styles.priceValue} adjustsFontSizeToFit>{formatDollar(rightPrice)}</Text>
                             </View>
                         </LinearGradient>
                         <View style={styles.arrow} />

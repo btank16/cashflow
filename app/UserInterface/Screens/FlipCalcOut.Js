@@ -13,6 +13,19 @@ function FlipCalcOut(props) {
     const route = useRoute();
     const { inputValues, ...results } = route.params;
 
+    const formatDollar = (value) => {
+        const number = parseFloat(value);
+        return isNaN(number) ? '$0.00' : '$' + number.toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+      };
+    
+      const formatPercent = (value) => {
+        const number = parseFloat(value);
+        return isNaN(number) ? '0.00%' : number.toFixed(2) + '%';
+      };
+
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
@@ -22,14 +35,14 @@ function FlipCalcOut(props) {
                 />
             </View>
             <ScrollView style={styles.contentContainer}>
-                <ResultDisplay label="Cash Down" value={`$${results.cashDown}`} />
-                <ResultDisplay label="Mortgage Cost" value={`$${results.mortgageCost}`} />
-                <ResultDisplay label="Monthly Expenses" value={`$${results.monthEx}`} />
-                <ResultDisplay label="Total Monthly Costs" value={`$${results.monthlyCost}`} />
-                <ResultDisplay label="Total Cash Costs" value={`$${results.totalCashCost}`} />
-                <ResultDisplay label="Net Profit" value={`$${results.totalProfit}`} />
-                <ResultDisplay label="ROI" value={`${results.returnPerc}%`} />
-                <ResultDisplay label="Cash on Cash ROI" value={`${results.cashROI}%`} />
+                <ResultDisplay label="Cash Down" value={formatDollar(results.cashDown)} />
+                <ResultDisplay label="Mortgage Cost" value={formatDollar(results.mortgageCost)} />
+                <ResultDisplay label="Monthly Expenses" value={formatDollar(results.monthEx)} />
+                <ResultDisplay label="Total Monthly Costs" value={formatDollar(results.monthlyCost)} />
+                <ResultDisplay label="Total Cash Costs" value={formatDollar(results.totalCashCost)} />
+                <ResultDisplay label="Net Profit" value={formatDollar(results.totalProfit)} />
+                <ResultDisplay label="ROI" value={formatPercent(results.returnPerc)} />
+                <ResultDisplay label="Cash on Cash ROI" value={formatPercent(results.cashROI)} />
             </ScrollView>
             <View style={styles.menuContainer}>
                 <NavBar 

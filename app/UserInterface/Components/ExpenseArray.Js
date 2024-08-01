@@ -4,6 +4,15 @@ import Collapsible from 'react-native-collapsible';
 import colors from '../Colors/colors.Js'
 import { PlusIcon, MinusIcon } from 'react-native-heroicons/outline'
 
+const formatNumber = (value) => {
+  if (!value) return '';
+  return value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+};
+
+const unformatNumber = (value) => {
+  return value.replace(/,/g, '');
+};
+
 const ExpenseArray = ({ onDataChange }) => {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [tableData, setTableData] = useState([
@@ -32,7 +41,7 @@ const ExpenseArray = ({ onDataChange }) => {
 
   const updateCell = (id, field, value) => {
     const updatedData = tableData.map(row => 
-      row.id === id ? { ...row, [field]: value } : row
+      row.id === id ? { ...row, [field]: field === 'cost' ? unformatNumber(value) : value } : row
     );
     setTableData(updatedData);
     updateParentData(updatedData);
@@ -40,7 +49,7 @@ const ExpenseArray = ({ onDataChange }) => {
 
   const updateParentData = (data) => {
     if (onDataChange) {
-      const costValues = data.map(row => row.cost);
+      const costValues = data.map(row => unformatNumber(row.cost));
       onDataChange(costValues);
     }
   };
@@ -73,7 +82,7 @@ const ExpenseArray = ({ onDataChange }) => {
                 />
                 <TextInput
                   style={styles.cell}
-                  value={row.cost}
+                  value={formatNumber(row.cost)}
                   onChangeText={(text) => updateCell(row.id, 'cost', text)}
                   placeholder="Enter cost"
                   keyboardType="numeric"

@@ -12,7 +12,18 @@ function RentalCalcOut(props) {
     const route = useRoute();
     const { inputValues, ...results } = route.params;
 
-
+    const formatDollar = (value) => {
+        const number = parseFloat(value);
+        return isNaN(number) ? '$0.00' : '$' + number.toLocaleString('en-US', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+      };
+    
+      const formatPercent = (value) => {
+        const number = parseFloat(value);
+        return isNaN(number) ? '0.00%' : number.toFixed(2) + '%';
+      };
 
     return (
         <SafeAreaView style={styles.masterBackground}>
@@ -23,15 +34,15 @@ function RentalCalcOut(props) {
                 />
             </View>
             <ScrollView style={styles.contentContainer}>
-                <ResultDisplay label="Cash Down" value={`$${results.cashDown}`} />
-                <ResultDisplay label="Mortgage Cost" value={`$${results.mortgageCost}`} />
-                <ResultDisplay label="Monthly Expenses" value={`$${results.monthEx}`} />
-                <ResultDisplay label="Total Monthly Costs" value={`$${results.monthlyCost}`} />
-                <ResultDisplay label="Monthly Cashflow" value={`$${results.cashflow}`} />
-                <ResultDisplay label="Annual Cashflow" value={`$${results.annualCashflow}`} />
-                <ResultDisplay label="Cash on Cash Return" value={`${results.cashOnCash}%`} />
-                <ResultDisplay label="Cap Rate" value={`${results.capRate}%`} />
-                <ResultDisplay label="Months to Break Even" value={results.monthsTillEven} />
+                <ResultDisplay label="Cash Down" value={formatDollar(results.cashDown)} />
+                <ResultDisplay label="Mortgage Cost" value={formatDollar(results.mortgageCost)} />
+                <ResultDisplay label="Monthly Expenses" value={formatDollar(results.monthEx)} />
+                <ResultDisplay label="Total Monthly Costs" value={formatDollar(results.monthlyCost)} />
+                <ResultDisplay label="Monthly Cashflow" value={formatDollar(results.cashflow)} />
+                <ResultDisplay label="Annual Cashflow" value={formatDollar(results.annualCashflow)} />
+                <ResultDisplay label="Cash on Cash Return" value={formatPercent(results.cashOnCash)} />
+                <ResultDisplay label="Cap Rate" value={formatPercent(results.capRate)} />
+                <ResultDisplay label="Months to Break Even" value={Math.round(results.monthsTillEven).toString()} />
             </ScrollView>
             <View style={styles.menuContainer}>
                 <NavBar 

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard } from "react-native";
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Image } from "react-native";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NavBar from '../Components/NavBar.Js';
@@ -9,6 +9,7 @@ import LoanTerm from '../Components/LoanTerm.Js';
 import CalcButton from '../Components/CalcButton.Js';
 import { thirdTranslation } from '../../FunctionCalls/CashflowCalls.Js';
 import HomeButton from '../Components/HomeButton.Js';
+import CommonStyles from '../Colors/CommonStyles.Js';
 
 function ProjectionCalcIn(props) {
     const navigation = useNavigation();
@@ -104,6 +105,7 @@ function ProjectionCalcIn(props) {
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
                 <HomeButton/>
+                <Image source={require('../../assets/CashflowText.png')} style={CommonStyles.logo} />
             </View>
             <KeyboardAvoidingView 
             behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -227,6 +229,7 @@ const styles = StyleSheet.create({
     logoContainer: {
         flexDirection: 'row',
         height: 56,
+        alignItems: 'center',
         backgroundColor: colors.background,
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(0, 0, 0, 0.1)', // Faded black line

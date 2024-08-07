@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text, TouchableOpacity } from "react-native";
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text, TouchableOpacity, Image } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NavBar from '../Components/NavBar.Js';
+import CommonStyles from '../Colors/CommonStyles.Js';
 
 function CalcHomeScreen(props) {
     const navigation = useNavigation();
@@ -16,7 +17,9 @@ function CalcHomeScreen(props) {
 
     return (
         <SafeAreaView style={styles.masterBackground}>
-            <View style={styles.logoContainer}></View>
+            <View style={styles.logoContainer}>
+                <Image source={require('../../assets/CashflowText.png')} style={CommonStyles.logo} />
+            </View>
             <View style={styles.contentContainer}>
                 {buttons.map((button, index) => (
                     <TouchableOpacity 
@@ -50,6 +53,7 @@ const styles = StyleSheet.create({
     },
     logoContainer: {
         flexDirection: 'row',
+        alignItems: 'center',
         height: 56,
         backgroundColor: colors.background,
         borderBottomWidth: 1,
@@ -96,7 +100,7 @@ const styles = StyleSheet.create({
         fontSize: 28,
         fontWeight: 'bold',
         textAlign: 'center',
-    },
+    }
 });
 
 export default CalcHomeScreen;

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard } from "react-native";
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Image } from "react-native";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NavBar from '../Components/NavBar.Js';
@@ -9,6 +9,7 @@ import ExpenseArray from '../Components/ExpenseArray.Js';
 import CalcButton from '../Components/CalcButton.Js';
 import { firstTranslation } from '../../FunctionCalls/RentalFlipCalls.Js';
 import HomeButton from '../Components/HomeButton.Js';
+import CommonStyles from '../Colors/CommonStyles.Js';
 
 function FlipCalcIn(props) {
     const navigation = useNavigation();
@@ -115,6 +116,7 @@ function FlipCalcIn(props) {
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
                 <HomeButton/>
+                <Image source={require('../../assets/CashflowText.png')} style={CommonStyles.logo} />
             </View>
             <KeyboardAvoidingView 
             behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -215,6 +217,7 @@ const styles = StyleSheet.create({
     },
     logoContainer: {
         flexDirection: 'row',
+        alignItems: 'center',
         height: 56,
         backgroundColor: colors.background,
         borderBottomWidth: 1,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text, TextInput, ScrollView, Alert } from "react-native";
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text, TextInput, ScrollView, Alert, Image } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Communications from 'react-native-communications';
@@ -7,6 +7,7 @@ import colors from '../Colors/colors.Js';
 import NavBar from '../Components/NavBar.Js';
 import HomeButton from '../Components/HomeButton.Js';
 import CalcButton from '../Components/CalcButton.Js';
+import CommonStyles from '../Colors/CommonStyles.Js';
 
 const TextInputBox = ({ label, value, onChangeText, placeholder, multiline, style }) => {
   return (
@@ -57,6 +58,7 @@ function FeedbackScreen(props) {
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
                 <HomeButton/>
+                <Image source={require('../../assets/CashflowText.png')} style={CommonStyles.logo} />
             </View>
             <ScrollView style={styles.contentContainer}>
                 <TextInputBox
@@ -102,6 +104,7 @@ const styles = StyleSheet.create({
     },
     logoContainer: {
         flexDirection: 'row',
+        alignItems: 'center',
         height: 56,
         backgroundColor: colors.background,
         borderBottomWidth: 1,

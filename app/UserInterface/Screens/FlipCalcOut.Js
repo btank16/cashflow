@@ -1,11 +1,12 @@
 import React, {useEffect} from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text , ScrollView} from "react-native";
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text , ScrollView, Image } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NavBar from '../Components/NavBar.Js';
 import ResultDisplay from '../Components/ResultDisplay.Js';
 import BackButton from '../Components/BackButton.Js';
+import CommonStyles from '../Colors/CommonStyles.Js';
 
 function FlipCalcOut(props) {
     const navigation = useNavigation();
@@ -33,6 +34,7 @@ function FlipCalcOut(props) {
                     inputValues={inputValues} 
                     destinationScreen='FlipCalcIn'
                 />
+                <Image source={require('../../assets/CashflowText.png')} style={CommonStyles.logo} />
             </View>
             <ScrollView style={styles.contentContainer}>
                 <ResultDisplay label="Cash Down" value={formatDollar(results.cashDown)} />
@@ -70,6 +72,7 @@ const styles = StyleSheet.create({
     logoContainer: {
         flexDirection: 'row',
         height: 56,
+        alignItems: 'center',
         backgroundColor: colors.background,
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(0, 0, 0, 0.1)', // Faded black line

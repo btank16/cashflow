@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text } from "react-native";
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text, Image } from "react-native";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NavBar from '../Components/NavBar.Js';
 import ResultDisplay from '../Components/ResultDisplay.Js';
 import { LinearGradient } from 'expo-linear-gradient';
 import BackButton from '../Components/BackButton.Js';
+import CommonStyles from '../Colors/CommonStyles.Js';
 
 function RentalCalcOut(props) {
     const navigation = useNavigation();
@@ -41,6 +42,7 @@ function RentalCalcOut(props) {
                     inputValues={inputValues} 
                     destinationScreen='ProjectionCalcIn'
                 />
+                <Image source={require('../../assets/CashflowText.png')} style={CommonStyles.logo} />
             </View>
             <View style={styles.contentContainer}>
                 <ResultDisplay label="Monthly Cashflow Target" value={`$${monthCashflow}`} />
@@ -109,6 +111,7 @@ const styles = StyleSheet.create({
     logoContainer: {
         flexDirection: 'row',
         height: 56,
+        alignItems: 'center',
         backgroundColor: colors.background,
         borderBottomWidth: 1,
         borderBottomColor: 'rgba(0, 0, 0, 0.1)',

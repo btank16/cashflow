@@ -7,6 +7,7 @@ import NavBar from '../Components/NavBar.Js';
 import ResultDisplay from '../Components/ResultDisplay.Js';
 import BackButton from '../Components/BackButton.Js';
 import CommonStyles from '../Colors/CommonStyles.Js';
+import CustomTitle from '../Components/CustomTitle.Js';
 
 
 function BRRCalcOut(props) {
@@ -38,6 +39,7 @@ function BRRCalcOut(props) {
                 <Image source={require('../../assets/CashflowText.png')} style={CommonStyles.logo} />
             </View>
             <ScrollView style={styles.contentContainer}>
+            <CustomTitle title="BRRR Output" />            
             <ResultDisplay label="Cash Down" value={formatDollar(results.cashDown)} />
                 <ResultDisplay label="Mortgage Cost" value={formatDollar(results.mortgageCost)} />
                 <ResultDisplay label="Total Monthly Costs" value={formatDollar(results.monthlyCost)} />

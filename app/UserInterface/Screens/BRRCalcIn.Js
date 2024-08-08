@@ -11,6 +11,7 @@ import { secondTranslation } from '../../FunctionCalls/BRRRCalls.Js';
 import LoanTerm from '../Components/LoanTerm.Js';
 import HomeButton from '../Components/HomeButton.Js';
 import CommonStyles from '../Colors/CommonStyles.Js';
+import CustomTitle from '../Components/CustomTitle.Js';
 
 function BRRCalcIn(props) {
     const navigation = useNavigation();
@@ -29,7 +30,7 @@ function BRRCalcIn(props) {
     const [rehabTime, setRehabTime] = useState('');
     const [refinanceCost, setRefinanceCost] = useState('');
     const [newInterest, setNewInterest] = useState('');
-    const [expenseArray, setExpenseArray] = useState(['100', '', '']);
+    const [expenseArray, setExpenseArray] = useState(['', '', '']);
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
     const [resultScreen, setResultScreen] = useState('BRRCalcOut');
@@ -86,7 +87,7 @@ function BRRCalcIn(props) {
             setRehabCost(rehabCost?.toString() || '');
             setLoanTerm(loanTerm?.toString() || '30');
             setBRRcapexEst(BRRcapexEst?.toString() || '');
-            setExpenseArray(expenseArray || ['100', '', '']);
+            setExpenseArray(expenseArray || ['', '', '']);
             setAfterRev(afterRev?.toString() || '');
             setRehabTime(rehabTime?.toString() || '');
             setnewLoanTerm(newloanTerm?.toString() || '30');
@@ -146,7 +147,8 @@ function BRRCalcIn(props) {
                 ref={scrollViewRef}
                 contentContainerStyle={styles.contentContainer}
                 keyboardShouldPersistTaps="handled"
-                >                
+                >   
+                    <CustomTitle title="BRRR Calculator" />            
                     <LoanInput
                         purchasePrice={purchasePrice}
                         setPurchasePrice={setPurchasePrice}

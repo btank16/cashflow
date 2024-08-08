@@ -22,7 +22,9 @@ const styles = StyleSheet.create({
   button: {
     position: 'absolute',
     left: 10,
-    paddingVertical: 8
+    paddingVertical: 8,
+    zIndex: 1,
+    alignSelf: 'center'
   },
 });
 

@@ -7,6 +7,7 @@ import NavBar from '../Components/NavBar.Js';
 import ResultDisplay from '../Components/ResultDisplay.Js';
 import BackButton from '../Components/BackButton.Js';
 import CommonStyles from '../Colors/CommonStyles.Js';
+import CustomTitle from '../Components/CustomTitle.Js';
 
 function FlipCalcOut(props) {
     const navigation = useNavigation();
@@ -37,6 +38,7 @@ function FlipCalcOut(props) {
                 <Image source={require('../../assets/CashflowText.png')} style={CommonStyles.logo} />
             </View>
             <ScrollView style={styles.contentContainer}>
+                <CustomTitle title="Fix & Flip Output" />                           
                 <ResultDisplay label="Cash Down" value={formatDollar(results.cashDown)} />
                 <ResultDisplay label="Mortgage Cost" value={formatDollar(results.mortgageCost)} />
                 <ResultDisplay label="Monthly Expenses" value={formatDollar(results.monthEx)} />

@@ -10,6 +10,7 @@ import CalcButton from '../Components/CalcButton.Js';
 import { firstTranslation } from '../../FunctionCalls/RentalFlipCalls.Js';
 import HomeButton from '../Components/HomeButton.Js';
 import CommonStyles from '../Colors/CommonStyles.Js';
+import CustomTitle from '../Components/CustomTitle.Js';
 
 function RentalCalcIn(props) {
     const navigation = useNavigation();
@@ -23,7 +24,7 @@ function RentalCalcIn(props) {
     const [loanTerm, setLoanTerm] = useState(30);
     const [monthRent, setMonthRent] = useState('');
     const [capexEst, setCapexEst] = useState('');
-    const [expenseArray, setExpenseArray] = useState(['100', '', '']);
+    const [expenseArray, setExpenseArray] = useState(['', '', '']);
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
     const [resultScreen, setResultScreen] = useState('RentalCalcOut');
@@ -75,7 +76,7 @@ function RentalCalcIn(props) {
             setLoanTerm(loanTerm?.toString() || '30');
             setMonthRent(monthRent?.toString() || '');
             setCapexEst(capexEst?.toString() || '');
-            setExpenseArray(expenseArray || ['100', '', '']);
+            setExpenseArray(expenseArray || ['', '', '']);
         }
     }, [route.params?.inputValues]);
 
@@ -123,6 +124,7 @@ function RentalCalcIn(props) {
                 contentContainerStyle={styles.contentContainer}
                 keyboardShouldPersistTaps="handled"
                 >                
+                    <CustomTitle title="Rental Calculator" />                           
                     <LoanInput
                         purchasePrice={purchasePrice}
                         setPurchasePrice={setPurchasePrice}

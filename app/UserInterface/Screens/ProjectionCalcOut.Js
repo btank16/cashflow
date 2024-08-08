@@ -7,6 +7,7 @@ import ResultDisplay from '../Components/ResultDisplay.Js';
 import { LinearGradient } from 'expo-linear-gradient';
 import BackButton from '../Components/BackButton.Js';
 import CommonStyles from '../Colors/CommonStyles.Js';
+import CustomTitle from '../Components/CustomTitle.Js';
 
 function RentalCalcOut(props) {
     const navigation = useNavigation();
@@ -45,6 +46,7 @@ function RentalCalcOut(props) {
                 <Image source={require('../../assets/CashflowText.png')} style={CommonStyles.logo} />
             </View>
             <View style={styles.contentContainer}>
+                <CustomTitle title="Cashflow Projection Output" />                           
                 <ResultDisplay label="Monthly Cashflow Target" value={`$${monthCashflow}`} />
                 <View style={styles.rowCont}>
                     <View style={styles.priceBox}>

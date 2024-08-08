@@ -8,6 +8,7 @@ import NavBar from '../Components/NavBar.Js';
 import HomeButton from '../Components/HomeButton.Js';
 import CalcButton from '../Components/CalcButton.Js';
 import CommonStyles from '../Colors/CommonStyles.Js';
+import CustomTitle from '../Components/CustomTitle.Js';
 
 const TextInputBox = ({ label, value, onChangeText, placeholder, multiline, style }) => {
   return (
@@ -61,6 +62,7 @@ function FeedbackScreen(props) {
                 <Image source={require('../../assets/CashflowText.png')} style={CommonStyles.logo} />
             </View>
             <ScrollView style={styles.contentContainer}>
+                <CustomTitle title="How can we improve?" />            
                 <TextInputBox
                     label="Subject"
                     value={subject}

@@ -16,7 +16,7 @@ const unformatNumber = (value) => {
 const ExpenseArray = ({ onDataChange }) => {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [tableData, setTableData] = useState([
-    { id: 1, expense: 'Insurance', cost: '100' },
+    { id: 1, expense: '', cost: '' },
     { id: 2, expense: '', cost: '' },
     { id: 3, expense: '', cost: '' },
   ]);

@@ -3,6 +3,7 @@ import { TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { HomeIcon } from 'react-native-heroicons/solid';
 import colors from '../Colors/colors.Js';
+import CommonStyles from '../Colors/CommonStyles.Js';
 
 const HomeButton = (props) => {
   const navigation = useNavigation();
@@ -12,18 +13,11 @@ const HomeButton = (props) => {
   };
 
   return (
-    <TouchableOpacity style={styles.button} onPress={handlePress}>
+    <TouchableOpacity style={CommonStyles.barButtonContainer} onPress={handlePress}>
       <HomeIcon color={colors.accent} size={36} />
     </TouchableOpacity>
   );
 };
 
-const styles = StyleSheet.create({
-  button: {
-    position: 'absolute',
-    left: 10,
-    paddingVertical: 10
-  },
-});
 
 export default HomeButton;

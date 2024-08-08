@@ -10,6 +10,7 @@ import CalcButton from '../Components/CalcButton.Js';
 import { thirdTranslation } from '../../FunctionCalls/CashflowCalls.Js';
 import HomeButton from '../Components/HomeButton.Js';
 import CommonStyles from '../Colors/CommonStyles.Js';
+import CustomTitle from '../Components/CustomTitle.Js';
 
 function ProjectionCalcIn(props) {
     const navigation = useNavigation();
@@ -21,7 +22,7 @@ function ProjectionCalcIn(props) {
     const [monthRent, setMonthRent] = useState('');
     const [capexEst, setCapexEst] = useState('');
     const [loanTerm, setLoanTerm] = useState(30);
-    const [expenseArray, setExpenseArray] = useState(['100', '', '']);
+    const [expenseArray, setExpenseArray] = useState(['', '', '']);
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
@@ -70,7 +71,7 @@ function ProjectionCalcIn(props) {
             setLoanTerm(loanTerm?.toString() || '30');
             setMonthRent(monthRent?.toString() || '');
             setCapexEst(capexEst?.toString() || '');
-            setExpenseArray(expenseArray || ['100', '', '']);
+            setExpenseArray(expenseArray || ['', '', '']);
         }
     }, [route.params?.inputValues]);
 
@@ -116,6 +117,7 @@ function ProjectionCalcIn(props) {
                 contentContainerStyle={styles.contentContainer}
                 keyboardShouldPersistTaps="handled"
                 >                
+                    <CustomTitle title="Cashflow Projection Calculator" />                           
                     <View style={styles.inputContainer}>
                         <View style={styles.rowCont}>
                             <View style={{ flex: 2 }}>

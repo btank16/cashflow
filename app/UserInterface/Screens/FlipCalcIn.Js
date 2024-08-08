@@ -10,6 +10,7 @@ import CalcButton from '../Components/CalcButton.Js';
 import { firstTranslation } from '../../FunctionCalls/RentalFlipCalls.Js';
 import HomeButton from '../Components/HomeButton.Js';
 import CommonStyles from '../Colors/CommonStyles.Js';
+import CustomTitle from '../Components/CustomTitle.Js';
 
 function FlipCalcIn(props) {
     const navigation = useNavigation();
@@ -24,7 +25,7 @@ function FlipCalcIn(props) {
     const [afterRev, setAfterRev] = useState('');
     const [rehabTime, setRehabTime] = useState('');
     const [agentCommish, setAgentCommish] = useState('');
-    const [expenseArray, setExpenseArray] = useState(['100', '', '']);
+    const [expenseArray, setExpenseArray] = useState(['', '', '']);
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
     const [resultScreen, setResultScreen] = useState('FlipCalcOut');
@@ -75,7 +76,7 @@ function FlipCalcIn(props) {
             setPropertyTax(propertyTax?.toString() || '');
             setRehabCost(rehabCost?.toString() || '');
             setLoanTerm(loanTerm?.toString() || '30');
-            setExpenseArray(expenseArray || ['100', '', '']);
+            setExpenseArray(expenseArray || ['', '', '']);
             setAfterRev(afterRev?.toString() || '');
             setRehabTime(rehabTime?.toString() || '');
             setAgentCommish(agentCommish?.toString() || '');
@@ -126,7 +127,8 @@ function FlipCalcIn(props) {
                 ref={scrollViewRef}
                 contentContainerStyle={styles.contentContainer}
                 keyboardShouldPersistTaps="handled"
-                >                
+                > 
+                    <CustomTitle title="Fix & Flip Calculator" />                           
                     <LoanInput
                         purchasePrice={purchasePrice}
                         setPurchasePrice={setPurchasePrice}

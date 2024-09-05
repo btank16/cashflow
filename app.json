@@ -3,7 +3,7 @@
     "name": "Cashflow",
     "slug": "cashflow",
     "description": "This is a calculator for real estate investors to analyze properties. Note this is not financial advice.",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./app/assets/CashflowAppIcon.png",
     "userInterfaceStyle": "light",

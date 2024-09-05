@@ -12,14 +12,18 @@ export const outputs = (
     // Convert inputs to numbers to ensure we're working with numeric values
     AfterRep = Number(AfterRep);
     MonthsHeld = Number(MonthsHeld);
-    AgentCommish = Number(AgentCommish);
     MonthRent = Number(MonthRent);
     PurchPrice = Number(PurchPrice);
     CashDown = Number(CashDown);
     MonthlyCost = Number(MonthlyCost);
   
   // Calculate total profit
-  const AgentLoss = AfterRep * (AgentCommish / 100);
+  let AgentLoss;
+  if (AgentCommish.isDollar) {
+    AgentLoss = Number(AgentCommish.value);
+  } else {
+    AgentLoss = AfterRep * (Number(AgentCommish.value) / 100);
+  }
   const TotalExpense = CashDown + (MonthsHeld * MonthlyCost);
   const TotalProfit = (AfterRep - (PurchPrice + AgentLoss + TotalExpense));
 

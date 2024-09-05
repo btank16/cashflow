@@ -9,7 +9,7 @@ import BackButton from '../Components/BackButton.Js';
 import CommonStyles from '../Colors/CommonStyles.Js';
 import CustomTitle from '../Components/CustomTitle.Js';
 
-function RentalCalcOut(props) {
+function ProjectionCalcOut(props) {
     const navigation = useNavigation();
     const route = useRoute();
     const { inputValues, ...results } = route.params;
@@ -29,12 +29,7 @@ function RentalCalcOut(props) {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
         });
-      };
-    
-      const formatPercent = (value) => {
-        const number = parseFloat(value);
-        return isNaN(number) ? '0.00%' : number.toFixed(2) + '%';
-      };
+    };
 
     return (
         <SafeAreaView style={styles.masterBackground}>
@@ -51,7 +46,7 @@ function RentalCalcOut(props) {
                 <View style={styles.rowCont}>
                     <View style={styles.priceBox}>
                         <Text style={styles.priceLabel} numberOfLines={2} adjustsFontSizeToFit>
-                            {isTargetLower ? "Target Price:" : "Net Zero Price:"}
+                            {isTargetLower ? "Target Price:" : "Break Even Price:"}
                         </Text>
                         <LinearGradient
                             colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0)']}
@@ -65,7 +60,7 @@ function RentalCalcOut(props) {
                     </View>
                     <View style={styles.priceBox}>
                         <Text style={styles.priceLabel} numberOfLines={2} adjustsFontSizeToFit>
-                            {isTargetLower ? "Net Zero Price:" : "Target Price:"}
+                            {isTargetLower ? "Break Even Price:" : "Target Price:"}
                         </Text>
                         <LinearGradient
                             colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0)']}
@@ -79,11 +74,22 @@ function RentalCalcOut(props) {
                     </View>
                 </View>
                 <View style={styles.trendlineContainer}>
-                    <View
-                        style={styles.trendline}
-                    >
+                    <View style={styles.trendline}>
                         <View style={[styles.dot, styles.leftDot]} />
                         <View style={[styles.dot, styles.rightDot]} />
+                    </View>
+                </View>
+                <View style={styles.columnsContainer}>
+                    <View style={styles.column}>
+                        <Text style={styles.columnTitle}>Target Price Costs</Text>
+                        <ResultDisplay label="Cash Down" value={formatDollar(results.targetPriceCash)} />
+                        <ResultDisplay label="Monthly Expenses" value={formatDollar(results.targetExp)} />
+                    </View>
+                    <View style={styles.columnDivider} />
+                    <View style={styles.column}>
+                        <Text style={styles.columnTitle}>Break Even Costs</Text>
+                        <ResultDisplay label="Cash Down" value={formatDollar(results.netZeroCash)} />
+                        <ResultDisplay label="Monthly Expenses" value={formatDollar(results.netZeroExp)} />
                     </View>
                 </View>
             </View>
@@ -144,6 +150,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingTop: 6,
+        marginBottom: 20,
     },
     priceBox: {
         width: 140,
@@ -214,7 +221,27 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-end',
-      }
+    },
+    columnsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 20,
+    },
+    column: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    columnTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: colors.basicText,
+        marginBottom: 10,
+    },
+    columnDivider: {
+        width: 1,
+        backgroundColor: colors.accent,
+        marginHorizontal: 10,
+    },
 });
 
-export default RentalCalcOut;
+export default ProjectionCalcOut;

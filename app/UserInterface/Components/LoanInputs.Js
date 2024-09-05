@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, TouchableOpacity } from 'react-native';
 import NumericInput from './NumericInputBox.Js';
 import LoanTerm from './LoanTerm.Js';
+import SwitchableNumericInput from './SwitchableNumericInput.Js';
 
 const LoanInput = ({
     purchasePrice, setPurchasePrice, 
@@ -29,12 +30,13 @@ const LoanInput = ({
                     isRequired={isRequired}
                 />
             </View>
+        </View>
+        <View style={styles.rowCont}>
             <View style={{ flex: 1 }}>
-                <NumericInput
-                    label="Down Payment (%):"
+                <SwitchableNumericInput
+                    label="Down Payment:"
                     value={downPayment}
                     onChangeText={setDownPayment}
-                    placeholder="ex. 20%"
                     isRequired={isRequired}
                 />
             </View>
@@ -49,14 +51,7 @@ const LoanInput = ({
                     isRequired={isRequired}
                 />
             </View>
-            <View style={{ flex: 1 }}>
-                <NumericInput
-                    label="Closing Cost (%):"
-                    value={closingCost}
-                    onChangeText={setClosingCost}
-                    placeholder="ex. 1%"
-                />
-            </View>
+
             <View style={{ flex: 1 }}>
                 <LoanTerm
                     label="Loan Term (yrs):"
@@ -67,14 +62,24 @@ const LoanInput = ({
         </View> 
         <View style={styles.rowCont}>
             <View style={{ flex: 1 }}>
-                <NumericInput
-                    label="Property Tax (%):"
+                <SwitchableNumericInput
+                    label="Closing Cost:"
+                    value={closingCost}
+                    onChangeText={setClosingCost}
+                />
+            </View>
+        </View>
+        <View style={styles.rowCont}>
+            <View style={{ flex: 1 }}>
+                <SwitchableNumericInput
+                    label="Monthly Property Tax:"
                     value={propertyTax}
                     onChangeText={setPropertyTax}
-                    placeholder="ex. 2.5%"
                     isRequired={isRequired}
                 />
             </View>
+        </View>
+        <View style={styles.rowCont}>
             <View style={{ flex: 2 }}>
                 <NumericInput
                     label="Rehab Cost ($):"

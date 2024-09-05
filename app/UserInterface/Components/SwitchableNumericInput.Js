@@ -1,26 +1,29 @@
-// This will be used for Purchase Price, Down Payment Percent, Interest Rate, Property Tax ...
-// ... Rehab Cost, Monthly Rent, Capex Percent, Closing Cost Percent, ARV, Months Held ...
-// ... Agent Commission, BRRR Rent, Refinance Costs, BRRR Interest Rate, Cashflow Target ...
-
 import React from 'react';
-import { View, TextInput, Text, StyleSheet, TouchableWithoutFeedback, Keyboard, Platform } from 'react-native';
+import { View, TextInput, Text, StyleSheet, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import colors from '../Colors/colors.Js';
 
 const formatNumber = (value) => {
   if (!value) return '';
-  return value.replace(/\B(?=(\d{3})+(?!\d))/g, ','); // Places a comma between 3 digits
+  return value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 };
 
 const unformatNumber = (value) => {
   return value.replace(/,/g, '');
 };
 
-const NumericInput = ({ label, value, onChangeText, placeholder, isRequired }) => {
-  
+const SwitchableNumericInput = ({ 
+  label, 
+  value,
+  isDollar,
+  onChangeValue,
+  onToggleMode,
+  placeholder, 
+  isRequired
+}) => {
   const handleChangeText = (text) => {
     const unformattedValue = unformatNumber(text);
-    onChangeText(unformattedValue);
+    onChangeValue(unformattedValue);
   };
 
   return (
@@ -34,6 +37,14 @@ const NumericInput = ({ label, value, onChangeText, placeholder, isRequired }) =
           style={styles.gradientContainer}
         >
           <View style={styles.inputContainer}>
+            <TouchableOpacity onPress={onToggleMode} style={styles.switcherContainer}>
+              <View style={[styles.switcherOption, isDollar && styles.activeOption]}>
+                <Text style={[styles.switcherText, isDollar && styles.activeText]}>$</Text>
+              </View>
+              <View style={[styles.switcherOption, !isDollar && styles.activeOption]}>
+                <Text style={[styles.switcherText, !isDollar && styles.activeText]}>%</Text>
+              </View>
+            </TouchableOpacity>
             <TextInput
               style={styles.input}
               onChangeText={handleChangeText}
@@ -42,7 +53,6 @@ const NumericInput = ({ label, value, onChangeText, placeholder, isRequired }) =
               keyboardType="numeric"
               returnKeyType="done"
               onSubmitEditing={Keyboard.dismiss}
-              blurOnSubmit={false}
             />
           </View>
         </LinearGradient>
@@ -69,6 +79,7 @@ const styles = StyleSheet.create({
     padding: 2,
   },
   inputContainer: {
+    flexDirection: 'row',
     borderRadius: 8,
     overflow: 'hidden',
     backgroundColor: colors.fieldColor,
@@ -78,7 +89,31 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 5,
   },
+  switcherContainer: {
+    flexDirection: 'row',
+    width: 60,
+    height: 50,
+    borderRightWidth: 1,
+    borderRightColor: '#ccc',
+  },
+  switcherOption: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  activeOption: {
+    backgroundColor: colors.accent,
+  },
+  switcherText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.basicText,
+  },
+  activeText: {
+    color: colors.background,
+  },
   input: {
+    flex: 1,
     height: 50,
     paddingHorizontal: 15,
     fontSize: 16,
@@ -90,4 +125,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default NumericInput;
+export default SwitchableNumericInput;

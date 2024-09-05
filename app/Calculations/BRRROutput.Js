@@ -2,13 +2,13 @@ import { expenses } from './ExpenseFunction.Js';
 
 export const BuyRefi = (
     PurchPrice,
-    DownPayPerc,
+    // DownPayPerc,
     RefinanceCost,
     NewInterest,
     AfterRep,
     MonthsHeld,
     BRRMonthRent,
-    BRRCapexPerc,
+    BRRCapex,
     CashDown,
     MortgageCost,
     MonthlyCost,
@@ -18,13 +18,13 @@ export const BuyRefi = (
   ) => {
     // Convert inputs to numbers
     PurchPrice = Number(PurchPrice);
-    DownPayPerc = Number(DownPayPerc);
+    // DownPayPerc = Number(DownPayPerc);
     RefinanceCost = Number(RefinanceCost);
     NewInterest = Number(NewInterest);
     AfterRep = Number(AfterRep);
     MonthsHeld = Number(MonthsHeld);
     BRRMonthRent = Number(BRRMonthRent);
-    BRRCapexPerc = Number(BRRCapexPerc);
+    // BRRCapexPerc = Number(BRRCapexPerc);
     CashDown = Number(CashDown);
     MortgageCost = Number(MortgageCost);
     MonthlyCost = Number(MonthlyCost);
@@ -36,14 +36,19 @@ export const BuyRefi = (
   
     // Calculate new mortgage payment
     const monthlyRate = NewInterest / 12 / 100;
-    const numberOfPayments = LoanTerm * 12; // Use the provided LoanTerm
+    const numberOfPayments = LoanTerm * 12; 
     const BRRMortgageCost = (
       (NewLoanAmount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
       (Math.pow(1 + monthlyRate, numberOfPayments) - 1)
     ).toFixed(2);
   
     // Calculate new monthly cost
-    const monthlyCapEx = (BRRMonthRent * (BRRCapexPerc / 100)) / 12;
+    let monthlyCapEx;
+    if (BRRCapex.isDollar) {
+      monthlyCapEx = Number(BRRCapex.value) / 12;
+    } else {
+      monthlyCapEx = (BRRMonthRent * (Number(BRRCapex.value) / 100));
+    }
     const BRRMonthlyCost = (
       parseFloat(BRRMortgageCost) + MonthEx + monthlyCapEx).toFixed(2);
   

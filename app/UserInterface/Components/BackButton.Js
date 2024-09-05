@@ -8,7 +8,7 @@ const BackButton = ({ inputValues, destinationScreen }) => {
   const navigation = useNavigation();
 
   const handlePress = () => {
-    navigation.navigate(destinationScreen, { inputValues });
+    navigation.navigate(destinationScreen, { inputValues }); //Allows selection of destinationScreen and sends the inputValues there
   };
 
   return (

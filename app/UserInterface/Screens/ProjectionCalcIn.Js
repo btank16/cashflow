@@ -11,6 +11,7 @@ import { thirdTranslation } from '../../FunctionCalls/CashflowCalls.Js';
 import HomeButton from '../Components/HomeButton.Js';
 import CommonStyles from '../Colors/CommonStyles.Js';
 import CustomTitle from '../Components/CustomTitle.Js';
+import SwitchableNumericInput from '../Components/SwitchableNumericInput.Js';
 
 function ProjectionCalcIn(props) {
     const navigation = useNavigation();
@@ -20,14 +21,18 @@ function ProjectionCalcIn(props) {
     const [interestRate, setInterestRate] = useState('');
     const [propertyTax, setPropertyTax] = useState('');
     const [monthRent, setMonthRent] = useState('');
-    const [capexEst, setCapexEst] = useState('');
+    // const [capexEst, setCapexEst] = useState('');
     const [loanTerm, setLoanTerm] = useState(30);
+    const [rehabCost, setRehabCost] = useState('');
     const [expenseArray, setExpenseArray] = useState(['', '', '']);
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
     const [resultScreen, setResultScreen] = useState('ProjectionCalcOut');
-
+    const [switchableInputs, setSwitchableInputs] = useState({
+        closingCost: { value: '', isDollar: false },
+        capexEst: { value: '', isDollar: false }
+    });
 
     useEffect(() => {
         checkFormValidity();
@@ -49,7 +54,7 @@ function ProjectionCalcIn(props) {
             keyboardDidShowListener.remove();
             keyboardDidHideListener.remove();
         };
-    }, [monthCashflow, downPayment, interestRate, propertyTax, monthRent]);
+    }, [monthCashflow, interestRate, monthRent, downPayment, propertyTax]);
 
     useEffect(() => {
         if (route.params?.inputValues) {
@@ -60,7 +65,7 @@ function ProjectionCalcIn(props) {
                 propertyTax,
                 loanTerm,
                 monthRent,
-                capexEst,
+                // capexEst,
                 expenseArray
             } = route.params.inputValues;
 
@@ -70,8 +75,14 @@ function ProjectionCalcIn(props) {
             setPropertyTax(propertyTax?.toString() || '');
             setLoanTerm(loanTerm?.toString() || '30');
             setMonthRent(monthRent?.toString() || '');
-            setCapexEst(capexEst?.toString() || '');
+            // setCapexEst(capexEst?.toString() || '');
             setExpenseArray(expenseArray || ['', '', '']);
+           
+            setSwitchableInputs(prevInputs => ({
+                ...prevInputs,
+                closingCost: closingCost || { value: '', isDollar: false },
+                capexEst: capexEst || { value: '', isDollar: false }
+            }));
         }
     }, [route.params?.inputValues]);
 
@@ -89,6 +100,26 @@ function ProjectionCalcIn(props) {
         setExpenseArray(costValues);
       };
 
+      const handleSwitchableInputChange = (inputName, newValue) => {
+        setSwitchableInputs(prevInputs => ({
+            ...prevInputs,
+            [inputName]: {
+                ...prevInputs[inputName],
+                value: newValue
+            }
+        }));
+    };
+
+    const handleSwitchableInputToggle = (inputName) => {
+        setSwitchableInputs(prevInputs => ({
+            ...prevInputs,
+            [inputName]: { 
+                ...prevInputs[inputName],
+                isDollar: !prevInputs[inputName].isDollar 
+            }
+        }));
+    };
+
       const onCalculatePress = () => {
         thirdTranslation({
             monthCashflow,
@@ -96,9 +127,11 @@ function ProjectionCalcIn(props) {
             interestRate,
             loanTerm,
             propertyTax,
-            capexEst,
+            capexEst: switchableInputs.capexEst,
             expenseArray,
-            monthRent
+            monthRent,
+            closingCost: switchableInputs.closingCost,
+            rehabCost
         }, navigation, resultScreen);
       };
 
@@ -118,81 +151,103 @@ function ProjectionCalcIn(props) {
                 keyboardShouldPersistTaps="handled"
                 >                
                     <CustomTitle title="Cashflow Projection Calculator" />                           
-                    <View style={styles.inputContainer}>
-                        <View style={styles.rowCont}>
-                            <View style={{ flex: 2 }}>
-                                <NumericInput
-                                    label="Monthly Cashflow Target ($):"
-                                    value={monthCashflow}
-                                    onChangeText={setMonthCashflow}
-                                    placeholder="ex. $1000"
-                                    isRequired={true}
-                                />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <NumericInput
-                                    label="Down Payment (%):"
-                                    value={downPayment}
-                                    onChangeText={setDownPayment}
-                                    placeholder="ex. 20%"
-                                    isRequired={true}
-                                />
-                            </View>
+                    <View style={styles.rowCont}>
+                        <View style={{ flex: 1 }}>
+                            <NumericInput
+                                label="Monthly Cashflow Target ($):"
+                                value={monthCashflow}
+                                onChangeText={setMonthCashflow}
+                                placeholder="ex. $1000"
+                                isRequired={true}
+                            />
                         </View>
                     </View>
-                    <View style={styles.inputContainer}>
-                        <View style={styles.rowCont}>
-                            <View style={{ flex: 1 }}>
-                                <LoanTerm
-                                    label="Loan Term (years):"
-                                    value={loanTerm}
-                                    onValueChange={(itemValue) => setLoanTerm(itemValue)}
-                                />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <NumericInput
-                                    label="Interest Rate (%):"
-                                    value={interestRate}
-                                    onChangeText={setInterestRate}
-                                    placeholder="ex. 5%"
-                                    isRequired={true}
-                                />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <NumericInput
-                                    label="Property Tax (%):"
-                                    value={propertyTax}
-                                    onChangeText={setPropertyTax}
-                                    placeholder="ex. 2.5%"
-                                    isRequired={true}
-                                />
-                            </View>
+                    <View style={styles.rowCont}>
+                        <View style={{ flex: 1 }}>
+                            <NumericInput
+                                label="Down Payment (%):"
+                                value={downPayment}
+                                onChangeText={setDownPayment}
+                                placeholder="ex. 20%"
+                                isRequired={true}
+                            />
                         </View>
                     </View>
-                    <View style={styles.inputContainer}>
-                        <View style={styles.rowCont}>
-                            <View style={{ flex: 1 }}>
-                                <NumericInput
-                                    label="Gross Monthly Rent ($):"
-                                    value={monthRent}
-                                    onChangeText={setMonthRent}
-                                    placeholder="ex. $1000"
-                                    isRequired={true}
-                                />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <NumericInput
-                                    label="CapEx Estimate (%):"
-                                    value={capexEst}
-                                    onChangeText={setCapexEst}
-                                    placeholder="ex. 5% of Rent"
-                                />
-                            </View>
+                    <View style={styles.rowCont}>
+                        <View style={{ flex: 1 }}>
+                            <LoanTerm
+                                label="Loan Term (years):"
+                                value={loanTerm}
+                                onValueChange={(itemValue) => setLoanTerm(itemValue)}
+                            />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <NumericInput
+                                label="Interest Rate (%):"
+                                value={interestRate}
+                                onChangeText={setInterestRate}
+                                placeholder="ex. 5%"
+                                isRequired={true}
+                            />
                         </View>
                     </View>
-                    <View style={styles.inputContainer}>
-                        <ExpenseArray onDataChange={handleExpenseDataChange}/>
+                    <View style={styles.rowCont}>
+                        <View style={{ flex: 1 }}>
+                            <SwitchableNumericInput
+                                label="Closing Cost:"
+                                value={switchableInputs.closingCost.value}
+                                isDollar={switchableInputs.closingCost.isDollar}
+                                onChangeValue={(value) => handleSwitchableInputChange('closingCost', value)}
+                                onToggleMode={() => handleSwitchableInputToggle('closingCost')}
+                                placeholder={switchableInputs.closingCost.isDollar ? "ex. $5,000" : "ex. 2%"}
+                            />
+                        </View>
                     </View>
+                    <View style={styles.rowCont}>
+                        <View style={{ flex: 1 }}>
+                            <NumericInput
+                                label="Property Tax (%):"
+                                value={propertyTax}
+                                onChangeText={setPropertyTax}
+                                placeholder="ex. 2%"
+                                isRequired={true}
+                            />
+                        </View>
+                    </View>
+                    <View style={styles.rowCont}>
+                        <View style={{ flex: 1 }}>
+                            <NumericInput
+                                label="Gross Monthly Rent ($):"
+                                value={monthRent}
+                                onChangeText={setMonthRent}
+                                placeholder="ex. $1000"
+                                isRequired={true}
+                            />
+                        </View>
+                    </View>
+                    <View style={styles.rowCont}>
+                        <View style={{ flex: 2 }}>
+                            <NumericInput
+                                label="Rehab Cost ($):"
+                                value={rehabCost}
+                                onChangeText={setRehabCost}
+                                placeholder="ex. $10,000"
+                            />
+                        </View>
+                    </View>
+                    <View style={styles.rowCont}>
+                        <View style={{ flex: 1 }}>
+                            <SwitchableNumericInput
+                                label="Annual CapEx Estimate:"
+                                value={switchableInputs.capexEst.value}
+                                isDollar={switchableInputs.capexEst.isDollar}
+                                onChangeValue={(value) => handleSwitchableInputChange('capexEst', value)}
+                                onToggleMode={() => handleSwitchableInputToggle('capexEst')}
+                                placeholder={switchableInputs.capexEst.isDollar ? "ex. $3,000" : "ex. 5%"}
+                            />
+                        </View>
+                    </View>
+                    <ExpenseArray onDataChange={handleExpenseDataChange}/>
                     <View style={styles.buttonSpaceholder} />
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -263,9 +318,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 3,
         elevation: 5, // for Android shadow
-    },
-    inputContainer: {
-        alignItems: 'flex-start',
     },
     rowCont: {
         flexDirection: 'row',

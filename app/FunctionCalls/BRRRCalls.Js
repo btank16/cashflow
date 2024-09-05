@@ -5,16 +5,16 @@ export const secondTranslation = (inputValues, navigation, destinationScreen) =>
   // Destructure inputValues with default values
   const {
     purchasePrice = '0',
-    downPayment = '0',
+    downPayment = { value: '0', isDollar: false },
     interestRate = '0',
     loanTerm = '30',
-    propertyTax = '0',
+    propertyTax = { value: '0', isDollar: false },
     propertyInsurance = '0',
-    capexEst = '0',
-    BRRcapexEst = '0',
+    capexEst = { value: '0', isDollar: false },
+    BRRcapexEst = { value: '0', isDollar: false },
     expenseArray = [],
     rehabCost = '0',
-    closingCost = '0',
+    closingCost = { value: '0', isDollar: false },
     monthRent = '0',
     BRRmonthRent = '0',
     afterRev = '0',
@@ -30,15 +30,15 @@ export const secondTranslation = (inputValues, navigation, destinationScreen) =>
   // Call ExpenseFunction
   const expenseResults = expenses(
     toNumber(purchasePrice),
-    toNumber(downPayment),
+    downPayment,
     toNumber(interestRate),
     toNumber(loanTerm),
-    toNumber(propertyTax),
+    propertyTax,
     toNumber(propertyInsurance),
-    toNumber(capexEst),
-    expenseArray.map(toNumber),
+    capexEst,
+    expenseArray.map(toNumber), //Parses through each number in the expenseArray
     toNumber(rehabCost),
-    toNumber(closingCost),
+    closingCost,
     toNumber(monthRent),
     toNumber(rehabTime)
   );
@@ -46,13 +46,13 @@ export const secondTranslation = (inputValues, navigation, destinationScreen) =>
   // Call CoreOutputs function
   const outputResults = BuyRefi(
     toNumber(purchasePrice),
-    toNumber(downPayment),
+    // toNumber(downPayment),
     toNumber(refinanceCost),
     toNumber(newInterest),
     toNumber(afterRev),
     toNumber(rehabTime),
     toNumber(BRRmonthRent),
-    toNumber(BRRcapexEst),
+    BRRcapexEst,
     expenseResults[2], // cashDown
     expenseResults[0],  // mortgageCost
     expenseResults[1], // monthlyCost
@@ -61,26 +61,8 @@ export const secondTranslation = (inputValues, navigation, destinationScreen) =>
     expenseResults[4]  // PrincipalAmt
   );
 
-  // Log the results
-  // console.log('Expense Function Results:', {
-  //   mortgageCost: expenseResults[0],
-  //   monthlyCost: expenseResults[1],
-  //   cashDown: expenseResults[2],
-  //   monthEx: expenseResults[3]
-  // });
-
-  // console.log('Core Outputs Results:', {
-  //   totalProfit: outputResults[0],
-  //   returnPerc: outputResults[1],
-  //   cashROI: outputResults[2],
-  //   cashflow: outputResults[3],
-  //   annualCashflow: outputResults[4],
-  //   cashOnCash: outputResults[5],
-  //   capRate: outputResults[6],
-  //   monthsTillEven: outputResults[7]
-  // });
-
   // Navigate to the specified destination screen with the calculated values
+  //Sets variables using the notation to call variables from the output of the function
   navigation.navigate(destinationScreen, {
     mortgageCost: expenseResults[0],
     monthlyCost: expenseResults[1],

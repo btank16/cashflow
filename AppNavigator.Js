@@ -10,7 +10,8 @@ import ProjectionCalcIn from './app/UserInterface/Screens/ProjectionCalcIn.Js'
 import ProjectionCalcOut from './app/UserInterface/Screens/ProjectionCalcOut.Js'
 import RentalCalcIn from './app/UserInterface/Screens/RentalCalcIn.Js'
 import RentalCalcOut from './app/UserInterface/Screens/RentalCalcOut.Js'
-
+import WholesaleCalcIn from './app/UserInterface/Screens/WholesaleCalcIn.Js';
+import WholesaleCalcOut from './app/UserInterface/Screens/WholesaleCalcOut.Js';
 
 const Stack = createStackNavigator();
 
@@ -31,6 +32,8 @@ function AppNavigator() {
       <Stack.Screen name="ProjectionCalcOut" component={ProjectionCalcOut} />
       <Stack.Screen name="RentalCalcIn" component={RentalCalcIn} />
       <Stack.Screen name="RentalCalcOut" component={RentalCalcOut} />
+      <Stack.Screen name="WholesaleCalcIn" component={WholesaleCalcIn} />
+      <Stack.Screen name="WholesaleCalcOut" component={WholesaleCalcOut} />
     </Stack.Navigator>
   );
 }

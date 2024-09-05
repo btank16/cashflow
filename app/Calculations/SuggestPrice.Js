@@ -5,9 +5,11 @@ export const PriceSuggestion = (
     LoanTerm,
     PropTaxPerc,
     PropInsurance,
-    CapExPerc,
+    CapExEst,
     ExpenseArray,
-    MonthRent
+    MonthRent,
+    closingCost,
+    rehabCost
   ) => {
     // Convert inputs to numbers
     CashflowTarget = Number(CashflowTarget);
@@ -17,12 +19,19 @@ export const PriceSuggestion = (
     LoanTerm = Number(LoanTerm) * 12; // Convert years to months
     PropTaxPerc = Number(PropTaxPerc) / 100 / 12; // Monthly property tax rate
     PropInsurance = Number(PropInsurance) / 12; // Monthly insurance
-    CapExPerc = Number(CapExPerc) / 100 / 12; // Monthly CapEx rate
+    // CapExPerc = Number(CapExPerc) / 100 / 12; // Monthly CapEx rate
     MonthRent = Number(MonthRent);
+    // closingCost = Number(closingCost) / 100;
+    rehabCost = Number(rehabCost);
   
     const totalMonthlyExpenses = ExpenseArray.reduce((sum, expense) => sum + Number(expense), 0);
-    const CapExTotal = totalMonthlyExpenses + (MonthRent * CapExPerc);
-
+    let monthlyCapEx;
+    if (CapExEst.isDollar) {
+      monthlyCapEx = Number(CapExEst.value) / 12;
+    } else {
+      monthlyCapEx = (MonthRent * (Number(CapExEst.value) / 100));
+    }
+    const CapExTotal = monthlyCapEx + totalMonthlyExpenses;
     // Calculates the total expenses known without the purchase price
     const ExpNoProperty = CapExTotal + PropInsurance;
 
@@ -49,6 +58,23 @@ export const PriceSuggestion = (
     const NetZeroPrice = IntRate < 20
       ? MaxZeroMortgage / (LowDPRate + PropTaxPerc)
       : MaxZeroMortgage / (NormRate + PropTaxPerc);
+
+      // Calculates Closing Costs and Down Payment Sum (plus rehab)
+      let closingCostTarget;
+      let closingCostZero;
+      if (closingCost.isDollar) {
+        closingCostTarget = Number(closingCost.value);
+        closingCostZero = Number(closingCost.value);
+      } else {
+        closingCostTarget = (TargetPrice * (Number(closingCost.value) / 100));
+        closingCostZero = (NetZeroPrice * (Number(closingCost.value) / 100));
+      }
+      const netZeroCash = (NetZeroPrice * DownPayPerc) + closingCostZero + rehabCost;
+      const targetPriceCash = (TargetPrice * DownPayPerc) + closingCostTarget + rehabCost;
+
+      // Calculate Monthly Expenses for Each Scenario
+      const netZeroExp = MaxZeroMortgage + (NetZeroPrice * PropTaxPerc) + ExpNoProperty;
+      const targetExp = MaxCashflowMortgage + (TargetPrice * PropTaxPerc) + ExpNoProperty;
   
-    return [TargetPrice.toFixed(2), NetZeroPrice.toFixed(2)];
+    return [TargetPrice.toFixed(2), NetZeroPrice.toFixed(2), netZeroCash.toFixed(2), targetPriceCash.toFixed(2), netZeroExp.toFixed(2), targetExp.toFixed(2)];
   };

@@ -14,7 +14,7 @@ const ResultDisplay = ({ label, value }) => {
         style={styles.gradientContainer}
       >
         <View style={styles.valueContainer}>
-          <Text style={styles.value}>{value}</Text>
+          <Text style={styles.value} adjustsFontSizeToFit>{value}</Text>
         </View>
       </LinearGradient>
     </View>
@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     flexWrap: 'wrap',
     color: colors.basicText,
-    marginRight: 10,
+    marginRight: 5,
   },
   gradientContainer: {
     flex: 1,

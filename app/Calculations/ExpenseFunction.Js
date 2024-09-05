@@ -1,25 +1,33 @@
 export const expenses = (
   PurchPrice,
-  DownPayPerc,
+  DownPay,
   IntRate,
   LoanTerm,
-  PropTaxPerc,
+  PropTax,
   PropInsurance,
-  CapExPerc,
+  CapExEst,
   ExpenseArray,
   RehabCost,
-  ClosingCostPerc,
+  ClosingCost,
   MonthRent,
   MonthsHeld
 ) => {
   // Calculate down payment
-  const DownPayment = PurchPrice * (DownPayPerc / 100);
+  let DownPayPerc
+  let DownPayment
+  if (DownPay.isDollar) {
+    DownPayment = Number(DownPay.value);
+    DownPayPerc = ((Number(DownPay.value) / PurchPrice) * 100).toFixed(2);
+  } else {
+    DownPayment = PurchPrice * (Number(DownPay.value) / 100);
+    DownPayPerc = Number(DownPay.value);
+  }
 
   // Calculate loan amount
   let LoanAmount = PurchPrice - DownPayment;
 
   // If statement for 3.5% down payment
-  if (DownPayPerc === 3.5) {
+  if (DownPayPerc <= 3.5) {
     LoanAmount = LoanAmount + (LoanAmount * 0.0175);
   }
 
@@ -46,11 +54,21 @@ export const expenses = (
   }
 
   // Calculate property tax and insurance
-  const monthlyPropTax = (PurchPrice * (PropTaxPerc / 100)) / 12;
+  let monthlyPropTax;
+  if (PropTax.isDollar) {
+    monthlyPropTax = Number(PropTax.value) / 12;
+  } else {
+    monthlyPropTax = (PurchPrice * (Number(PropTax.value) / 100)) / 12;
+  }
   const monthlyPropInsurance = PropInsurance / 12;
 
   // Calculate CapEx
-  const monthlyCapEx = (MonthRent * (CapExPerc / 100)) / 12;
+  let monthlyCapEx;
+  if (CapExEst.isDollar) {
+    monthlyCapEx = Number(CapExEst.value) / 12;
+  } else {
+    monthlyCapEx = (MonthRent * (Number(CapExEst.value) / 100));
+  }
 
   // Sum up all monthly expenses
   const totalMonthlyExpenses = ExpenseArray.reduce((sum, expense) => sum + expense, 0);
@@ -61,8 +79,13 @@ export const expenses = (
     parseFloat(MortgageCost) + MonthEx).toFixed(2);
 
   // Calculate cash down (down payment + rehab cost + closing costs)
-  const ClosingCosts = PurchPrice * (ClosingCostPerc / 100);
-  const CashDown = (DownPayment + RehabCost + ClosingCosts).toFixed(2);
+  let closingCostTotal;
+  if (ClosingCost.isDollar) {
+    closingCostTotal = Number(ClosingCost.value);
+  } else {
+    closingCostTotal = PurchPrice * (Number(ClosingCost.value) / 100);
+  }
+  const CashDown = (DownPayment + RehabCost + closingCostTotal).toFixed(2);
 
   return [MortgageCost, MonthlyCost, CashDown, MonthEx.toFixed(2), PrincipalAmt.toFixed(2)];
 };

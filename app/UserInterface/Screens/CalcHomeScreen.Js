@@ -12,6 +12,7 @@ function CalcHomeScreen(props) {
         { name: "Rental Property Calculator", screen: "RentalCalcIn" },
         { name: "Fix and Flip Calculator", screen: "FlipCalcIn" },
         { name: "BRRR Calculator", screen: "BRRCalcIn" },
+        { name: "Wholesaling Calculator", screen: "WholesaleCalcIn" },
         { name: "Cashflow Price Target Calculator", screen: "ProjectionCalcIn" }
     ];
 

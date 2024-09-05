@@ -3,7 +3,6 @@ import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, Keyboa
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NavBar from '../Components/NavBar.Js';
-import LoanInput from '../Components/LoanInputs.Js';
 import NumericInput from '../Components/NumericInputBox.Js';
 import ExpenseArray from '../Components/ExpenseArray.Js';
 import CalcButton from '../Components/CalcButton.Js';
@@ -12,20 +11,21 @@ import LoanTerm from '../Components/LoanTerm.Js';
 import HomeButton from '../Components/HomeButton.Js';
 import CommonStyles from '../Colors/CommonStyles.Js';
 import CustomTitle from '../Components/CustomTitle.Js';
+import SwitchableNumericInput from '../Components/SwitchableNumericInput.Js';
 
 function BRRCalcIn(props) {
     const navigation = useNavigation();
     const route = useRoute();
     const [purchasePrice, setPurchasePrice] = useState('');
-    const [downPayment, setDownPayment] = useState('');
+    // const [downPayment, setDownPayment] = useState('');
     const [interestRate, setInterestRate] = useState('');
-    const [closingCost, setClosingCost] = useState('');
-    const [propertyTax, setPropertyTax] = useState('');
+    // const [closingCost, setClosingCost] = useState('');
+    // const [propertyTax, setPropertyTax] = useState('');
     const [rehabCost, setRehabCost] = useState('');
     const [loanTerm, setLoanTerm] = useState(30);
     const [newloanTerm, setnewLoanTerm] = useState(30);
     const [BRRmonthRent, setBRRmonthRent] = useState('');
-    const [BRRcapexEst, setBRRcapexEst] = useState('');
+    // const [BRRcapexEst, setBRRcapexEst] = useState('');
     const [afterRev, setAfterRev] = useState('');
     const [rehabTime, setRehabTime] = useState('');
     const [refinanceCost, setRefinanceCost] = useState('');
@@ -35,6 +35,12 @@ function BRRCalcIn(props) {
     const scrollViewRef = useRef();
     const [resultScreen, setResultScreen] = useState('BRRCalcOut');
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+    const [switchableInputs, setSwitchableInputs] = useState({
+        downPayment: { value: '', isDollar: false },
+        closingCost: { value: '', isDollar: false },
+        propertyTax: { value: '', isDollar: false },
+        BRRcapexEst: { value: '', isDollar: false }
+    });
     
 
     useEffect(() => {
@@ -57,7 +63,7 @@ function BRRCalcIn(props) {
             keyboardDidShowListener.remove();
             keyboardDidHideListener.remove();
         };
-    }, [purchasePrice, downPayment, interestRate, propertyTax, BRRmonthRent, afterRev, newInterest]);
+    }, [purchasePrice, interestRate, BRRmonthRent, afterRev, newInterest, switchableInputs]);
 
     useEffect(() => {
         if (route.params?.inputValues) {
@@ -80,13 +86,13 @@ function BRRCalcIn(props) {
             } = route.params.inputValues;
 
             setPurchasePrice(purchasePrice?.toString() || '');
-            setDownPayment(downPayment?.toString() || '');
+            // setDownPayment(downPayment?.toString() || '');
             setInterestRate(interestRate?.toString() || '');
-            setClosingCost(closingCost?.toString() || '');
-            setPropertyTax(propertyTax?.toString() || '');
+            // setClosingCost(closingCost?.toString() || '');
+            // setPropertyTax(propertyTax?.toString() || '');
             setRehabCost(rehabCost?.toString() || '');
             setLoanTerm(loanTerm?.toString() || '30');
-            setBRRcapexEst(BRRcapexEst?.toString() || '');
+            // setBRRcapexEst(BRRcapexEst?.toString() || '');
             setExpenseArray(expenseArray || ['', '', '']);
             setAfterRev(afterRev?.toString() || '');
             setRehabTime(rehabTime?.toString() || '');
@@ -94,32 +100,59 @@ function BRRCalcIn(props) {
             setBRRmonthRent(BRRmonthRent?.toString() || '');
             setRefinanceCost(refinanceCost?.toString() || '');
             setNewInterest(newInterest?.toString() || '');
+            setSwitchableInputs(prevInputs => ({
+                ...prevInputs,
+                downPayment: downPayment || { value: '', isDollar: false },
+                closingCost: closingCost || { value: '', isDollar: false },
+                propertyTax: propertyTax || { value: '', isDollar: false },
+                BRRcapexEst: BRRcapexEst || { value: '', isDollar: false }
+            }));
         }
     }, [route.params?.inputValues]);
 
     const checkFormValidity = () => {
         setIsFormValid(
             purchasePrice !== '' &&
-            downPayment !== '' &&
+            switchableInputs.downPayment.value !== '' &&
             interestRate !== '' &&
-            propertyTax !== '' &&
+            switchableInputs.propertyTax.value !== '' &&
             BRRmonthRent !== '' &&
             afterRev !== '' &&
             newInterest !== ''
         );
     };
 
+    const handleSwitchableInputChange = (inputName, newValue) => {
+        setSwitchableInputs(prevInputs => ({
+            ...prevInputs,
+            [inputName]: {
+                ...prevInputs[inputName],
+                value: newValue
+            }
+        }));
+    };
+
+    const handleSwitchableInputToggle = (inputName) => {
+        setSwitchableInputs(prevInputs => ({
+            ...prevInputs,
+            [inputName]: { 
+                ...prevInputs[inputName],
+                isDollar: !prevInputs[inputName].isDollar 
+            }
+        }));
+    };
+
     const onCalculatePress = () => {
         secondTranslation({
             purchasePrice,
-            downPayment,
+            downPayment: switchableInputs.downPayment,
             interestRate,
             loanTerm,
-            propertyTax,
-            BRRcapexEst,
+            propertyTax: switchableInputs.propertyTax,
+            BRRcapexEst: switchableInputs.BRRcapexEst,
             expenseArray,
             rehabCost,
-            closingCost,
+            closingCost: switchableInputs.closingCost,
             BRRmonthRent,
             afterRev,
             rehabTime,
@@ -149,96 +182,152 @@ function BRRCalcIn(props) {
                 keyboardShouldPersistTaps="handled"
                 >   
                     <CustomTitle title="BRRR Calculator" />            
-                    <LoanInput
-                        purchasePrice={purchasePrice}
-                        setPurchasePrice={setPurchasePrice}
-                        downPayment={downPayment}
-                        setDownPayment={setDownPayment}
-                        interestRate={interestRate}
-                        setInterestRate={setInterestRate}
-                        closingCost={closingCost}
-                        setClosingCost={setClosingCost}
-                        propertyTax={propertyTax}
-                        setPropertyTax={setPropertyTax}
-                        rehabCost={rehabCost}
-                        setRehabCost={setRehabCost}
-                        loanTerm={loanTerm}
-                        setLoanTerm={setLoanTerm}
-                        isRequired={true}
-                    />
-                    <View style={styles.inputContainer}>
-                        <View style={styles.rowCont}>
-                            <View style={{ flex: 1 }}>
+                    <View style={styles.rowCont}>
+                            <View style={{ flex: 2 }}>
                                 <NumericInput
-                                    label="Gross Monthly Rent ($):"
-                                    value={BRRmonthRent}
-                                    onChangeText={setBRRmonthRent}
-                                    placeholder="ex. $1000"
-                                    isRequired={true}  
-                                />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <NumericInput
-                                    label="CapEx Estimate (%):"
-                                    value={BRRcapexEst}
-                                    onChangeText={setBRRcapexEst}
-                                    placeholder="ex. 5% of Rent"
-                                />
-                            </View>
-                        </View>
-                    </View>
-                    <View style={styles.inputContainer}>
-                        <View style={styles.rowCont}>
-                            <View style={{ flex: 1 }}>
-                                <NumericInput
-                                    label="After Repair Value ($):"
-                                    value={afterRev}
-                                    onChangeText={setAfterRev}
-                                    placeholder="ex. $300,000"
+                                    label="Purchase Price ($):"
+                                    value={purchasePrice}
+                                    onChangeText={setPurchasePrice}
+                                    placeholder="ex. $225,000"
                                     isRequired={true}
                                 />
                             </View>
-                            <View style={{ flex: 1 }}>
-                                <NumericInput
-                                    label="Rehab Time (Months):"
-                                    value={rehabTime}
-                                    onChangeText={setRehabTime}
-                                    placeholder="ex. 10 months"
-                                />
-                            </View>
+                    </View>
+                    <View style={styles.rowCont}>
+                        <View style={{ flex: 1 }}>
+                            <SwitchableNumericInput
+                                label="Down Payment:"
+                                value={switchableInputs.downPayment.value}
+                                isDollar={switchableInputs.downPayment.isDollar}
+                                onChangeValue={(value) => handleSwitchableInputChange('downPayment', value)}
+                                onToggleMode={() => handleSwitchableInputToggle('downPayment')}
+                                placeholder={switchableInputs.downPayment.isDollar ? "ex. $45,000" : "ex. 20%"}
+                                isRequired={true}
+                            />
+                        </View>
+                    </View>   
+                    <View style={styles.rowCont}>
+                        <View style={{ flex: 1 }}>
+                            <NumericInput
+                                label="Interest Rate (%):"
+                                value={interestRate}
+                                onChangeText={setInterestRate}
+                                placeholder="ex. 5%"
+                                isRequired={true}
+                            />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <LoanTerm
+                                label="Loan Term (yrs):"
+                                value={loanTerm}
+                                onValueChange={(itemValue) => setLoanTerm(itemValue)}
+                            />
+                        </View>
+                    </View> 
+                    <View style={styles.rowCont}>
+                        <View style={{ flex: 1 }}>
+                            <SwitchableNumericInput
+                                label="Closing Cost:"
+                                value={switchableInputs.closingCost.value}
+                                isDollar={switchableInputs.closingCost.isDollar}
+                                onChangeValue={(value) => handleSwitchableInputChange('closingCost', value)}
+                                onToggleMode={() => handleSwitchableInputToggle('closingCost')}
+                                placeholder={switchableInputs.closingCost.isDollar ? "ex. $5,000" : "ex. 2%"}
+                            />
                         </View>
                     </View>
-                    <View style={styles.inputContainer}>
-                        <View style={styles.rowCont}>
-                            <View style={{ flex: 1 }}>
-                                <NumericInput
-                                    label="Refinance Costs ($):"
-                                    value={refinanceCost}
-                                    onChangeText={setRefinanceCost}
-                                    placeholder="ex. $1000"
-                                />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <NumericInput
-                                    label="New Interest Rate (%):"
-                                    value={newInterest}
-                                    onChangeText={setNewInterest}
-                                    placeholder="ex. 5%"
-                                    isRequired={true}
-                                />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                                <LoanTerm
-                                    label="New Loan Term (yrs):"
-                                    value={newloanTerm}
-                                    onValueChange={(itemValue) => setnewLoanTerm(itemValue)}
-                                />
-                            </View>
+                    <View style={styles.rowCont}>
+                        <View style={{ flex: 1 }}>
+                            <SwitchableNumericInput
+                                label="Annual Property Tax:"
+                                value={switchableInputs.propertyTax.value}
+                                isDollar={switchableInputs.propertyTax.isDollar}
+                                onChangeValue={(value) => handleSwitchableInputChange('propertyTax', value)}
+                                onToggleMode={() => handleSwitchableInputToggle('propertyTax')}
+                                placeholder={switchableInputs.propertyTax.isDollar ? "ex. $2,000" : "ex. 2%"}
+                                isRequired={true}
+                            />
                         </View>
                     </View>
-                    <View style={styles.inputContainer}>
-                        <ExpenseArray onDataChange={handleExpenseDataChange}/>
+                    <View style={styles.rowCont}>
+                        <View style={{ flex: 2 }}>
+                            <NumericInput
+                                label="Rehab Cost ($):"
+                                value={rehabCost}
+                                onChangeText={setRehabCost}
+                                placeholder="ex. $10,000"
+                            />
+                        </View>
                     </View>
+                    <View style={styles.rowCont}>
+                        <View style={{ flex: 1 }}>
+                            <NumericInput
+                                label="Gross Monthly Rent ($):"
+                                value={BRRmonthRent}
+                                onChangeText={setBRRmonthRent}
+                                placeholder="ex. $1000"
+                                isRequired={true}  
+                            />
+                        </View>
+                    </View>
+                    <View style={styles.rowCont}>
+                        <View style={{ flex: 1 }}>
+                            <SwitchableNumericInput
+                                label="Annual CapEx Estimate:"
+                                value={switchableInputs.BRRcapexEst.value}
+                                isDollar={switchableInputs.BRRcapexEst.isDollar}
+                                onChangeValue={(value) => handleSwitchableInputChange('BRRcapexEst', value)}
+                                onToggleMode={() => handleSwitchableInputToggle('BRRcapexEst')}
+                                placeholder={switchableInputs.BRRcapexEst.isDollar ? "ex. $3,000" : "ex. 5%"}
+                            />
+                        </View>
+                    </View>
+                    <View style={styles.rowCont}>
+                        <View style={{ flex: 1 }}>
+                            <NumericInput
+                                label="After Repair Value ($):"
+                                value={afterRev}
+                                onChangeText={setAfterRev}
+                                placeholder="ex. $300,000"
+                                isRequired={true}
+                            />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <NumericInput
+                                label="Rehab Time (Months):"
+                                value={rehabTime}
+                                onChangeText={setRehabTime}
+                                placeholder="ex. 10 months"
+                            />
+                        </View>
+                    </View>
+                    <View style={styles.rowCont}>
+                        <View style={{ flex: 1 }}>
+                            <NumericInput
+                                label="Refinance Costs ($):"
+                                value={refinanceCost}
+                                onChangeText={setRefinanceCost}
+                                placeholder="ex. $1000"
+                            />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <NumericInput
+                                label="New Interest Rate (%):"
+                                value={newInterest}
+                                onChangeText={setNewInterest}
+                                placeholder="ex. 5%"
+                                isRequired={true}
+                            />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                            <LoanTerm
+                                label="New Loan Term (yrs):"
+                                value={newloanTerm}
+                                onValueChange={(itemValue) => setnewLoanTerm(itemValue)}
+                            />
+                        </View>
+                    </View>
+                    <ExpenseArray onDataChange={handleExpenseDataChange}/>
                     <View style={styles.buttonSpaceholder} />
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -309,9 +398,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 3,
         elevation: 5, // for Android shadow
-    },
-    inputContainer: {
-        alignItems: 'flex-start',
     },
     rowCont: {
         flexDirection: 'row',

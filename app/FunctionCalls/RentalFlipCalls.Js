@@ -5,19 +5,19 @@ export const firstTranslation = (inputValues, navigation, destinationScreen) => 
   // Destructure inputValues with default values
   const {
     purchasePrice = '0',
-    downPayment = '0',
+    downPayment = { value: '0', isDollar: false },
     interestRate = '0',
     loanTerm = '30',
-    propertyTax = '0',
+    propertyTax = { value: '0', isDollar: false },
     propertyInsurance = '0',
-    capexEst = '0',
+    capexEst = { value: '0', isDollar: false },
     expenseArray = [],
     rehabCost = '0',
-    closingCost = '0',
+    closingCost = { value: '0', isDollar: false },
     monthRent = '0',
     afterRev = '0',
     rehabTime = '0',
-    agentCommish = '0'
+    agentCommish = { value: '0', isDollar: false }
   } = inputValues;
 
   // Helper function to convert to number and default to 0 if empty
@@ -26,15 +26,15 @@ export const firstTranslation = (inputValues, navigation, destinationScreen) => 
   // Call ExpenseFunction
   const expenseResults = expenses(
     toNumber(purchasePrice),
-    toNumber(downPayment),
+    downPayment,
     toNumber(interestRate),
     toNumber(loanTerm),
-    toNumber(propertyTax),
+    propertyTax,
     toNumber(propertyInsurance),
-    toNumber(capexEst),
+    capexEst,
     expenseArray.map(toNumber),
     toNumber(rehabCost),
-    toNumber(closingCost),
+    closingCost,
     toNumber(monthRent),
     toNumber(rehabTime)
   );
@@ -43,31 +43,12 @@ export const firstTranslation = (inputValues, navigation, destinationScreen) => 
   const outputResults = outputs(
     toNumber(afterRev),
     toNumber(rehabTime),
-    toNumber(agentCommish),
+    agentCommish,
     toNumber(monthRent),
     toNumber(purchasePrice),
     expenseResults[2], // cashDown
     expenseResults[1]  // monthlyCost
   );
-
-  // Log the results
-  // console.log('Expense Function Results:', {
-  //   mortgageCost: expenseResults[0],
-  //   monthlyCost: expenseResults[1],
-  //   cashDown: expenseResults[2],
-  //   monthEx: expenseResults[3]
-  // });
-
-  // console.log('Core Outputs Results:', {
-  //   totalProfit: outputResults[0],
-  //   returnPerc: outputResults[1],
-  //   cashROI: outputResults[2],
-  //   cashflow: outputResults[3],
-  //   annualCashflow: outputResults[4],
-  //   cashOnCash: outputResults[5],
-  //   capRate: outputResults[6],
-  //   monthsTillEven: outputResults[7]
-  // });
 
   // Navigate to the specified destination screen with the calculated values
   navigation.navigate(destinationScreen, {
@@ -86,15 +67,15 @@ export const firstTranslation = (inputValues, navigation, destinationScreen) => 
     totalCashCost: outputResults[8],
     inputValues: {
       purchasePrice: toNumber(purchasePrice),
-      downPayment: toNumber(downPayment),
+      downPayment,
       interestRate: toNumber(interestRate),
       loanTerm: toNumber(loanTerm),
-      propertyTax: toNumber(propertyTax),
+      propertyTax,
       propertyInsurance: toNumber(propertyInsurance),
-      capexEst: toNumber(capexEst),
+      capexEst,
       expenseArray: expenseArray.map(toNumber),
       rehabCost: toNumber(rehabCost),
-      closingCost: toNumber(closingCost),
+      closingCost,
       monthRent: toNumber(monthRent),
       afterRev: toNumber(afterRev),
       rehabTime: toNumber(rehabTime),

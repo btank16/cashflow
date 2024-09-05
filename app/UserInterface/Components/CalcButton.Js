@@ -6,6 +6,8 @@ import colors from '../Colors/colors.Js'
 const CalcButton = ({ title, onPress, destination, style, disabled }) => {
   const navigation = useNavigation();
 
+  //Function to allow you to press the button and nothing happens
+  //This allows the button to be "inactive"
   const handlePress = () => {
     if (onPress) {
       onPress();
@@ -16,6 +18,8 @@ const CalcButton = ({ title, onPress, destination, style, disabled }) => {
   };
 
   return (
+    //Adjusts the style based on the status of disabled
+    //The "style" and "title" props allow custom settings on each screen
     <TouchableOpacity 
       style={[styles.button, style, disabled ? styles.disabledButton : null]} 
       onPress={handlePress}

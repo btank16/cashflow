@@ -56,6 +56,7 @@ export const firstTranslation = (inputValues, navigation, destinationScreen) => 
     monthlyCost: expenseResults[1],
     cashDown: expenseResults[2],
     monthEx: expenseResults[3],
+    DSCR: expenseResults[5],
     totalProfit: outputResults[0],
     returnPerc: outputResults[1],
     cashROI: outputResults[2],

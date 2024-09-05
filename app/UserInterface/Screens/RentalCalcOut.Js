@@ -27,6 +27,11 @@ function RentalCalcOut(props) {
         return isNaN(number) ? '0.00%' : number.toFixed(2) + '%';
       };
 
+      const formatDSCR = (value) => {
+        const number = parseFloat(value);
+        return isNaN(number) ? '0.00' : number.toFixed(2);
+      };
+
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
@@ -39,6 +44,7 @@ function RentalCalcOut(props) {
             <ScrollView style={styles.contentContainer}>
                 <CustomTitle title="Rental Output" />                           
                 <ResultDisplay label="Cash Down" value={formatDollar(results.cashDown)} />
+                <ResultDisplay label="Debt Service Coverage Ratio (DSCR)" value={formatDSCR(results.DSCR)} />
                 <ResultDisplay label="Mortgage Cost" value={formatDollar(results.mortgageCost)} />
                 <ResultDisplay label="Monthly Expenses" value={formatDollar(results.monthEx)} />
                 <ResultDisplay label="Total Monthly Costs" value={formatDollar(results.monthlyCost)} />

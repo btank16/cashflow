@@ -77,6 +77,10 @@ export const expenses = (
   const MonthEx = monthlyPropTax + monthlyPropInsurance + monthlyCapEx + totalMonthlyExpenses;
   const MonthlyCost = (
     parseFloat(MortgageCost) + MonthEx).toFixed(2);
+  
+  // Calculate DSCR
+  const DSCRexpense = parseFloat(MortgageCost) + monthlyPropTax;
+  const DSCR = Number(MonthRent) / DSCRexpense;
 
   // Calculate cash down (down payment + rehab cost + closing costs)
   let closingCostTotal;
@@ -87,5 +91,5 @@ export const expenses = (
   }
   const CashDown = (DownPayment + RehabCost + closingCostTotal).toFixed(2);
 
-  return [MortgageCost, MonthlyCost, CashDown, MonthEx.toFixed(2), PrincipalAmt.toFixed(2)];
+  return [MortgageCost, MonthlyCost, CashDown, MonthEx.toFixed(2), PrincipalAmt.toFixed(2), DSCR];
 };

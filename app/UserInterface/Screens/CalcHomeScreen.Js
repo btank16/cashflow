@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text, TouchableOpacity, Image } from "react-native";
 import { useNavigation } from '@react-navigation/native';
+import { ClockIcon, UserIcon } from 'react-native-heroicons/outline';
 import colors from '../Colors/colors.Js';
 import NavBar from '../Components/NavBar.Js';
 import CommonStyles from '../Colors/CommonStyles.Js';
@@ -19,7 +20,18 @@ function CalcHomeScreen(props) {
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
-                <Image source={require('../../assets/CashflowText.png')} style={CommonStyles.logo} />
+                <TouchableOpacity style={styles.iconContainer}>
+                    <UserIcon color={colors.primary} size={24} />
+                </TouchableOpacity>
+                <View style={styles.logoWrapper}>
+                    <Image source={require('../../assets/CashflowText.png')} style={styles.logo} resizeMode="contain" />
+                </View>
+                <TouchableOpacity 
+                    style={styles.iconContainer}
+                    onPress={() => navigation.navigate('HistoryScreen')}
+                >
+                    <ClockIcon color={colors.primary} size={24} />
+                </TouchableOpacity>
             </View>
             <View style={styles.contentContainer}>
                 {buttons.map((button, index) => (
@@ -55,6 +67,7 @@ const styles = StyleSheet.create({
     logoContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'space-between',
         height: 56,
         backgroundColor: colors.background,
         borderBottomWidth: 1,
@@ -67,6 +80,22 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 3,
         elevation: 5, // for Android shadow
+        paddingHorizontal: 16,
+    },
+    iconContainer: {
+        padding: 8,
+        width: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    logoWrapper: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    logo: {
+        height: 40,
+        width: '100%',
     },
     contentContainer: {
         flex: 8,

@@ -12,6 +12,7 @@ import CommonStyles from '../Colors/CommonStyles.Js';
 import CustomTitle from '../Components/CustomTitle.Js';
 import SwitchableNumericInput from '../Components/SwitchableNumericInput.Js';
 import LoanTerm from '../Components/LoanTerm.Js';
+import { useDatabase } from '../../../database/cashflowDatabase.Js';
 
 function RentalCalcIn(props) {
     const navigation = useNavigation();
@@ -32,6 +33,7 @@ function RentalCalcIn(props) {
         propertyTax: { value: '', isDollar: false },
         capexEst: { value: '', isDollar: false }
     });
+    const { saveCalculation } = useDatabase();
 
     useEffect(() => {
         checkFormValidity();
@@ -121,8 +123,8 @@ function RentalCalcIn(props) {
         }));
     };
 
-    const onCalculatePress = () => {
-        firstTranslation({
+    const onCalculatePress = async () => {
+        const inputValues = {
             purchasePrice,
             downPayment: switchableInputs.downPayment,
             interestRate,
@@ -133,7 +135,18 @@ function RentalCalcIn(props) {
             expenseArray,
             rehabCost,
             monthRent
-        }, navigation, resultScreen);
+        };
+
+        const results = await firstTranslation(inputValues);
+
+        // Save the calculation to the database
+        await saveCalculation('rental', inputValues, results);
+
+        // Navigate to the result screen
+        navigation.navigate(resultScreen, {
+            inputValues,
+            ...results
+        });
     };
 
     return (

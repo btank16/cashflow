@@ -1,7 +1,7 @@
 import { expenses } from '../Calculations/ExpenseFunction.Js';
 import { outputs } from '../Calculations/CoreOutputs.Js';
 
-export const firstTranslation = (inputValues, navigation, destinationScreen) => {
+export const firstTranslation = (inputValues) => {
   // Destructure inputValues with default values
   const {
     purchasePrice = '0',
@@ -50,8 +50,8 @@ export const firstTranslation = (inputValues, navigation, destinationScreen) => 
     expenseResults[1]  // monthlyCost
   );
 
-  // Navigate to the specified destination screen with the calculated values
-  navigation.navigate(destinationScreen, {
+  // Return the results instead of navigating
+  return {
     mortgageCost: expenseResults[0],
     monthlyCost: expenseResults[1],
     cashDown: expenseResults[2],
@@ -80,7 +80,7 @@ export const firstTranslation = (inputValues, navigation, destinationScreen) => 
       monthRent: toNumber(monthRent),
       afterRev: toNumber(afterRev),
       rehabTime: toNumber(rehabTime),
-      agentCommish: toNumber(agentCommish)
+      agentCommish
     }
-  });
+  };
 };

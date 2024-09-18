@@ -1,31 +1,16 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import AppNavigator from './AppNavigator.Js';
-import { initHistoryDB } from './database/historyDatabase.Js';
-import { initExpenseDB } from './database/expenseDatabase.Js';
+import { SQLiteProvider } from 'expo-sqlite';
+import { initHistoryDB } from './database/cashflowDatabase.Js';
 
 function App() {
-
-  useEffect(() => {
-    const setupDatabases = async () => {
-      try {
-        await initHistoryDB();
-        console.log('History database initialized successfully');
-        
-        await initExpenseDB();
-        console.log('Expense database initialized successfully');
-      } catch (error) {
-        console.error('Database initialization failed:', error);
-      }
-    };
-
-    setupDatabases();
-  }, []);
-
   return (
-    <NavigationContainer>
-      <AppNavigator />
-    </NavigationContainer>
+    <SQLiteProvider databaseName="cashflow.db" onInit={initHistoryDB}>
+      <NavigationContainer>
+        <AppNavigator />
+      </NavigationContainer>
+    </SQLiteProvider>
   );
 }
 

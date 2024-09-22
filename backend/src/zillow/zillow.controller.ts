@@ -1,6 +1,9 @@
 import { Controller, Get, HttpException, HttpStatus, Req } from '@nestjs/common';
 import { ZillowService } from './zillow.service';
 
+/**
+ * Controller for handling requests to the Zillow API
+ */
 @Controller('zillow')
 export class ZillowController {
     constructor(private readonly zillowService: ZillowService) {}

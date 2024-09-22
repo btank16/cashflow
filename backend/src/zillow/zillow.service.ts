@@ -3,6 +3,9 @@ import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
 import { catchError, firstValueFrom } from 'rxjs';
 
+/**
+ * Service for handling requests to the Zillow API
+ */
 @Injectable()
 export class ZillowService {
     
@@ -14,6 +17,11 @@ export class ZillowService {
     
     /**
      * Sends a GET request to the Zillow API to fetch the latest mortgage rates
+     * This is an asynchronous method which means it doesn't block the thread while waiting for a response
+     * from the Zillow API. A Promise is a type of variable that is used by asynchronous methods to return a value
+     * in the future when it is received.
+     * 
+     * The method also handles and logs errors that occur during the HTTP request
      * https://www.zillowgroup.com/developers/api/mortgage/get-current-rates/
      * @returns a Promise containing an object
      */

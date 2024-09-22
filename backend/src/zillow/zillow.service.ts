@@ -17,15 +17,29 @@ export class ZillowService {
      * https://www.zillowgroup.com/developers/api/mortgage/get-current-rates/
      * @returns a Promise containing an object
      */
-    async getCurrentRates(options): Promise<object> {
-        const { data } = await firstValueFrom(
-            this.httpService.get<object>(this.MORTGAGE_API, options).pipe(
-                catchError((error: AxiosError) => {
-                    this.logger.error(error.response.data);
-                    throw 'An error occurred!';
-                }),
-            ),
-        );
-        return data;
+    // async getCurrentRates(options): Promise<object> {
+    //     const { data } = await firstValueFrom(
+    //         this.httpService.get<object>(this.MORTGAGE_API, options).pipe(
+    //             catchError((error: AxiosError) => {
+    //                 this.logger.error(error.response.data);
+    //                 throw 'An error occurred!';
+    //             }),
+    //         ),
+    //     );
+    //     return data;
+    // }
+
+    /**
+     * this method can be used for testing. It prints out a log containing the options parameters
+     * and returns an object containing a message and the options parameters
+     * @param options 
+     * @returns 
+     */
+    getCurrentRates(options): object {
+        this.logger.log(options);
+        return {
+            message: "success",
+            options: options
+        }
     }
 }

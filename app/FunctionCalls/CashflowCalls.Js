@@ -1,6 +1,6 @@
 import { PriceSuggestion } from '../Calculations/SuggestPrice.Js';
 
-export const thirdTranslation = (inputValues, navigation, destinationScreen) => {
+export const thirdTranslation = (inputValues) => {
   // Destructure inputValues with default values
   const {
     monthCashflow = '0',
@@ -35,7 +35,7 @@ export const thirdTranslation = (inputValues, navigation, destinationScreen) => 
   );
 
   // Navigate to the specified destination screen with the calculated values
-  navigation.navigate(destinationScreen, {
+  return {
     TargetPrice: cashflowResults[0],
     NetZeroPrice: cashflowResults[1],
     netZeroCash: cashflowResults[2],
@@ -55,5 +55,5 @@ export const thirdTranslation = (inputValues, navigation, destinationScreen) => 
       closingCost,
       rehabCost: toNumber(rehabCost)
     }
-  });
+  };
 };

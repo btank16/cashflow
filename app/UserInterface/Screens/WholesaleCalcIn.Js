@@ -10,6 +10,7 @@ import HomeButton from '../Components/HomeButton.Js';
 import CommonStyles from '../Colors/CommonStyles.Js';
 import CustomTitle from '../Components/CustomTitle.Js';
 import { fourthTranslation } from '../../FunctionCalls/WholesaleCalls.Js';
+import { useDatabase } from '../../../database/cashflowDatabase.Js';
 
 function WholesaleCalcIn(props) {
     const navigation = useNavigation();
@@ -22,7 +23,7 @@ function WholesaleCalcIn(props) {
     const scrollViewRef = useRef();
     const [resultScreen, setResultScreen] = useState('WholesaleCalcOut');
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-
+    const { saveCalculation } = useDatabase();
 
     useEffect(() => {
         checkFormValidity();
@@ -75,13 +76,24 @@ function WholesaleCalcIn(props) {
     };
 
 
-    const onCalculatePress = () => {
-        fourthTranslation({
+    const onCalculatePress = async () => {
+        const inputValues = {
             purchasePrice,
             expenseArray,
             rehabCost,
             afterRev
-        }, navigation, resultScreen);
+        };
+
+        const results = await fourthTranslation(inputValues);
+
+        // Save the calculation to the database
+        await saveCalculation('wholesale', inputValues, results);
+
+        // Navigate to the result screen
+        navigation.navigate(resultScreen, {
+            inputValues,
+            ...results
+        });
     };
 
     return (

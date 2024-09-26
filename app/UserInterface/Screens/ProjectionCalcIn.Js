@@ -12,6 +12,7 @@ import HomeButton from '../Components/HomeButton.Js';
 import CommonStyles from '../Colors/CommonStyles.Js';
 import CustomTitle from '../Components/CustomTitle.Js';
 import SwitchableNumericInput from '../Components/SwitchableNumericInput.Js';
+import { useDatabase } from '../../../database/cashflowDatabase.Js';
 
 function ProjectionCalcIn(props) {
     const navigation = useNavigation();
@@ -33,6 +34,7 @@ function ProjectionCalcIn(props) {
         closingCost: { value: '', isDollar: false },
         capexEst: { value: '', isDollar: false }
     });
+    const { saveCalculation } = useDatabase();
 
     useEffect(() => {
         checkFormValidity();
@@ -120,8 +122,8 @@ function ProjectionCalcIn(props) {
         }));
     };
 
-      const onCalculatePress = () => {
-        thirdTranslation({
+      const onCalculatePress = async () => {
+        const inputValues = {
             monthCashflow,
             downPayment,
             interestRate,
@@ -132,8 +134,19 @@ function ProjectionCalcIn(props) {
             monthRent,
             closingCost: switchableInputs.closingCost,
             rehabCost
-        }, navigation, resultScreen);
-      };
+        };
+
+        const results = await thirdTranslation(inputValues);
+
+        // Save the calculation to the database
+        await saveCalculation('projection', results.inputValues, results);
+
+        // Navigate to the result screen
+        navigation.navigate(resultScreen, {
+            inputValues,
+            ...results
+        });
+    };
 
     return (
         <SafeAreaView style={styles.masterBackground}>

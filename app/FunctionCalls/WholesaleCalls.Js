@@ -1,6 +1,6 @@
 import { wholesalefunction } from '../Calculations/WholesalingFunction.Js';
 
-export const fourthTranslation = (inputValues, navigation, destinationScreen) => {
+export const fourthTranslation = (inputValues) => {
   // Destructure inputValues with default values
   const {
     purchasePrice = '0',
@@ -21,7 +21,7 @@ export const fourthTranslation = (inputValues, navigation, destinationScreen) =>
   );
 
   // Navigate to the specified destination screen with the calculated values
-  navigation.navigate(destinationScreen, {
+  return {
     maximumAllowableOffer: wholesaleResults[0],
     totalExpenses: wholesaleResults[1],
     fee5Perc: wholesaleResults[2],
@@ -34,5 +34,5 @@ export const fourthTranslation = (inputValues, navigation, destinationScreen) =>
       rehabCost: toNumber(rehabCost),
       afterRev: toNumber(afterRev),
     }
-  });
+  };
 };

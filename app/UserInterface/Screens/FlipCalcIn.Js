@@ -6,12 +6,14 @@ import NavBar from '../Components/NavBar.Js';
 import NumericInput from '../Components/NumericInputBox.Js';
 import ExpenseArray from '../Components/ExpenseArray.Js';
 import CalcButton from '../Components/CalcButton.Js';
-import { firstTranslation } from '../../FunctionCalls/RentalFlipCalls.Js';
 import HomeButton from '../Components/HomeButton.Js';
 import CommonStyles from '../Colors/CommonStyles.Js';
 import CustomTitle from '../Components/CustomTitle.Js';
 import SwitchableNumericInput from '../Components/SwitchableNumericInput.Js';
 import LoanTerm from '../Components/LoanTerm.Js';
+import { useDatabase } from '../../../database/cashflowDatabase.Js';
+import { expenses } from '../../Calculations/ExpenseFunction.Js';
+import { outputs } from '../../Calculations/CoreOutputs.Js';
 
 function FlipCalcIn(props) {
     const navigation = useNavigation();
@@ -37,6 +39,8 @@ function FlipCalcIn(props) {
         propertyTax: { value: '', isDollar: false },
         agentCommish: { value: '', isDollar: false }
     });
+
+    const { saveCalculation } = useDatabase();
 
     useEffect(() => {
         checkFormValidity();
@@ -132,21 +136,84 @@ function FlipCalcIn(props) {
         }));
     };
 
-      const onCalculatePress = () => {
-        firstTranslation({
-          purchasePrice,
-          downPayment: switchableInputs.downPayment,
-          interestRate,
-          loanTerm,
-          propertyTax: switchableInputs.propertyTax,
-          expenseArray,
-          rehabCost,
-          closingCost: switchableInputs.closingCost,
-          afterRev,
-          rehabTime,
-          agentCommish: switchableInputs.agentCommish,
-        }, navigation, resultScreen);
-      };
+    const onCalculatePress = async () => {
+        const toNumber = (value) => value === '' ? 0 : Number(value);
+
+        const inputValues = {
+            purchasePrice: toNumber(purchasePrice),
+            downPayment: switchableInputs.downPayment,
+            interestRate: toNumber(interestRate),
+            loanTerm: toNumber(loanTerm),
+            propertyTax: switchableInputs.propertyTax,
+            closingCost: switchableInputs.closingCost,
+            expenseArray: expenseArray.map(toNumber),
+            rehabCost: toNumber(rehabCost),
+            afterRev: toNumber(afterRev),
+            rehabTime: toNumber(rehabTime),
+            agentCommish: switchableInputs.agentCommish,
+            // Add default values for missing properties
+            propertyInsurance: 0,
+            capexEst: { value: '0', isDollar: false },
+            monthRent: 0
+        };
+
+        // Call ExpenseFunction
+        const expenseResults = expenses(
+            inputValues.purchasePrice,
+            inputValues.downPayment,
+            inputValues.interestRate,
+            inputValues.loanTerm,
+            inputValues.propertyTax,
+            inputValues.propertyInsurance,
+            inputValues.capexEst,
+            inputValues.expenseArray,
+            inputValues.rehabCost,
+            inputValues.closingCost,
+            inputValues.monthRent,
+            inputValues.rehabTime
+        );
+
+        // Call CoreOutputs function
+        const outputResults = outputs(
+            inputValues.afterRev,
+            inputValues.rehabTime,
+            inputValues.agentCommish,
+            inputValues.monthRent,
+            inputValues.purchasePrice,
+            expenseResults[2], // cashDown
+            expenseResults[1]  // monthlyCost
+        );
+
+        const results = {
+            mortgageCost: expenseResults[0],
+            monthlyCost: expenseResults[1],
+            cashDown: expenseResults[2],
+            monthEx: expenseResults[3],
+            DSCR: expenseResults[5],
+            totalProfit: outputResults[0],
+            returnPerc: outputResults[1],
+            cashROI: outputResults[2],
+            cashflow: outputResults[3],
+            annualCashflow: outputResults[4],
+            cashOnCash: outputResults[5],
+            capRate: outputResults[6],
+            monthsTillEven: outputResults[7],
+            totalCashCost: outputResults[8],
+        };
+
+        // Save the calculation to the database using expo-sqlite/next notation
+        try {
+            await saveCalculation('flip', inputValues, results);
+        } catch (error) {
+            console.error('Error saving calculation to database:', error);
+        }
+
+        // Navigate to the result screen
+        navigation.navigate(resultScreen, {
+            inputValues,
+            ...results
+        });
+    };
 
     return (
         <SafeAreaView style={styles.masterBackground}>

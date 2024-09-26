@@ -6,12 +6,14 @@ import NavBar from '../Components/NavBar.Js';
 import NumericInput from '../Components/NumericInputBox.Js';
 import ExpenseArray from '../Components/ExpenseArray.Js';
 import CalcButton from '../Components/CalcButton.Js';
-import { secondTranslation } from '../../FunctionCalls/BRRRCalls.Js';
+import { expenses } from '../../Calculations/ExpenseFunction.Js';
+import { BuyRefi } from '../../Calculations/BRRROutput.Js';
 import LoanTerm from '../Components/LoanTerm.Js';
 import HomeButton from '../Components/HomeButton.Js';
 import CommonStyles from '../Colors/CommonStyles.Js';
 import CustomTitle from '../Components/CustomTitle.Js';
 import SwitchableNumericInput from '../Components/SwitchableNumericInput.Js';
+import { useDatabase } from '../../../database/cashflowDatabase.Js';
 
 function BRRCalcIn(props) {
     const navigation = useNavigation();
@@ -42,7 +44,8 @@ function BRRCalcIn(props) {
         BRRcapexEst: { value: '', isDollar: false }
     });
     
-
+    const { saveCalculation } = useDatabase();
+    
     useEffect(() => {
         checkFormValidity();
 
@@ -142,25 +145,87 @@ function BRRCalcIn(props) {
         }));
     };
 
-    const onCalculatePress = () => {
-        secondTranslation({
-            purchasePrice,
+    const onCalculatePress = async () => {
+        const toNumber = (value) => value === '' ? 0 : Number(value);
+
+        const inputValues = {
+            purchasePrice: toNumber(purchasePrice),
             downPayment: switchableInputs.downPayment,
-            interestRate,
-            loanTerm,
+            interestRate: toNumber(interestRate),
+            loanTerm: toNumber(loanTerm),
             propertyTax: switchableInputs.propertyTax,
             BRRcapexEst: switchableInputs.BRRcapexEst,
-            expenseArray,
-            rehabCost,
+            expenseArray: expenseArray.map(toNumber),
+            rehabCost: toNumber(rehabCost),
             closingCost: switchableInputs.closingCost,
-            BRRmonthRent,
-            afterRev,
-            rehabTime,
-            refinanceCost,
-            newInterest,
-            newloanTerm
-        }, navigation, resultScreen);
-      };
+            BRRmonthRent: toNumber(BRRmonthRent),
+            afterRev: toNumber(afterRev),
+            rehabTime: toNumber(rehabTime),
+            refinanceCost: toNumber(refinanceCost),
+            newInterest: toNumber(newInterest),
+            newloanTerm: toNumber(newloanTerm)
+        };
+
+        // Call expenses function for initial loan
+        const initialExpenseResults = expenses(
+            inputValues.purchasePrice,
+            inputValues.downPayment,
+            inputValues.interestRate,
+            inputValues.loanTerm,
+            inputValues.propertyTax,
+            0, // propertyInsurance (not used in BRRR calc)
+            inputValues.BRRcapexEst,
+            inputValues.expenseArray,
+            inputValues.rehabCost,
+            inputValues.closingCost,
+            0, //We do not want the rent to be applied here
+            inputValues.rehabTime
+        );
+
+        // Call BuyRefi function
+        const buyRefiResults = BuyRefi(
+            inputValues.purchasePrice,
+            inputValues.refinanceCost,
+            inputValues.newInterest,
+            inputValues.afterRev,
+            inputValues.rehabTime,
+            inputValues.BRRmonthRent,
+            inputValues.BRRcapexEst,
+            initialExpenseResults[2], // cashDown
+            initialExpenseResults[0],  // mortgageCost
+            initialExpenseResults[1], // monthlyCost
+            initialExpenseResults[3],  // monthEx
+            inputValues.newloanTerm,
+            initialExpenseResults[4]  // PrincipalAmt
+        );
+
+        const results = {
+            mortgageCost: initialExpenseResults[0],
+            monthlyCost: initialExpenseResults[1],
+            cashDown: initialExpenseResults[2],
+            monthEx: initialExpenseResults[3],
+            BRRMortgageCost: buyRefiResults[0],
+            BRRMonthlyCost: buyRefiResults[1],
+            BRRCashflow: buyRefiResults[2],
+            BRRAnnualCashflow: buyRefiResults[3],
+            MaxEquity: buyRefiResults[4],
+            EquityReturn: buyRefiResults[5],
+            EquityReturnPerc: buyRefiResults[6]
+        };
+
+        // Save the calculation to the database using expo-sqlite/next notation
+        try {
+            await saveCalculation('brrr', inputValues, results);
+        } catch (error) {
+            console.error('Error saving calculation to database:', error);
+        }
+
+        // Navigate to the result screen
+        navigation.navigate(resultScreen, {
+            inputValues,
+            ...results
+        });
+    };
 
     const handleExpenseDataChange = (costValues) => {
         setExpenseArray(costValues);

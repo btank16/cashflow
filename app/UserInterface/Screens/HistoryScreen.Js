@@ -46,7 +46,7 @@ function HistoryScreen() {
         style={styles.item}
         onPress={() => navigation.navigate(getNavigationScreen(item.calculator_type), {
           inputValues: calculationData,
-          ...resultsData
+          ...resultsData  // Spread the results data
         })}
       >
         <Text style={styles.title}>{item.calculator_type} Calculation</Text>

@@ -1,7 +1,7 @@
 import { expenses } from '../Calculations/ExpenseFunction.Js';
 import { BuyRefi } from '../Calculations/BRRROutput.Js';
 
-export const secondTranslation = (inputValues, navigation, destinationScreen) => {
+export const secondTranslation = (inputValues) => {
   // Destructure inputValues with default values
   const {
     purchasePrice = '0',
@@ -63,7 +63,7 @@ export const secondTranslation = (inputValues, navigation, destinationScreen) =>
 
   // Navigate to the specified destination screen with the calculated values
   //Sets variables using the notation to call variables from the output of the function
-  navigation.navigate(destinationScreen, {
+  return {
     mortgageCost: expenseResults[0],
     monthlyCost: expenseResults[1],
     cashDown: expenseResults[2],
@@ -77,20 +77,20 @@ export const secondTranslation = (inputValues, navigation, destinationScreen) =>
     EquityReturnPerc: outputResults[6],
     inputValues: {
       purchasePrice: toNumber(purchasePrice),
-      downPayment: toNumber(downPayment),
+      downPayment,
       interestRate: toNumber(interestRate),
       loanTerm: toNumber(loanTerm),
-      propertyTax: toNumber(propertyTax),
+      propertyTax,
       propertyInsurance: toNumber(propertyInsurance),
-      BRRcapexEst: toNumber(BRRcapexEst),
+      BRRcapexEst,
       expenseArray: expenseArray.map(toNumber),
       rehabCost: toNumber(rehabCost),
-      closingCost: toNumber(closingCost),
+      closingCost,
       BRRmonthRent: toNumber(BRRmonthRent),
       afterRev: toNumber(afterRev),
       rehabTime: toNumber(rehabTime),
       refinanceCost: toNumber(refinanceCost),
       newInterest: toNumber(newInterest)
     }
-  });
+  };
 };

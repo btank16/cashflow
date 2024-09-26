@@ -1,5 +1,5 @@
-import React, {useEffect} from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text , ScrollView, Image } from "react-native";
+import React from 'react';
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, Image } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
@@ -23,10 +23,10 @@ function FlipCalcOut(props) {
         });
       };
     
-      const formatPercent = (value) => {
+    const formatPercent = (value) => {
         const number = parseFloat(value);
         return isNaN(number) ? '0.00%' : number.toFixed(2) + '%';
-      };
+    };
 
     return (
         <SafeAreaView style={styles.masterBackground}>

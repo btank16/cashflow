@@ -12,7 +12,7 @@ import CustomTitle from '../Components/CustomTitle.Js';
 function ProjectionCalcOut(props) {
     const navigation = useNavigation();
     const route = useRoute();
-    const { inputValues, ...results } = route.params;
+    const { inputValues, results } = route.params;
     const { monthCashflow } = inputValues;
 
     const targetPriceNum = Number(parseFloat(results.TargetPrice).toFixed(2));

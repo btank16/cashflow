@@ -35,6 +35,7 @@ function ProjectionCalcIn(props) {
         capexEst: { value: '', isDollar: false }
     });
     const { saveCalculation } = useDatabase();
+    const [calculationId, setCalculationId] = useState(null);
 
     useEffect(() => {
         checkFormValidity();
@@ -61,26 +62,28 @@ function ProjectionCalcIn(props) {
     useEffect(() => {
         if (route.params?.inputValues) {
             const {
+                id,
                 monthCashflow,
                 downPayment,
                 interestRate,
                 propertyTax,
                 loanTerm,
                 monthRent,
-                // capexEst,
                 expenseArray,
                 closingCost,
-                capexEst
+                capexEst,
+                rehabCost 
             } = route.params.inputValues;
 
+            setCalculationId(id);
             setMonthCashflow(monthCashflow?.toString() || '');
             setDownPayment(downPayment?.toString() || '');
             setInterestRate(interestRate?.toString() || '');
             setPropertyTax(propertyTax?.toString() || '');
             setLoanTerm(loanTerm?.toString() || '30');
             setMonthRent(monthRent?.toString() || '');
-            // setCapexEst(capexEst?.toString() || '');
             setExpenseArray(expenseArray || ['', '', '']);
+            setRehabCost(rehabCost?.toString() || '');
            
             setSwitchableInputs(prevInputs => ({
                 ...prevInputs,
@@ -128,6 +131,7 @@ function ProjectionCalcIn(props) {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
         const inputValues = {
+            id: calculationId,
             monthCashflow: toNumber(monthCashflow),
             downPayment: toNumber(downPayment),
             interestRate: toNumber(interestRate),

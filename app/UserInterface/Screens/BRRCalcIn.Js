@@ -45,6 +45,7 @@ function BRRCalcIn(props) {
     });
     
     const { saveCalculation } = useDatabase();
+    const [calculationId, setCalculationId] = useState(null);
     
     useEffect(() => {
         checkFormValidity();
@@ -71,6 +72,7 @@ function BRRCalcIn(props) {
     useEffect(() => {
         if (route.params?.inputValues) {
             const {
+                id,
                 purchasePrice,
                 downPayment,
                 interestRate,
@@ -88,6 +90,7 @@ function BRRCalcIn(props) {
                 newInterest
             } = route.params.inputValues;
 
+            setCalculationId(id);
             setPurchasePrice(purchasePrice?.toString() || '');
             // setDownPayment(downPayment?.toString() || '');
             setInterestRate(interestRate?.toString() || '');
@@ -149,6 +152,7 @@ function BRRCalcIn(props) {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
         const inputValues = {
+            id: calculationId,
             purchasePrice: toNumber(purchasePrice),
             downPayment: switchableInputs.downPayment,
             interestRate: toNumber(interestRate),

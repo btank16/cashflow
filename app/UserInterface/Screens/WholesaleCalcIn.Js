@@ -24,6 +24,7 @@ function WholesaleCalcIn(props) {
     const [resultScreen, setResultScreen] = useState('WholesaleCalcOut');
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
     const { saveCalculation } = useDatabase();
+    const [calculationId, setCalculationId] = useState(null);
 
     useEffect(() => {
         checkFormValidity();
@@ -50,6 +51,7 @@ function WholesaleCalcIn(props) {
     useEffect(() => {
         if (route.params?.inputValues) {
             const {
+                id,
                 purchasePrice,
                 afterRev,
                 rehabCost,
@@ -60,6 +62,7 @@ function WholesaleCalcIn(props) {
             setAfterRev(afterRev?.toString() || '');
             setRehabCost(rehabCost?.toString() || '');
             setExpenseArray(expenseArray || ['', '', '']);
+            setCalculationId(id);
         }
     }, [route.params?.inputValues]);
 
@@ -79,6 +82,7 @@ function WholesaleCalcIn(props) {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
         const inputValues = {
+            id: calculationId,
             purchasePrice: toNumber(purchasePrice),
             expenseArray: expenseArray.map(toNumber),
             rehabCost: toNumber(rehabCost),

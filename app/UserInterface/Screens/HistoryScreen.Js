@@ -45,8 +45,11 @@ function HistoryScreen() {
       <TouchableOpacity 
         style={styles.item}
         onPress={() => navigation.navigate(getNavigationScreen(item.calculator_type), {
-          inputValues: calculationData,
-          ...resultsData  // Spread the results data
+          inputValues: {
+            ...calculationData,
+            id: item.id // Include the id when navigating to the input screen
+          },
+          ...resultsData
         })}
       >
         <Text style={styles.title}>{item.calculator_type} Calculation</Text>

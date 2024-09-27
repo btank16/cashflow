@@ -20,18 +20,37 @@ export const initHistoryDB = async (db) => {
   `);
 };
 
-export const useDatabase = () => {
+export function useDatabase() {
   const db = useSQLiteContext();
 
   const saveCalculation = async (calculatorType, inputValues, results) => {
-    const date = new Date().toISOString();
-    const inputValuesJSON = JSON.stringify(inputValues);
-    const resultsJSON = JSON.stringify(results);
-
-    return db.runAsync(
-      'INSERT INTO calculations_history (date, calculator_type, input_values, results) VALUES (?, ?, ?, ?)',
-      [date, calculatorType, inputValuesJSON, resultsJSON]
-    );
+    if (inputValues.id) {
+      // If an id exists, update the existing calculation
+      await db.runAsync(
+        `UPDATE calculations_history 
+         SET input_values = ?, results = ?, date = ? 
+         WHERE id = ? AND calculator_type = ?`,
+        [
+          JSON.stringify(inputValues),
+          JSON.stringify(results),
+          new Date().toISOString(),
+          inputValues.id,
+          calculatorType
+        ]
+      );
+    } else {
+      // If no id exists, insert a new calculation
+      await db.runAsync(
+        `INSERT INTO calculations_history (calculator_type, input_values, results, date) 
+         VALUES (?, ?, ?, ?)`,
+        [
+          calculatorType,
+          JSON.stringify(inputValues),
+          JSON.stringify(results),
+          new Date().toISOString()
+        ]
+      );
+    }
   };
 
   const saveExpense = async (name, amount, frequency, applicableCalculators) => {
@@ -73,4 +92,4 @@ export const useDatabase = () => {
     deleteCalculation,
     deleteExpense
   };
-};
+}

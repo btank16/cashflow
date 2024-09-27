@@ -39,8 +39,8 @@ function FlipCalcIn(props) {
         propertyTax: { value: '', isDollar: false },
         agentCommish: { value: '', isDollar: false }
     });
-
     const { saveCalculation } = useDatabase();
+    const [calculationId, setCalculationId] = useState(null);
 
     useEffect(() => {
         checkFormValidity();
@@ -67,6 +67,7 @@ function FlipCalcIn(props) {
     useEffect(() => {
         if (route.params?.inputValues) {
             const {
+                id,
                 purchasePrice,
                 downPayment,
                 interestRate,
@@ -80,6 +81,7 @@ function FlipCalcIn(props) {
                 agentCommish
             } = route.params.inputValues;
 
+            setCalculationId(id);
             setPurchasePrice(purchasePrice?.toString() || '');
             // setDownPayment(downPayment?.toString() || '');
             setInterestRate(interestRate?.toString() || '');
@@ -140,6 +142,7 @@ function FlipCalcIn(props) {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
         const inputValues = {
+            id: calculationId,
             purchasePrice: toNumber(purchasePrice),
             downPayment: switchableInputs.downPayment,
             interestRate: toNumber(interestRate),

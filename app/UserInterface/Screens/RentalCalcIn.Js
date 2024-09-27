@@ -35,6 +35,7 @@ function RentalCalcIn(props) {
         capexEst: { value: '', isDollar: false }
     });
     const { saveCalculation } = useDatabase();
+    const [calculationId, setCalculationId] = useState(null);
 
     useEffect(() => {
         checkFormValidity();
@@ -61,6 +62,7 @@ function RentalCalcIn(props) {
     useEffect(() => {
         if (route.params?.inputValues) {
             const {
+                id,
                 purchasePrice,
                 downPayment,
                 interestRate,
@@ -73,6 +75,7 @@ function RentalCalcIn(props) {
                 expenseArray,
             } = route.params.inputValues;
 
+            setCalculationId(id);
             setPurchasePrice(purchasePrice?.toString() || '');
             setInterestRate(interestRate?.toString() || '');
             setRehabCost(rehabCost?.toString() || '');
@@ -128,6 +131,7 @@ function RentalCalcIn(props) {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
         const inputValues = {
+            id: calculationId,
             purchasePrice: toNumber(purchasePrice),
             downPayment: switchableInputs.downPayment,
             interestRate: toNumber(interestRate),

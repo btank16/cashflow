@@ -9,8 +9,8 @@ import CalcButton from '../Components/CalcButton.Js';
 import HomeButton from '../Components/HomeButton.Js';
 import CommonStyles from '../Colors/CommonStyles.Js';
 import CustomTitle from '../Components/CustomTitle.Js';
-import { fourthTranslation } from '../../FunctionCalls/WholesaleCalls.Js';
 import { useDatabase } from '../../../database/cashflowDatabase.Js';
+import { wholesalefunction } from '../../Calculations/WholesalingFunction.Js';
 
 function WholesaleCalcIn(props) {
     const navigation = useNavigation();
@@ -75,19 +75,39 @@ function WholesaleCalcIn(props) {
         setExpenseArray(costValues);
     };
 
-
     const onCalculatePress = async () => {
+        const toNumber = (value) => value === '' ? 0 : Number(value);
+
         const inputValues = {
-            purchasePrice,
-            expenseArray,
-            rehabCost,
-            afterRev
+            purchasePrice: toNumber(purchasePrice),
+            expenseArray: expenseArray.map(toNumber),
+            rehabCost: toNumber(rehabCost),
+            afterRev: toNumber(afterRev)
         };
 
-        const results = await fourthTranslation(inputValues);
+        // Call wholesalefunction directly
+        const wholesaleResults = wholesalefunction(
+            inputValues.purchasePrice,
+            inputValues.rehabCost,
+            inputValues.afterRev,
+            inputValues.expenseArray
+        );
 
-        // Save the calculation to the database
-        await saveCalculation('wholesale', inputValues, results);
+        const results = {
+            maximumAllowableOffer: wholesaleResults[0],
+            totalExpenses: wholesaleResults[1],
+            fee5Perc: wholesaleResults[2],
+            fee15Perc: wholesaleResults[3],
+            sale5Perc: wholesaleResults[4],
+            sale15Perc: wholesaleResults[5],
+        };
+
+        // Save the calculation to the database using expo-sqlite/next notation
+        try {
+            await saveCalculation('wholesale', inputValues, results);
+        } catch (error) {
+            console.error('Error saving calculation to database:', error);
+        }
 
         // Navigate to the result screen
         navigation.navigate(resultScreen, {

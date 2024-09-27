@@ -11,7 +11,7 @@ import CustomTitle from '../Components/CustomTitle.Js';
 function WholesaleCalcOut(props) {
     const navigation = useNavigation();
     const route = useRoute();
-    const { inputValues, results } = route.params;
+    const { inputValues, ...results } = route.params;
     const { purchasePrice } = inputValues;
 
     const formatDollar = (value) => {

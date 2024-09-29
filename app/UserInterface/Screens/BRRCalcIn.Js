@@ -46,7 +46,11 @@ function BRRCalcIn(props) {
     
     const { saveCalculation } = useDatabase();
     const [calculationId, setCalculationId] = useState(null);
-    
+
+    const uid = () => {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
     useEffect(() => {
         checkFormValidity();
 
@@ -152,7 +156,6 @@ function BRRCalcIn(props) {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
         const inputValues = {
-            id: calculationId,
             purchasePrice: toNumber(purchasePrice),
             downPayment: switchableInputs.downPayment,
             interestRate: toNumber(interestRate),
@@ -169,6 +172,9 @@ function BRRCalcIn(props) {
             newInterest: toNumber(newInterest),
             newloanTerm: toNumber(newloanTerm)
         };
+
+        // Calculate a new uid if calculationId is null
+        const id = calculationId || uid();
 
         // Call expenses function for initial loan
         const initialExpenseResults = expenses(
@@ -219,14 +225,14 @@ function BRRCalcIn(props) {
 
         // Save the calculation to the database using expo-sqlite/next notation
         try {
-            await saveCalculation('brrr', inputValues, results);
+            await saveCalculation('brrr', inputValues, results, id);
         } catch (error) {
             console.error('Error saving calculation to database:', error);
         }
 
         // Navigate to the result screen
         navigation.navigate(resultScreen, {
-            inputValues,
+            inputValues: {...inputValues, id},
             ...results
         });
     };

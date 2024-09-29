@@ -15,3 +15,5 @@ function App() {
 }
 
 export default App;
+
+//   <SQLiteProvider databaseName="cashflow.db" onInit={async (db) => {await initHistoryDB(db); await logDatabasePath();}}>

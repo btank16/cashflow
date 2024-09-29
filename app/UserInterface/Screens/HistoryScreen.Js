@@ -47,7 +47,7 @@ function HistoryScreen() {
         onPress={() => navigation.navigate(getNavigationScreen(item.calculator_type), {
           inputValues: {
             ...calculationData,
-            id: item.id // Include the id when navigating to the input screen
+            id: item.unique_id // Include the id when navigating to the input screen
           },
           ...resultsData
         })}

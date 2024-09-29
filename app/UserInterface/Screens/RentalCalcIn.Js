@@ -37,6 +37,10 @@ function RentalCalcIn(props) {
     const { saveCalculation } = useDatabase();
     const [calculationId, setCalculationId] = useState(null);
 
+    const uid = () => {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
     useEffect(() => {
         checkFormValidity();
 
@@ -131,7 +135,6 @@ function RentalCalcIn(props) {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
         const inputValues = {
-            id: calculationId,
             purchasePrice: toNumber(purchasePrice),
             downPayment: switchableInputs.downPayment,
             interestRate: toNumber(interestRate),
@@ -148,6 +151,9 @@ function RentalCalcIn(props) {
             rehabTime: 0,
             agentCommish: { value: '0', isDollar: false }
         };
+
+        // Calculate a new uid if calculationId is null
+        const id = calculationId || uid();
 
         // Call ExpenseFunction
         const expenseResults = expenses(
@@ -195,14 +201,14 @@ function RentalCalcIn(props) {
 
         // Save the calculation to the database using expo-sqlite/next notation
         try {
-            await saveCalculation('rental', inputValues, results);
+            await saveCalculation('rental', inputValues, results, id);
         } catch (error) {
             console.error('Error saving calculation to database:', error);
         }
 
         // Navigate to the result screen
         navigation.navigate(resultScreen, {
-            inputValues,
+            inputValues: { ...inputValues, id }, // Include the id in inputValues for the result screen
             ...results
         });
     };

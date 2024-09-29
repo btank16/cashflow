@@ -37,6 +37,10 @@ function ProjectionCalcIn(props) {
     const { saveCalculation } = useDatabase();
     const [calculationId, setCalculationId] = useState(null);
 
+    const uid = () => {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
     useEffect(() => {
         checkFormValidity();
 
@@ -131,7 +135,6 @@ function ProjectionCalcIn(props) {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
         const inputValues = {
-            id: calculationId,
             monthCashflow: toNumber(monthCashflow),
             downPayment: toNumber(downPayment),
             interestRate: toNumber(interestRate),
@@ -143,6 +146,9 @@ function ProjectionCalcIn(props) {
             closingCost: switchableInputs.closingCost,
             rehabCost: toNumber(rehabCost)
         };
+
+        // Calculate a new uid if calculationId is null
+        const id = calculationId || uid();
 
         // Call PriceSuggestion function (assuming it's imported)
         const cashflowResults = PriceSuggestion(
@@ -170,14 +176,14 @@ function ProjectionCalcIn(props) {
 
         // Save the calculation to the database using SQLite/next notation
         try {
-            await saveCalculation('projection', inputValues, results);
+            await saveCalculation('projection', inputValues, results, id);
         } catch (error) {
             console.error('Error saving calculation to database:', error);
         }
 
         // Navigate to the result screen
         navigation.navigate(resultScreen, {
-            inputValues,
+            inputValues: {...inputValues, id},
             ...results
         });
     };

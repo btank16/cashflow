@@ -42,6 +42,10 @@ function FlipCalcIn(props) {
     const { saveCalculation } = useDatabase();
     const [calculationId, setCalculationId] = useState(null);
 
+    const uid = () => {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
     useEffect(() => {
         checkFormValidity();
 
@@ -142,7 +146,6 @@ function FlipCalcIn(props) {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
         const inputValues = {
-            id: calculationId,
             purchasePrice: toNumber(purchasePrice),
             downPayment: switchableInputs.downPayment,
             interestRate: toNumber(interestRate),
@@ -159,6 +162,9 @@ function FlipCalcIn(props) {
             capexEst: { value: '0', isDollar: false },
             monthRent: 0
         };
+
+        // Calculate a new uid if calculationId is null
+        const id = calculationId || uid();
 
         // Call ExpenseFunction
         const expenseResults = expenses(
@@ -206,14 +212,14 @@ function FlipCalcIn(props) {
 
         // Save the calculation to the database using expo-sqlite/next notation
         try {
-            await saveCalculation('flip', inputValues, results);
+            await saveCalculation('flip', inputValues, results, id);
         } catch (error) {
             console.error('Error saving calculation to database:', error);
         }
 
         // Navigate to the result screen
         navigation.navigate(resultScreen, {
-            inputValues,
+            inputValues: {...inputValues, id},
             ...results
         });
     };

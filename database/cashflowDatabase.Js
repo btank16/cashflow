@@ -1,9 +1,13 @@
 import { useSQLiteContext } from 'expo-sqlite';
+// import * as FileSystem from 'expo-file-system';
+
+// Note file path for iPhone 13 pro: file:///Users/blaketanski/Library/Developer/CoreSimulator/Devices/8C794453-2D71-462E-800E-0402490682C1/data/Containers/Data/Application/D4B08BA2-9C90-4B2B-A19C-ED40B8044CEF/Documents/ExponentExperienceData/@btanski/cashflow/SQLite/cashflow.db
 
 export const initHistoryDB = async (db) => {
   return db.execAsync(`
     CREATE TABLE IF NOT EXISTS calculations_history (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      unique_id TEXT,
       date TEXT,
       calculator_type TEXT,
       input_values TEXT,
@@ -11,6 +15,7 @@ export const initHistoryDB = async (db) => {
     );
     CREATE TABLE IF NOT EXISTS saved_expenses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      unique_id TEXT,
       date TEXT,
       name TEXT,
       amount REAL,
@@ -20,30 +25,42 @@ export const initHistoryDB = async (db) => {
   `);
 };
 
+// export const logDatabasePath = async () => {
+//   const databasePath = `${FileSystem.documentDirectory}SQLite/cashflow.db`;
+//   console.log('Database path:', databasePath);
+// };
+
 export function useDatabase() {
   const db = useSQLiteContext();
 
-  const saveCalculation = async (calculatorType, inputValues, results) => {
-    if (inputValues.id) {
-      // If an id exists, update the existing calculation
+  const saveCalculation = async (calculatorType, inputValues, results, uniqueId) => {
+    // Check if the specific ID exists in the database
+    const existingCalculation = await db.getFirstAsync(
+      'SELECT id FROM calculations_history WHERE unique_id = ? AND calculator_type = ?',
+      [uniqueId, calculatorType]
+    );
+
+    if (existingCalculation) {
+      // If the ID exists, update the existing calculation
       await db.runAsync(
         `UPDATE calculations_history 
          SET input_values = ?, results = ?, date = ? 
-         WHERE id = ? AND calculator_type = ?`,
+         WHERE unique_id = ? AND calculator_type = ?`,
         [
           JSON.stringify(inputValues),
           JSON.stringify(results),
           new Date().toISOString(),
-          inputValues.id,
+          uniqueId,
           calculatorType
         ]
       );
     } else {
-      // If no id exists, insert a new calculation
+      // If the ID doesn't exist, insert a new calculation
       await db.runAsync(
-        `INSERT INTO calculations_history (calculator_type, input_values, results, date) 
-         VALUES (?, ?, ?, ?)`,
+        `INSERT INTO calculations_history (unique_id, calculator_type, input_values, results, date) 
+         VALUES (?, ?, ?, ?, ?)`,
         [
+          uniqueId,
           calculatorType,
           JSON.stringify(inputValues),
           JSON.stringify(results),
@@ -53,13 +70,13 @@ export function useDatabase() {
     }
   };
 
-  const saveExpense = async (name, amount, frequency, applicableCalculators) => {
+  const saveExpense = async (uniqueId, name, amount, frequency, applicableCalculators) => {
     const date = new Date().toISOString();
     const applicableCalculatorsJSON = JSON.stringify(applicableCalculators);
 
     return db.runAsync(
-      'INSERT INTO saved_expenses (date, name, amount, frequency, applicable_calculators) VALUES (?, ?, ?, ?, ?)',
-      [date, name, amount, frequency, applicableCalculatorsJSON]
+      'INSERT INTO saved_expenses (unique_id, date, name, amount, frequency, applicable_calculators) VALUES (?, ?, ?, ?, ?, ?)',
+      [uniqueId, date, name, amount, frequency, applicableCalculatorsJSON]
     );
   };
 

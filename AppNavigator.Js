@@ -12,6 +12,7 @@ import RentalCalcIn from './app/UserInterface/Screens/RentalCalcIn.Js'
 import RentalCalcOut from './app/UserInterface/Screens/RentalCalcOut.Js'
 import WholesaleCalcIn from './app/UserInterface/Screens/WholesaleCalcIn.Js';
 import WholesaleCalcOut from './app/UserInterface/Screens/WholesaleCalcOut.Js';
+import HistoryScreen from './app/UserInterface/Screens/HistoryScreen.Js';
 
 const Stack = createStackNavigator();
 
@@ -34,6 +35,7 @@ function AppNavigator() {
       <Stack.Screen name="RentalCalcOut" component={RentalCalcOut} />
       <Stack.Screen name="WholesaleCalcIn" component={WholesaleCalcIn} />
       <Stack.Screen name="WholesaleCalcOut" component={WholesaleCalcOut} />
+      <Stack.Screen name="HistoryScreen" component={HistoryScreen} />
     </Stack.Navigator>
   );
 }

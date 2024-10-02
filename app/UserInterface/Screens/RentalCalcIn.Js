@@ -6,12 +6,14 @@ import NavBar from '../Components/NavBar.Js';
 import NumericInput from '../Components/NumericInputBox.Js';
 import ExpenseArray from '../Components/ExpenseArray.Js';
 import CalcButton from '../Components/CalcButton.Js';
-import { firstTranslation } from '../../FunctionCalls/RentalFlipCalls.Js';
+import { expenses } from '../../Calculations/ExpenseFunction.Js';
+import { outputs } from '../../Calculations/CoreOutputs.Js';
 import HomeButton from '../Components/HomeButton.Js';
 import CommonStyles from '../Colors/CommonStyles.Js';
 import CustomTitle from '../Components/CustomTitle.Js';
 import SwitchableNumericInput from '../Components/SwitchableNumericInput.Js';
 import LoanTerm from '../Components/LoanTerm.Js';
+import { useDatabase } from '../../../database/cashflowDatabase.Js';
 
 function RentalCalcIn(props) {
     const navigation = useNavigation();
@@ -32,6 +34,12 @@ function RentalCalcIn(props) {
         propertyTax: { value: '', isDollar: false },
         capexEst: { value: '', isDollar: false }
     });
+    const { saveCalculation } = useDatabase();
+    const [calculationId, setCalculationId] = useState(null);
+
+    const uid = () => {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
 
     useEffect(() => {
         checkFormValidity();
@@ -58,6 +66,7 @@ function RentalCalcIn(props) {
     useEffect(() => {
         if (route.params?.inputValues) {
             const {
+                id,
                 purchasePrice,
                 downPayment,
                 interestRate,
@@ -70,6 +79,7 @@ function RentalCalcIn(props) {
                 expenseArray,
             } = route.params.inputValues;
 
+            setCalculationId(id);
             setPurchasePrice(purchasePrice?.toString() || '');
             setInterestRate(interestRate?.toString() || '');
             setRehabCost(rehabCost?.toString() || '');
@@ -121,19 +131,86 @@ function RentalCalcIn(props) {
         }));
     };
 
-    const onCalculatePress = () => {
-        firstTranslation({
-            purchasePrice,
+    const onCalculatePress = async () => {
+        const toNumber = (value) => value === '' ? 0 : Number(value);
+
+        const inputValues = {
+            purchasePrice: toNumber(purchasePrice),
             downPayment: switchableInputs.downPayment,
-            interestRate,
-            loanTerm,
+            interestRate: toNumber(interestRate),
+            loanTerm: toNumber(loanTerm),
             propertyTax: switchableInputs.propertyTax,
             closingCost: switchableInputs.closingCost,
             capexEst: switchableInputs.capexEst,
-            expenseArray,
-            rehabCost,
-            monthRent
-        }, navigation, resultScreen);
+            expenseArray: expenseArray.map(toNumber),
+            rehabCost: toNumber(rehabCost),
+            monthRent: toNumber(monthRent),
+            // Add default values for missing properties
+            propertyInsurance: 0,
+            afterRev: 0,
+            rehabTime: 0,
+            agentCommish: { value: '0', isDollar: false }
+        };
+
+        // Calculate a new uid if calculationId is null
+        const id = calculationId || uid();
+
+        // Call ExpenseFunction
+        const expenseResults = expenses(
+            inputValues.purchasePrice,
+            inputValues.downPayment,
+            inputValues.interestRate,
+            inputValues.loanTerm,
+            inputValues.propertyTax,
+            inputValues.propertyInsurance,
+            inputValues.capexEst,
+            inputValues.expenseArray,
+            inputValues.rehabCost,
+            inputValues.closingCost,
+            inputValues.monthRent,
+            inputValues.rehabTime
+        );
+
+        // Call CoreOutputs function
+        const outputResults = outputs(
+            inputValues.afterRev,
+            inputValues.rehabTime,
+            inputValues.agentCommish,
+            inputValues.monthRent,
+            inputValues.purchasePrice,
+            expenseResults[2], // cashDown
+            expenseResults[1]  // monthlyCost
+        );
+
+        const results = {
+            mortgageCost: expenseResults[0],
+            monthlyCost: expenseResults[1],
+            cashDown: expenseResults[2],
+            monthEx: expenseResults[3],
+            DSCR: expenseResults[5],
+            totalProfit: outputResults[0],
+            returnPerc: outputResults[1],
+            cashROI: outputResults[2],
+            cashflow: outputResults[3],
+            annualCashflow: outputResults[4],
+            cashOnCash: outputResults[5],
+            capRate: outputResults[6],
+            monthsTillEven: outputResults[7],
+            totalCashCost: outputResults[8],
+        };
+
+        // Save the calculation to the database using expo-sqlite/next notation
+        try {
+            await saveCalculation('rental', inputValues, results, id);
+        } catch (error) {
+            console.error('Error saving calculation to database:', error);
+        }
+
+        // Navigate to the result screen
+        navigation.navigate(resultScreen, {
+            inputValues: { ...inputValues, id }, // Include the id in inputValues for the result screen
+            ...results
+        });
     };
 
     return (

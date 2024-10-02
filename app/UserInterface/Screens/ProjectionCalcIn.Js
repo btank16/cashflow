@@ -7,11 +7,12 @@ import NumericInput from '../Components/NumericInputBox.Js';
 import ExpenseArray from '../Components/ExpenseArray.Js';
 import LoanTerm from '../Components/LoanTerm.Js';
 import CalcButton from '../Components/CalcButton.Js';
-import { thirdTranslation } from '../../FunctionCalls/CashflowCalls.Js';
 import HomeButton from '../Components/HomeButton.Js';
 import CommonStyles from '../Colors/CommonStyles.Js';
 import CustomTitle from '../Components/CustomTitle.Js';
 import SwitchableNumericInput from '../Components/SwitchableNumericInput.Js';
+import { useDatabase } from '../../../database/cashflowDatabase.Js';
+import { PriceSuggestion } from '../../Calculations/SuggestPrice.Js';
 
 function ProjectionCalcIn(props) {
     const navigation = useNavigation();
@@ -33,6 +34,12 @@ function ProjectionCalcIn(props) {
         closingCost: { value: '', isDollar: false },
         capexEst: { value: '', isDollar: false }
     });
+    const { saveCalculation } = useDatabase();
+    const [calculationId, setCalculationId] = useState(null);
+
+    const uid = () => {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
 
     useEffect(() => {
         checkFormValidity();
@@ -59,24 +66,28 @@ function ProjectionCalcIn(props) {
     useEffect(() => {
         if (route.params?.inputValues) {
             const {
+                id,
                 monthCashflow,
                 downPayment,
                 interestRate,
                 propertyTax,
                 loanTerm,
                 monthRent,
-                // capexEst,
-                expenseArray
+                expenseArray,
+                closingCost,
+                capexEst,
+                rehabCost 
             } = route.params.inputValues;
 
+            setCalculationId(id);
             setMonthCashflow(monthCashflow?.toString() || '');
             setDownPayment(downPayment?.toString() || '');
             setInterestRate(interestRate?.toString() || '');
             setPropertyTax(propertyTax?.toString() || '');
             setLoanTerm(loanTerm?.toString() || '30');
             setMonthRent(monthRent?.toString() || '');
-            // setCapexEst(capexEst?.toString() || '');
             setExpenseArray(expenseArray || ['', '', '']);
+            setRehabCost(rehabCost?.toString() || '');
            
             setSwitchableInputs(prevInputs => ({
                 ...prevInputs,
@@ -120,20 +131,62 @@ function ProjectionCalcIn(props) {
         }));
     };
 
-      const onCalculatePress = () => {
-        thirdTranslation({
-            monthCashflow,
-            downPayment,
-            interestRate,
-            loanTerm,
-            propertyTax,
+    const onCalculatePress = async () => {
+        const toNumber = (value) => value === '' ? 0 : Number(value);
+
+        const inputValues = {
+            monthCashflow: toNumber(monthCashflow),
+            downPayment: toNumber(downPayment),
+            interestRate: toNumber(interestRate),
+            loanTerm: toNumber(loanTerm),
+            propertyTax: toNumber(propertyTax),
             capexEst: switchableInputs.capexEst,
-            expenseArray,
-            monthRent,
+            expenseArray: expenseArray.map(toNumber),
+            monthRent: toNumber(monthRent),
             closingCost: switchableInputs.closingCost,
-            rehabCost
-        }, navigation, resultScreen);
-      };
+            rehabCost: toNumber(rehabCost)
+        };
+
+        // Calculate a new uid if calculationId is null
+        const id = calculationId || uid();
+
+        // Call PriceSuggestion function (assuming it's imported)
+        const cashflowResults = PriceSuggestion(
+            inputValues.monthCashflow,
+            inputValues.downPayment,
+            inputValues.interestRate,
+            inputValues.loanTerm,
+            inputValues.propertyTax,
+            0, // propertyInsurance (not used in this calculator)
+            inputValues.capexEst,
+            inputValues.expenseArray,
+            inputValues.monthRent,
+            inputValues.closingCost,
+            inputValues.rehabCost
+        );
+
+        const results = {
+            TargetPrice: cashflowResults[0],
+            NetZeroPrice: cashflowResults[1],
+            netZeroCash: cashflowResults[2],
+            targetPriceCash: cashflowResults[3],
+            netZeroExp: cashflowResults[4],
+            targetExp: cashflowResults[5],
+        };
+
+        // Save the calculation to the database using SQLite/next notation
+        try {
+            await saveCalculation('projection', inputValues, results, id);
+        } catch (error) {
+            console.error('Error saving calculation to database:', error);
+        }
+
+        // Navigate to the result screen
+        navigation.navigate(resultScreen, {
+            inputValues: {...inputValues, id},
+            ...results
+        });
+    };
 
     return (
         <SafeAreaView style={styles.masterBackground}>

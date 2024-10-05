@@ -29,7 +29,7 @@ function WholesaleCalcOut(props) {
                     inputValues={inputValues} 
                     destinationScreen='WholesaleCalcIn'
                 />
-                <Image source={require('../../assets/CashflowText.png')} style={CommonStyles.logo} />
+                <Image source={require('../../assets/images/WhiteTextLogo.png')} style={CommonStyles.logo} />
             </View>
             <View style={styles.contentContainer}>
                 <CustomTitle title="Wholesaling Output" />   

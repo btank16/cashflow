@@ -59,7 +59,7 @@ function FeedbackScreen(props) {
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
                 <HomeButton/>
-                <Image source={require('../../assets/CashflowText.png')} style={CommonStyles.logo} />
+                <Image source={require('../../assets/images/WhiteTextLogo.png')} style={CommonStyles.logo} />
             </View>
             <ScrollView style={styles.contentContainer}>
                 <CustomTitle title="How can we improve?" />            

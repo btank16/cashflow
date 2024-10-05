@@ -245,7 +245,7 @@ function BRRCalcIn(props) {
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
                 <HomeButton/>
-                <Image source={require('../../assets/CashflowText.png')} style={CommonStyles.logo} />
+                <Image source={require('../../assets/images/WhiteTextLogo.png')} style={CommonStyles.logo} />
             </View>
             <KeyboardAvoidingView 
             behavior={Platform.OS === "ios" ? "padding" : "height"}

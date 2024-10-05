@@ -36,7 +36,7 @@ function BRRCalcOut(props) {
                     inputValues={inputValues} 
                     destinationScreen='BRRCalcIn'
                 />
-                <Image source={require('../../assets/CashflowText.png')} style={CommonStyles.logo} />
+                <Image source={require('../../assets/images/WhiteTextLogo.png')} style={CommonStyles.logo} />
             </View>
             <ScrollView style={styles.contentContainer}>
             <CustomTitle title="BRRR Output" />            

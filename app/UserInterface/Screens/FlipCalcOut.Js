@@ -35,7 +35,7 @@ function FlipCalcOut(props) {
                     inputValues={inputValues} 
                     destinationScreen='FlipCalcIn'
                 />
-                <Image source={require('../../assets/CashflowText.png')} style={CommonStyles.logo} />
+                <Image source={require('../../assets/images/WhiteTextLogo.png')} style={CommonStyles.logo} />
             </View>
             <ScrollView style={styles.contentContainer}>
                 <CustomTitle title="Fix & Flip Output" />                           

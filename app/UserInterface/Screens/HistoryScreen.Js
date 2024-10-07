@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDatabase } from '../../../database/cashflowDatabase.Js';
 import colors from '../Colors/colors.Js';
 import CommonStyles from '../Colors/CommonStyles.Js';
 import CustomTitle from '../Components/CustomTitle.Js';
+import HistoryItem from '../Components/HistoryItem.Js';
 
 function HistoryScreen() {
   const [calculations, setCalculations] = useState([]);
@@ -43,66 +44,35 @@ function HistoryScreen() {
 
     return (
       <TouchableOpacity 
-        style={styles.item}
         onPress={() => navigation.navigate(getNavigationScreen(item.calculator_type), {
           inputValues: {
-            ...calculationData,
-            id: item.unique_id // Include the id when navigating to the input screen
+            ...JSON.parse(item.input_values),
+            id: item.unique_id
           },
-          ...resultsData
+          ...JSON.parse(item.results)
         })}
       >
-        <Text style={styles.title}>{item.calculator_type} Calculation</Text>
-        <Text style={styles.date}>{new Date(item.date).toLocaleString()}</Text>
-        <Text style={styles.details}>
-          Purchase Price: ${calculationData.purchasePrice}
-        </Text>
+        <HistoryItem item={item} />
       </TouchableOpacity>
     );
   };
 
   return (
     <View style={CommonStyles.container}>
-      <CustomTitle title="Calculation History" />
+      <CustomTitle title="Search history" />
       <FlatList
         data={calculations}
         renderItem={renderItem}
         keyExtractor={item => item.id.toString()}
+        contentContainerStyle={styles.listContainer}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  item: {
-    backgroundColor: colors.white,
-    padding: 20,
-    marginVertical: 8,
-    marginHorizontal: 16,
-    borderRadius: 10,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.23,
-    shadowRadius: 2.62,
-    elevation: 4,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.primary,
-  },
-  date: {
-    fontSize: 14,
-    color: colors.secondary,
-    marginTop: 4,
-  },
-  details: {
-    fontSize: 16,
-    color: colors.text,
-    marginTop: 8,
+  listContainer: {
+    padding: 16,
   },
 });
 

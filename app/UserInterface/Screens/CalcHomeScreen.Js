@@ -18,11 +18,17 @@ const CalculatorButton = ({ name, screen, Icon, color }) => {
       style={[styles.calculatorButton, { width: name === "Price Target Calculator" ? '100%' : '48%' }]}
       onPress={() => navigation.navigate(screen)}
     >
-      <View style={[styles.iconCircle, { backgroundColor: color }]}>
-        {Icon && <Icon width={24} height={24} fill={colors.iconWhite} />}
+      <View style={styles.infoIconContainer}>
+        <View style={styles.infoIconCircle}>
+          <InformationCircleIcon color={colors.iconWhite} size={16} />
+        </View>
       </View>
-      <Text style={styles.calculatorButtonText}>{name}</Text>
-      <InformationCircleIcon color={colors.iconWhite} size={20} style={styles.infoIcon} />
+      <View style={styles.calculatorButtonContent}>
+        <View style={[styles.iconCircle, { backgroundColor: color }]}>
+          {Icon && <Icon width={24} height={24} fill={colors.iconWhite} />}
+        </View>
+        <Text style={styles.calculatorButtonText}>{name}</Text>
+      </View>
     </TouchableOpacity>
   );
 };
@@ -91,7 +97,7 @@ function CalcHomeScreen() {
         </TouchableOpacity>
       </View>
       <ScrollView style={styles.contentContainer}>
-        <Text style={styles.welcomeText}>Welcome, John!</Text>
+        <Text style={styles.welcomeText}>Welcome, User!</Text>
         <View style={styles.calculatorsGrid}>
           {calculators.map((calc, index) => (
             <CalculatorButton key={index} {...calc} />
@@ -140,8 +146,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.mainShade,
   },
   logo: {
     height: 30,
@@ -151,10 +155,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   welcomeText: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     color: colors.iconWhite,
     padding: 16,
+    textAlign: 'center',
   },
   calculatorsGrid: {
     flexDirection: 'row',
@@ -165,28 +170,46 @@ const styles = StyleSheet.create({
   calculatorButton: {
     aspectRatio: undefined,
     height: 120,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    justifyContent: 'space-between',
+    borderRadius: 20,
+    marginBottom: 8,
     backgroundColor: colors.darkGreenSecondary,
     borderWidth: 1,
     borderColor: colors.darkGreenTertiary,
+    padding: 16,
+    position: 'relative', // Add this to allow absolute positioning of child elements
+  },
+  calculatorButtonContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 30,
+    marginBottom: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   calculatorButtonText: {
     color: colors.iconWhite,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
+    textAlign: 'center',
   },
-  infoIcon: {
-    alignSelf: 'flex-end',
+  infoIconContainer: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    zIndex: 1,
+  },
+  infoIconCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.darkGreenTertiary,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   sectionContainer: {
     padding: 16,

@@ -10,6 +10,7 @@ import BRRRRIcon from '../../assets/icons/BRRRIcon.jsx';
 import WholesaleIcon from '../../assets/icons/WholesaleIcon.jsx';
 import TargetIcon from '../../assets/icons/TargetIcon.jsx';
 import WhiteTextLogo from '../../assets/icons/WhiteTextLogo.jsx';
+import HistoryItem from '../Components/HistoryItem.Js';
 
 const CalculatorButton = ({ name, screen, Icon, color }) => {
   const navigation = useNavigation();
@@ -33,19 +34,6 @@ const CalculatorButton = ({ name, screen, Icon, color }) => {
   );
 };
 
-const HistoryItem = ({ item }) => (
-  <View style={styles.historyItem}>
-    <Text style={styles.historyItemText}>${item.purchasePrice}</Text>
-    <Text style={styles.historyItemText}>{item.downPayment}%</Text>
-    <Text style={styles.historyItemText}>{item.interestRate}%</Text>
-    <View style={styles.historyItemType}>
-      <Image source={getCalculatorIcon(item.calculatorType)} style={styles.historyItemIcon} />
-      <Text style={styles.historyItemTypeText}>{item.calculatorType}</Text>
-    </View>
-    <Text style={styles.historyItemTime}>{item.timeAgo}</Text>
-  </View>
-);
-
 const ArticleItem = ({ item }) => (
   <TouchableOpacity style={styles.articleItem}>
     <Image source={item.image} style={styles.articleImage} />
@@ -58,7 +46,7 @@ const ArticleItem = ({ item }) => (
 
 function CalcHomeScreen() {
   const navigation = useNavigation();
-  const { getLastCalculations } = useDatabase();
+  const { getAllCalculations } = useDatabase();
   const [history, setHistory] = useState([]);
 
   useEffect(() => {
@@ -66,15 +54,15 @@ function CalcHomeScreen() {
   }, []);
 
   const loadHistory = async () => {
-    const lastCalculations = await getLastCalculations(3);
-    setHistory(lastCalculations);
+    const allCalculations = await getAllCalculations();
+    setHistory(allCalculations.slice(0, 3)); // Get only the 3 most recent calculations
   };
 
   const calculators = [
-    { name: "Rental property calculator", screen: "RentalCalcIn", Icon: RentalIcon, color: colors.primaryGreen },
+    { name: "Rental Property Calculator", screen: "RentalCalcIn", Icon: RentalIcon, color: colors.primaryGreen },
     { name: "Fix & Flip Calculator", screen: "FlipCalcIn", Icon: FlipIcon, color: colors.primaryOrange },
     { name: "BRRRR Calculator", screen: "BRRCalcIn", Icon: BRRRRIcon, color: colors.primaryBlue },
-    { name: "Wholesaling calculator", screen: "WholesaleCalcIn", Icon: WholesaleIcon, color: colors.brightGreen },
+    { name: "Wholesale Calculator", screen: "WholesaleCalcIn", Icon: WholesaleIcon, color: colors.brightGreen },
     { name: "Price Target Calculator", screen: "ProjectionCalcIn", Icon: TargetIcon, color: colors.primaryPurple },
   ];
 
@@ -84,6 +72,52 @@ function CalcHomeScreen() {
     { title: "BRRRR Calculator", description: "How to calculate the potential return on investment for a 'Buy, Rehab, Rent...", image: require('../../assets/images/Home Pic.png') },
     { title: "Price Target Calculator", description: "How to determine a suitable purchase price for a property based on factors s...", image: require('../../assets/images/Home Pic.png') },
   ];
+
+  const renderHistorySection = () => (
+    <View style={styles.sectionContainer}>
+      <Text style={styles.sectionTitle}>
+        {history.length > 0 ? 'Recent calculations' : 'Will be useful'}
+      </Text>
+      {history.length > 0 ? (
+        history.map((item) => (
+          <TouchableOpacity
+            key={item.id}
+            onPress={() => {
+              const screen = getNavigationScreen(item.calculator_type);
+              navigation.navigate(screen, {
+                inputValues: {
+                  ...JSON.parse(item.input_values),
+                  id: item.unique_id
+                },
+                ...JSON.parse(item.results)
+              });
+            }}
+          >
+            <HistoryItem item={item} />
+          </TouchableOpacity>
+        ))
+      ) : (
+        <Text style={styles.emptyHistoryText}>Your recent calculations will appear here</Text>
+      )}
+    </View>
+  );
+
+  const getNavigationScreen = (calculatorType) => {
+    switch (calculatorType.toLowerCase()) {
+      case 'rental':
+        return 'RentalCalcOut';
+      case 'flip':
+        return 'FlipCalcOut';
+      case 'brrr':
+        return 'BRRCalcOut';
+      case 'projection':
+        return 'ProjectionCalcOut';
+      case 'wholesale':
+        return 'WholesaleCalcOut';
+      default:
+        return `${calculatorType}CalcOut`;
+    }
+  };
 
   return (
     <SafeAreaView style={styles.masterBackground}>
@@ -103,16 +137,7 @@ function CalcHomeScreen() {
             <CalculatorButton key={index} {...calc} />
           ))}
         </View>
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>
-            {history.length > 0 ? 'Search history' : 'Will be useful'}
-          </Text>
-          {history.length > 0 ? (
-            history.map((item, index) => <HistoryItem key={index} item={item} />)
-          ) : (
-            <Text style={styles.emptyHistoryText}>Your recent calculations will appear here</Text>
-          )}
-        </View>
+        {renderHistorySection()}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>Related articles</Text>
           <View style={styles.tabContainer}>

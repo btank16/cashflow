@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, SafeAreaView, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDatabase } from '../../../database/cashflowDatabase.Js';
 import colors from '../Colors/colors.Js';
@@ -58,7 +58,7 @@ function HistoryScreen() {
   };
 
   return (
-    <View style={CommonStyles.container}>
+    <SafeAreaView style={styles.masterBackground}>
       <CustomTitle title="Search history" />
       <FlatList
         data={calculations}
@@ -66,13 +66,18 @@ function HistoryScreen() {
         keyExtractor={item => item.id.toString()}
         contentContainerStyle={styles.listContainer}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   listContainer: {
     padding: 16,
+  },
+  masterBackground: {
+    flex: 1,
+    backgroundColor: colors.darkGreenPrimary,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
 });
 

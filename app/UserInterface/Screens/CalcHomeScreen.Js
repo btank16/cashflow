@@ -67,10 +67,11 @@ function CalcHomeScreen() {
   ];
 
   const articles = [
-    { title: "Rental property calculator", description: "How to input data (purchase price, rental income, expenses, etc.), calculate...", image: require('../../assets/images/Home Pic.png') },
-    { title: "Fix and Flip Calculator", description: "How to estimate the potential profit from a real estate renovation project...", image: require('../../assets/images/Home Pic.png') },
-    { title: "BRRRR Calculator", description: "How to calculate the potential return on investment for a 'Buy, Rehab, Rent...", image: require('../../assets/images/Home Pic.png') },
-    { title: "Price Target Calculator", description: "How to determine a suitable purchase price for a property based on factors s...", image: require('../../assets/images/Home Pic.png') },
+    { title: "Rental property calculator", description: "How to input data (purchase price, rental income, expenses, etc.), calculate...", image: require('../../assets/images/Rental.jpg') },
+    { title: "Fix and Flip Calculator", description: "How to estimate the potential profit from a real estate renovation project...", image: require('../../assets/images/Flip.jpg') },
+    { title: "BRRRR Calculator", description: "How to calculate the potential return on investment for a 'Buy, Rehab, Rent...", image: require('../../assets/images/BRRR.jpg') },
+    { title: "Wholesale Calculator", description: "How to calculate the potential return on investment for a wholesale deal...", image: require('../../assets/images/Wholesale.jpg') },
+    { title: "Price Target Calculator", description: "How to determine a suitable purchase price for a property based on factors s...", image: require('../../assets/images/Target.jpg') },
   ];
 
   const renderHistorySection = () => (

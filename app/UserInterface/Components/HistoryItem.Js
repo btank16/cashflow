@@ -1,12 +1,14 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { ClockIcon } from 'react-native-heroicons/outline';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { ClockIcon, TrashIcon } from 'react-native-heroicons/outline';
 import colors from '../Colors/colors.Js';
 import RentalIcon from '../../assets/icons/RentalIcon.jsx';
 import FlipIcon from '../../assets/icons/FlipIcon.jsx';
 import BRRRRIcon from '../../assets/icons/BRRRIcon.jsx';
 import WholesaleIcon from '../../assets/icons/WholesaleIcon.jsx';
 import TargetIcon from '../../assets/icons/TargetIcon.jsx';
+import { Swipeable } from 'react-native-gesture-handler';
+import { LinearGradient } from 'expo-linear-gradient';
 
 // Add this helper function to format numbers
 const formatNumber = (number) => {
@@ -111,37 +113,84 @@ const getCalculatorDetails = (item) => {
   }
 };
 
-const HistoryItem = ({ item }) => {
+// Add this function at the top of the file, outside of the component
+const getNavigationScreen = (calculatorType) => {
+  switch (calculatorType.toLowerCase()) {
+    case 'rental':
+      return 'RentalCalcOut';
+    case 'flip':
+      return 'FlipCalcOut';
+    case 'brrr':
+      return 'BRRCalcOut';
+    case 'projection':
+      return 'ProjectionCalcOut';
+    case 'wholesale':
+      return 'WholesaleCalcOut';
+    default:
+      return `${calculatorType}CalcOut`;
+  }
+};
+
+const HistoryItem = ({ item, onDelete, navigation }) => {
   const { icon, details, name, primColor, secColor } = getCalculatorDetails(item);
   const timeElapsed = getTimeElapsed(item.date);
 
+  const renderRightActions = (progress, dragX) => {
+    return (
+      <View style={styles.deleteButtonContainer}>
+        <TouchableOpacity 
+          style={styles.deleteButton} 
+          onPress={() => onDelete(item.id)}
+        >
+          <TrashIcon color={colors.quaternaryRed} size={24} />
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   return (
-    <View style={[styles.historyItem, { backgroundColor: colors.iconWhite }]}>
-      <View style={styles.mainInfo}>
-        <View style={styles.detailsContainer}>
-          {details.map((detail, index) => (
-            <View key={index} style={styles.detailItem}>
-              <Text style={styles.detailTitle}>{detail.title}</Text>
-              <Text style={styles.detailValue}>{detail.value}</Text>
+    <Swipeable 
+      renderRightActions={renderRightActions}
+      rightThreshold={40}
+    >
+      <TouchableOpacity onPress={() => {
+        const screen = getNavigationScreen(item.calculator_type);
+        navigation.navigate(screen, {
+          inputValues: {
+            ...JSON.parse(item.input_values),
+            id: item.unique_id
+          },
+          ...JSON.parse(item.results)
+        });
+      }}>
+        <View style={[styles.historyItem, { backgroundColor: colors.iconWhite }]}>
+          <View style={styles.mainInfo}>
+            <View style={styles.detailsContainer}>
+              {details.map((detail, index) => (
+                <View key={index} style={styles.detailItem}>
+                  <Text style={styles.detailTitle}>{detail.title}</Text>
+                  <Text style={styles.detailValue}>{detail.value}</Text>
+                </View>
+              ))}
             </View>
-          ))}
-        </View>
-      </View>
-      <View style={styles.bottomRow}>
-        <View style={[styles.calculatorType, { backgroundColor: primColor }]}>
-          <View style={[styles.iconCircle, { backgroundColor: secColor }]}>
-            {icon}
           </View>
-          <Text style={[styles.calculatorTypeText, { color: secColor }]}>{name}</Text>
-        </View>
-        <View style={[styles.calculatorType, { backgroundColor: colors.tertiaryGrey }]}>
-          <View style={[styles.iconCircle, { backgroundColor: colors.secondaryGrey }]}>
-            <ClockIcon color={colors.primaryGrey} size={12} />
+          <View style={styles.bottomRow}>
+            <View style={[styles.calculatorType, { backgroundColor: primColor }]}>
+              <View style={[styles.iconCircle, { backgroundColor: secColor }]}>
+                {icon}
+              </View>
+              <Text style={[styles.calculatorTypeText, { color: secColor }]}>{name}</Text>
+            </View>
+            <View style={[styles.calculatorType, { backgroundColor: colors.tertiaryGrey }]}>
+              <View style={[styles.iconCircle, { backgroundColor: colors.secondaryGrey }]}>
+                <ClockIcon color={colors.primaryGrey} size={12} />
+              </View>
+              <Text style={[styles.calculatorTypeText, { color: colors.primaryGrey }]}>{timeElapsed}</Text>
+            </View>
           </View>
-          <Text style={[styles.calculatorTypeText, { color: colors.primaryGrey }]}>{timeElapsed}</Text>
         </View>
-      </View>
-    </View>
+      </TouchableOpacity>
+    </Swipeable>
   );
 };
 
@@ -197,7 +246,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
     marginLeft: 4,
-  }
+  },
+  deleteButtonContainer: {
+    width: 80,
+    marginLeft: 8,
+    marginBottom: 8,
+    justifyContent: 'center',
+  },
+  deleteButton: {
+    backgroundColor: colors.secondaryRed,
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.tertiaryRed,
+  },
 });
 
 export default HistoryItem;

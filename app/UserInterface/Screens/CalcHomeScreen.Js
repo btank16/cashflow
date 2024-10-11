@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text, TouchableOpacity, Image, ScrollView } from "react-native";
-import { useNavigation } from '@react-navigation/native';
-import { UserIcon, ClockIcon, InformationCircleIcon } from 'react-native-heroicons/outline';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { InformationCircleIcon, ChevronRightIcon } from 'react-native-heroicons/outline';
 import colors from '../Colors/colors.Js';
 import { useDatabase } from '../../../database/cashflowDatabase.Js';
 import RentalIcon from '../../assets/icons/RentalIcon.jsx';
@@ -11,6 +11,9 @@ import WholesaleIcon from '../../assets/icons/WholesaleIcon.jsx';
 import TargetIcon from '../../assets/icons/TargetIcon.jsx';
 import WhiteTextLogo from '../../assets/icons/WhiteTextLogo.jsx';
 import HistoryItem from '../Components/HistoryItem.Js';
+import FeedbackIcon from '../../assets/icons/FeedbackIcon.jsx';
+import HistoryIcon from '../../assets/icons/HistoryIcon.jsx';
+import UserIcon from '../../assets/icons/UserIcon.jsx';
 
 const CalculatorButton = ({ name, screen, Icon, color }) => {
   const navigation = useNavigation();
@@ -46,16 +49,28 @@ const ArticleItem = ({ item }) => (
 
 function CalcHomeScreen() {
   const navigation = useNavigation();
-  const { getAllCalculations } = useDatabase();
+  const { getAllCalculations, deleteCalculation } = useDatabase();
   const [history, setHistory] = useState([]);
 
-  useEffect(() => {
-    loadHistory();
-  }, []);
-
-  const loadHistory = async () => {
+  const loadHistory = useCallback(async () => {
     const allCalculations = await getAllCalculations();
     setHistory(allCalculations.slice(0, 3)); // Get only the 3 most recent calculations
+  }, [getAllCalculations]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadHistory();
+    }, [loadHistory])
+  );
+
+  const handleDeleteCalculation = async (id) => {
+    try {
+      await deleteCalculation(id);
+      await loadHistory(); // Reload the history after deletion
+    } catch (error) {
+      console.error('Error deleting calculation:', error);
+      // Optionally, you can show an error message to the user here
+    }
   };
 
   const calculators = [
@@ -76,26 +91,21 @@ function CalcHomeScreen() {
 
   const renderHistorySection = () => (
     <View style={styles.sectionContainer}>
-      <Text style={styles.sectionTitle}>
-        {history.length > 0 ? 'Recent calculations' : 'Will be useful'}
-      </Text>
+      <TouchableOpacity 
+        style={styles.sectionTitleContainer}
+        onPress={() => navigation.navigate('HistoryScreen')}
+      >
+        <Text style={styles.sectionTitle}>Recent Calculations</Text>
+        <ChevronRightIcon color={colors.iconWhite} size={24} />
+      </TouchableOpacity>
       {history.length > 0 ? (
         history.map((item) => (
-          <TouchableOpacity
+          <HistoryItem
             key={item.id}
-            onPress={() => {
-              const screen = getNavigationScreen(item.calculator_type);
-              navigation.navigate(screen, {
-                inputValues: {
-                  ...JSON.parse(item.input_values),
-                  id: item.unique_id
-                },
-                ...JSON.parse(item.results)
-              });
-            }}
-          >
-            <HistoryItem item={item} />
-          </TouchableOpacity>
+            item={item}
+            onDelete={() => handleDeleteCalculation(item.id)}
+            navigation={navigation}
+          />
         ))
       ) : (
         <Text style={styles.emptyHistoryText}>Your recent calculations will appear here</Text>
@@ -123,13 +133,20 @@ function CalcHomeScreen() {
   return (
     <SafeAreaView style={styles.masterBackground}>
       <View style={styles.header}>
-        <TouchableOpacity>
+        <TouchableOpacity style={styles.headerIcon}>
           <UserIcon color={colors.primary} size={24} />
         </TouchableOpacity>
-        <WhiteTextLogo width={120} height={28} />
-        <TouchableOpacity onPress={() => navigation.navigate('HistoryScreen')}>
-          <ClockIcon color={colors.primary} size={24} />
-        </TouchableOpacity>
+        <View style={styles.logoContainer}>
+          <WhiteTextLogo width={120} height={28} />
+        </View>
+        <View style={styles.headerIcons}>
+          <TouchableOpacity onPress={() => navigation.navigate('HistoryScreen')} style={styles.headerIcon}>
+            <HistoryIcon color={colors.primary} size={24} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('FeedbackScreen')} style={styles.headerIcon}>
+            <FeedbackIcon color={colors.primary} size={24} />
+          </TouchableOpacity>
+        </View>
       </View>
       <ScrollView style={styles.contentContainer}>
         <Text style={styles.welcomeText}>Welcome, User!</Text>
@@ -140,8 +157,8 @@ function CalcHomeScreen() {
         </View>
         {renderHistorySection()}
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Related articles</Text>
-          <View style={styles.tabContainer}>
+          <Text style={[styles.sectionTitle, {marginBottom: 16}]}>Related Articles</Text>
+          {/* <View style={styles.tabContainer}>
             <TouchableOpacity style={[styles.tab, styles.activeTab]}>
               <Text style={[styles.tabText, styles.activeTabText]}>All</Text>
             </TouchableOpacity>
@@ -151,7 +168,7 @@ function CalcHomeScreen() {
             <TouchableOpacity style={styles.tab}>
               <Text style={styles.tabText}>Investment Strategy</Text>
             </TouchableOpacity>
-          </View>
+          </View> */}
           {articles.map((article, index) => (
             <ArticleItem key={index} item={article} />
           ))}
@@ -173,9 +190,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
   },
-  logo: {
-    height: 30,
-    width: 120,
+  logoContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: -1,
   },
   contentContainer: {
     flex: 1,
@@ -240,11 +260,16 @@ const styles = StyleSheet.create({
   sectionContainer: {
     padding: 16,
   },
+  sectionTitleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: colors.iconWhite,
-    marginBottom: 16,
   },
   historyItem: {
     flexDirection: 'row',
@@ -326,6 +351,13 @@ const styles = StyleSheet.create({
   articleDescription: {
     fontSize: 14,
     color: colors.mainShade,
+  },
+  headerIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerIcon: {
+    marginLeft: 16,
   },
 });
 

@@ -27,6 +27,7 @@ const colors = {
     primaryRed: '#D5D6F6',
     secondaryRed: '#F3DCDB',
     tertiaryRed: '#E5BEBB',
+    quaternaryRed: '#DB6661',
     primaryBlack: '#121615',
     primaryGrey: '#5C7070',
     secondaryGrey: '#DFE9E9',

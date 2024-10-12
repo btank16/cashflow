@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text, TouchableOpacity, Image, ScrollView } from "react-native";
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text, TouchableOpacity, Image, ScrollView, Modal } from "react-native";
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { InformationCircleIcon, ChevronRightIcon } from 'react-native-heroicons/outline';
+import { InformationCircleIcon, ChevronRightIcon, XMarkIcon } from 'react-native-heroicons/outline';
 import colors from '../Colors/colors.Js';
 import { useDatabase } from '../../../database/cashflowDatabase.Js';
 import RentalIcon from '../../assets/icons/RentalIcon.jsx';
@@ -15,18 +15,21 @@ import FeedbackIcon from '../../assets/icons/FeedbackIcon.jsx';
 import HistoryIcon from '../../assets/icons/HistoryIcon.jsx';
 import UserIcon from '../../assets/icons/UserIcon.jsx';
 
-const CalculatorButton = ({ name, screen, Icon, color }) => {
+const CalculatorButton = ({ name, screen, Icon, color, article, onInfoPress }) => {
   const navigation = useNavigation();
   return (
     <TouchableOpacity 
       style={[styles.calculatorButton, { width: name === "Price Target Calculator" ? '100%' : '48%' }]}
       onPress={() => navigation.navigate(screen)}
     >
-      <View style={styles.infoIconContainer}>
+      <TouchableOpacity 
+        style={styles.infoIconContainer}
+        onPress={() => onInfoPress(article)}
+      >
         <View style={styles.infoIconCircle}>
           <InformationCircleIcon color={colors.iconWhite} size={16} />
         </View>
-      </View>
+      </TouchableOpacity>
       <View style={styles.calculatorButtonContent}>
         <View style={[styles.iconCircle, { backgroundColor: color }]}>
           {Icon && <Icon width={24} height={24} fill={colors.iconWhite} />}
@@ -37,8 +40,30 @@ const CalculatorButton = ({ name, screen, Icon, color }) => {
   );
 };
 
-const ArticleItem = ({ item }) => (
-  <TouchableOpacity style={styles.articleItem}>
+const ArticleModal = ({ isVisible, onClose, article }) => (
+  <Modal
+    animationType="slide"
+    transparent={true}
+    visible={isVisible}
+    onRequestClose={onClose}
+  >
+    <View style={styles.modalOverlay}>
+      <View style={styles.modalContent}>
+        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+          <XMarkIcon color={colors.darkGreenPrimary} size={24} />
+        </TouchableOpacity>
+        <ScrollView style={styles.modalScrollView}>
+          <Image source={article?.image} style={styles.modalImage} />
+          <Text style={styles.modalTitle}>{article?.title}</Text>
+          <Text style={styles.modalDescription}>{article?.fullContent}</Text>
+        </ScrollView>
+      </View>
+    </View>
+  </Modal>
+);
+
+const ArticleItem = ({ item, onPress }) => (
+  <TouchableOpacity style={styles.articleItem} onPress={onPress}>
     <Image source={item.image} style={styles.articleImage} />
     <View style={styles.articleContent}>
       <Text style={styles.articleTitle}>{item.title}</Text>
@@ -51,6 +76,7 @@ function CalcHomeScreen() {
   const navigation = useNavigation();
   const { getAllCalculations, deleteCalculation } = useDatabase();
   const [history, setHistory] = useState([]);
+  const [selectedArticle, setSelectedArticle] = useState(null);
 
   const loadHistory = useCallback(async () => {
     const allCalculations = await getAllCalculations();
@@ -73,20 +99,70 @@ function CalcHomeScreen() {
     }
   };
 
-  const calculators = [
-    { name: "Rental Property Calculator", screen: "RentalCalcIn", Icon: RentalIcon, color: colors.primaryGreen },
-    { name: "Fix & Flip Calculator", screen: "FlipCalcIn", Icon: FlipIcon, color: colors.primaryOrange },
-    { name: "BRRRR Calculator", screen: "BRRCalcIn", Icon: BRRRRIcon, color: colors.primaryBlue },
-    { name: "Wholesale Calculator", screen: "WholesaleCalcIn", Icon: WholesaleIcon, color: colors.brightGreen },
-    { name: "Price Target Calculator", screen: "ProjectionCalcIn", Icon: TargetIcon, color: colors.primaryPurple },
+  const articles = [
+    { 
+      title: "Rental property calculator", 
+      description: "How to input data (purchase price, rental income, expenses, etc.), calculate...", 
+      image: require('../../assets/images/Rental.jpg'),
+    },
+    { 
+      title: "Fix and Flip Calculator", 
+      description: "How to estimate the potential profit from a real estate renovation project...", 
+      image: require('../../assets/images/Flip.jpg') 
+    },
+    { 
+      title: "BRRRR Calculator", 
+      description: "How to calculate the potential return on investment for a 'Buy, Rehab, Rent...", 
+      image: require('../../assets/images/BRRR.jpg') 
+    },
+    { 
+      title: "Wholesale Calculator", 
+      description: "How to calculate the potential return on investment for a wholesale deal...", 
+      image: require('../../assets/images/Wholesale.jpg') 
+    },
+    { 
+      title: "Price Target Calculator", 
+      description: "How to determine a suitable purchase price for a property based on factors s...", 
+      image: require('../../assets/images/Target.jpg') 
+    },
   ];
 
-  const articles = [
-    { title: "Rental property calculator", description: "How to input data (purchase price, rental income, expenses, etc.), calculate...", image: require('../../assets/images/Rental.jpg') },
-    { title: "Fix and Flip Calculator", description: "How to estimate the potential profit from a real estate renovation project...", image: require('../../assets/images/Flip.jpg') },
-    { title: "BRRRR Calculator", description: "How to calculate the potential return on investment for a 'Buy, Rehab, Rent...", image: require('../../assets/images/BRRR.jpg') },
-    { title: "Wholesale Calculator", description: "How to calculate the potential return on investment for a wholesale deal...", image: require('../../assets/images/Wholesale.jpg') },
-    { title: "Price Target Calculator", description: "How to determine a suitable purchase price for a property based on factors s...", image: require('../../assets/images/Target.jpg') },
+  const calculators = [
+    { 
+      name: "Rental Property Calculator", 
+      screen: "RentalCalcIn", 
+      Icon: RentalIcon, 
+      color: colors.primaryGreen,
+      article: articles[0]
+    },
+    { 
+      name: "Fix & Flip Calculator", 
+      screen: "FlipCalcIn", 
+      Icon: FlipIcon, 
+      color: colors.primaryOrange,
+      article: articles[1]
+    },
+    { 
+      name: "BRRRR Calculator", 
+      screen: "BRRCalcIn", 
+      Icon: BRRRRIcon, 
+      color: colors.primaryBlue,
+      article: articles[2]
+    },
+    { 
+      name: "Wholesale Calculator", 
+      screen: "WholesaleCalcIn", 
+      Icon: WholesaleIcon, 
+      color: colors.brightGreen,
+      article: articles[3]
+    },
+    { 
+      name: "Price Target Calculator", 
+      screen: "ProjectionCalcIn", 
+      Icon: TargetIcon, 
+      color: colors.primaryPurple,
+      article: articles[4]
+    },
   ];
 
   const renderHistorySection = () => (
@@ -113,21 +189,8 @@ function CalcHomeScreen() {
     </View>
   );
 
-  const getNavigationScreen = (calculatorType) => {
-    switch (calculatorType.toLowerCase()) {
-      case 'rental':
-        return 'RentalCalcOut';
-      case 'flip':
-        return 'FlipCalcOut';
-      case 'brrr':
-        return 'BRRCalcOut';
-      case 'projection':
-        return 'ProjectionCalcOut';
-      case 'wholesale':
-        return 'WholesaleCalcOut';
-      default:
-        return `${calculatorType}CalcOut`;
-    }
+  const handleArticlePress = (article) => {
+    setSelectedArticle(article);
   };
 
   return (
@@ -152,28 +215,26 @@ function CalcHomeScreen() {
         <Text style={styles.welcomeText}>Welcome, User!</Text>
         <View style={styles.calculatorsGrid}>
           {calculators.map((calc, index) => (
-            <CalculatorButton key={index} {...calc} />
+            <CalculatorButton 
+              key={index} 
+              {...calc} 
+              onInfoPress={handleArticlePress}
+            />
           ))}
         </View>
         {renderHistorySection()}
         <View style={styles.sectionContainer}>
           <Text style={[styles.sectionTitle, {marginBottom: 16}]}>Related Articles</Text>
-          {/* <View style={styles.tabContainer}>
-            <TouchableOpacity style={[styles.tab, styles.activeTab]}>
-              <Text style={[styles.tabText, styles.activeTabText]}>All</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.tab}>
-              <Text style={styles.tabText}>Calculator Functions</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.tab}>
-              <Text style={styles.tabText}>Investment Strategy</Text>
-            </TouchableOpacity>
-          </View> */}
           {articles.map((article, index) => (
-            <ArticleItem key={index} item={article} />
+            <ArticleItem key={index} item={article} onPress={() => handleArticlePress(article)} />
           ))}
         </View>
       </ScrollView>
+      <ArticleModal
+        isVisible={selectedArticle !== null}
+        onClose={() => setSelectedArticle(null)}
+        article={selectedArticle}
+      />
     </SafeAreaView>
   );
 }
@@ -222,7 +283,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.darkGreenTertiary,
     padding: 16,
-    position: 'relative', // Add this to allow absolute positioning of child elements
+    position: 'relative', 
   },
   calculatorButtonContent: {
     flex: 1,
@@ -306,27 +367,6 @@ const styles = StyleSheet.create({
     color: colors.mainShade,
     fontStyle: 'italic',
   },
-  tabContainer: {
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
-  tab: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginRight: 8,
-    borderRadius: 16,
-    backgroundColor: colors.mainShade,
-  },
-  activeTab: {
-    backgroundColor: colors.primary,
-  },
-  tabText: {
-    color: colors.iconWhite,
-    fontSize: 14,
-  },
-  activeTabText: {
-    color: colors.iconWhite,
-  },
   articleItem: {
     flexDirection: 'row',
     backgroundColor: colors.darkGreenSecondary,
@@ -358,6 +398,47 @@ const styles = StyleSheet.create({
   },
   headerIcon: {
     marginLeft: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: colors.iconWhite,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 12,
+    height: '80%',
+    width: '100%',
+    paddingTop: 0, 
+  },
+  closeButton: {
+    position: 'absolute', 
+    top: 10, 
+    right: 10, 
+    zIndex: 1, 
+  },
+  modalScrollView: {
+    width: '100%',
+    marginTop: 40, 
+  },
+  modalImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: colors.darkGreenPrimary,
+    marginBottom: 16,
+  },
+  modalDescription: {
+    fontSize: 16,
+    color: colors.darkGreenPrimary,
+    lineHeight: 24,
   },
 });
 

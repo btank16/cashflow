@@ -32,28 +32,28 @@ const CalcButton = ({ title, onPress, destination, style, disabled }) => {
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 50,
-    borderRadius: 50,
-    height: 40,
+    backgroundColor: colors.primaryGreen,
+    paddingHorizontal: 40,
+    borderRadius: 16,
+    height: 56,
     alignItems: 'center',
     justifyContent: 'center',
   },
   buttonText: {
-    color: colors.background,
+    color: colors.iconWhite,
     fontSize: 16,
     fontWeight: 'bold',
   },
   disabledButton: {
-    backgroundColor: '#ccc',
-    paddingHorizontal: 50,
-    borderRadius: 50,
-    height: 40,
+    backgroundColor: colors.tertiaryGreen,
+    paddingHorizontal: 40,
+    borderRadius: 16,
+    height: 56,
     alignItems: 'center',
     justifyContent: 'center',
   },
   disabledButtonText: {
-    color: colors.basicText,
+    color: colors.iconWhite,
     fontSize: 16,
     fontWeight: 'bold',
   },

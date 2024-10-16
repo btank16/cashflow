@@ -12,6 +12,7 @@
     "@expo/vector-icons": "^14.0.2",
     "@heroicons/react": "^2.1.5",
     "@react-native-community/hooks": "^3.0.0",
+    "@react-native-community/slider": "^4.5.3",
     "@react-native-picker/picker": "2.7.5",
     "@react-native/metro-config": "^0.75.4",
     "@react-navigation/native": "^6.1.18",

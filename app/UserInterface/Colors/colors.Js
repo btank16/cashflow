@@ -20,6 +20,8 @@ const colors = {
     secondaryBrightGreen: '#E7EFCA',
     primaryBlue: '#087A93',
     secondaryBlue: '#C4E9EF',
+    tertiaryBlue: '#053647',
+    quaternaryBlue: '#C4E9EF',
     primaryPurple: '#6D6AEF',
     secondaryPurple: '#D5D6F6',
     primaryOrange: '#CE7534',
@@ -33,6 +35,8 @@ const colors = {
     secondaryGrey: '#DFE9E9',
     tertiaryGrey: '#F3F8F8',
     quaternaryGrey: '#D0DDDD',
+    fifthGrey: '#485959',
+    sixthGrey: '#778A89',
  
   };
   

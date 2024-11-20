@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, Image } from "react-native";
+import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, Image } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';

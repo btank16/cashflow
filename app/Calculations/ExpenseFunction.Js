@@ -32,13 +32,18 @@ export const expenses = (
   }
 
   // Calculate monthly mortgage payment
-  const monthlyRate = IntRate / 12 / 100;
+  const monthlyRate = Number(IntRate.value) / 12 / 100;
   const numberOfPayments = LoanTerm * 12;
-  let MortgageCost = (
-    (LoanAmount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
-    (Math.pow(1 + monthlyRate, numberOfPayments) - 1)
-  ).toFixed(2);
-
+  let MortgageCost;
+  if (IntRate.isInterestOnly) {
+    MortgageCost = LoanAmount * monthlyRate;
+  } else {
+    MortgageCost = (
+      (LoanAmount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
+      (Math.pow(1 + monthlyRate, numberOfPayments) - 1)
+    ).toFixed(2);
+  }
+  
   // Calculate Principal left
   let PrincipalAmt = LoanAmount;
   let adjMonths = MonthsHeld;

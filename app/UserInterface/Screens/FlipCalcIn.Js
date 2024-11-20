@@ -11,20 +11,16 @@ import LoanTerm from '../Components/LoanTerm.Js';
 import { useDatabase } from '../../../database/cashflowDatabase.Js';
 import { expenses } from '../../Calculations/ExpenseFunction.Js';
 import { outputs } from '../../Calculations/CoreOutputs.Js';
+import Checkbox from '../Components/InterestCheckbox.Js';
 
 function FlipCalcIn(props) {
     const navigation = useNavigation();
     const route = useRoute();
     const [purchasePrice, setPurchasePrice] = useState('');
-    // const [downPayment, setDownPayment] = useState('');
-    const [interestRate, setInterestRate] = useState('');
-    // const [closingCost, setClosingCost] = useState('');
-    // const [propertyTax, setPropertyTax] = useState('');
     const [rehabCost, setRehabCost] = useState('');
     const [loanTerm, setLoanTerm] = useState(30);
     const [afterRev, setAfterRev] = useState('');
     const [rehabTime, setRehabTime] = useState('');
-    // const [agentCommish, setAgentCommish] = useState('');
     const [expenseArray, setExpenseArray] = useState(['', '', '']);
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
@@ -35,6 +31,10 @@ function FlipCalcIn(props) {
         closingCost: { value: '', isDollar: false },
         propertyTax: { value: '', isDollar: false },
         agentCommish: { value: '', isDollar: false }
+    });
+    const [interestRateInput, setInterestRateInput] = useState({
+        value: '',
+        isInterestOnly: false
     });
     const { saveCalculation } = useDatabase();
     const [calculationId, setCalculationId] = useState(null);
@@ -65,7 +65,7 @@ function FlipCalcIn(props) {
             keyboardDidShowListener.remove();
             keyboardDidHideListener.remove();
         };
-    }, [purchasePrice, interestRate, afterRev, switchableInputs]);
+    }, [purchasePrice, interestRateInput, afterRev, switchableInputs]);
 
     useEffect(() => {
         if (route.params?.inputValues) {
@@ -86,16 +86,15 @@ function FlipCalcIn(props) {
 
             setCalculationId(id);
             setPurchasePrice(purchasePrice?.toString() || '');
-            // setDownPayment(downPayment?.toString() || '');
-            setInterestRate(interestRate?.toString() || '');
-            // setClosingCost(closingCost?.toString() || '');
-            // setPropertyTax(propertyTax?.toString() || '');
+            setInterestRateInput({
+                value: interestRate?.value?.toString() || '',
+                isInterestOnly: interestRate?.isInterestOnly || false
+            });
             setRehabCost(rehabCost?.toString() || '');
             setLoanTerm(loanTerm?.toString() || '30');
             setExpenseArray(expenseArray || ['', '', '']);
             setAfterRev(afterRev?.toString() || '');
             setRehabTime(rehabTime?.toString() || '');
-            // setAgentCommish(agentCommish?.toString() || '');
        
             setSwitchableInputs(prevInputs => ({
                 ...prevInputs,
@@ -111,7 +110,7 @@ function FlipCalcIn(props) {
         setIsFormValid(
             purchasePrice !== '' &&
             switchableInputs.downPayment.value !== '' &&
-            interestRate !== '' &&
+            interestRateInput.value !== '' &&
             switchableInputs.propertyTax.value !== '' &&
             afterRev !== ''
         );
@@ -142,8 +141,6 @@ function FlipCalcIn(props) {
     };
 
     const handleInfoPress = (infoText) => {
-        // Implement the logic to show the overlay with infoText
-        // This could be setting a state variable to show a modal, for example
         console.log(infoText);
     };
 
@@ -153,7 +150,7 @@ function FlipCalcIn(props) {
         const inputValues = {
             purchasePrice: toNumber(purchasePrice),
             downPayment: switchableInputs.downPayment,
-            interestRate: toNumber(interestRate),
+            interestRate: interestRateInput,
             loanTerm: toNumber(loanTerm),
             propertyTax: switchableInputs.propertyTax,
             closingCost: switchableInputs.closingCost,
@@ -162,16 +159,13 @@ function FlipCalcIn(props) {
             afterRev: toNumber(afterRev),
             rehabTime: toNumber(rehabTime),
             agentCommish: switchableInputs.agentCommish,
-            // Add default values for missing properties
             propertyInsurance: 0,
             capexEst: { value: '0', isDollar: false },
             monthRent: 0
         };
 
-        // Calculate a new uid if calculationId is null
         const id = calculationId || uid();
 
-        // Call ExpenseFunction
         const expenseResults = expenses(
             inputValues.purchasePrice,
             inputValues.downPayment,
@@ -187,15 +181,14 @@ function FlipCalcIn(props) {
             inputValues.rehabTime
         );
 
-        // Call CoreOutputs function
         const outputResults = outputs(
             inputValues.afterRev,
             inputValues.rehabTime,
             inputValues.agentCommish,
             inputValues.monthRent,
             inputValues.purchasePrice,
-            expenseResults[2], // cashDown
-            expenseResults[1]  // monthlyCost
+            expenseResults[2],
+            expenseResults[1]
         );
 
         const results = {
@@ -215,14 +208,12 @@ function FlipCalcIn(props) {
             totalCashCost: outputResults[8],
         };
 
-        // Save the calculation to the database using expo-sqlite/next notation
         try {
             await saveCalculation('flip', inputValues, results, id);
         } catch (error) {
             console.error('Error saving calculation to database:', error);
         }
 
-        // Navigate to the result screen
         navigation.navigate(resultScreen, {
             inputValues: {...inputValues, id},
             ...results
@@ -241,8 +232,8 @@ function FlipCalcIn(props) {
         },
         {
             label: "Interest Rate",
-            value: interestRate,
-            onChangeText: setInterestRate,
+            value: interestRateInput.value,
+            onChangeText: (value) => setInterestRateInput(prev => ({ ...prev, value })),
             placeholder: "ex. 5%",
             isRequired: true,
             type: "%"
@@ -348,6 +339,11 @@ function FlipCalcIn(props) {
                    <NumericInput {...numericInputsArray[0]} />
                    <SwitchableNumericInput {...switchableInputsArray[0]} />
                    <NumericInput {...numericInputsArray[1]} />
+                   <Checkbox
+                        label="Interest Only?"
+                        value={interestRateInput.isInterestOnly}
+                        onValueChange={(newValue) => setInterestRateInput(prev => ({ ...prev, isInterestOnly: newValue }))}
+                    />
                    <SwitchableNumericInput {...switchableInputsArray[1]} />
                    <SwitchableNumericInput {...switchableInputsArray[2]} />                           
                    <LoanTerm

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Text, Animated } from "react-native";
+import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Text, Animated } from "react-native";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NumericInput from '../Components/NumericInputBox.Js';
@@ -11,12 +11,12 @@ import HomeButton from '../Components/HomeButton.Js';
 import SwitchableNumericInput from '../Components/SwitchableNumericInput.Js';
 import LoanTerm from '../Components/LoanTerm.Js';
 import { useDatabase } from '../../../database/cashflowDatabase.Js';
+import Checkbox from '../Components/InterestCheckbox.Js';
 
 function RentalCalcIn(props) {
     const navigation = useNavigation();
     const route = useRoute();
     const [purchasePrice, setPurchasePrice] = useState('');
-    const [interestRate, setInterestRate] = useState('');
     const [rehabCost, setRehabCost] = useState('');
     const [loanTerm, setLoanTerm] = useState(30);
     const [monthRent, setMonthRent] = useState('');
@@ -35,6 +35,10 @@ function RentalCalcIn(props) {
     const [calculationId, setCalculationId] = useState(null);
     const [showHeaderTitle, setShowHeaderTitle] = useState(false);
     const scrollY = useRef(new Animated.Value(0)).current;
+    const [interestRateInput, setInterestRateInput] = useState({
+        value: '',
+        isInterestOnly: false
+    });
 
     const uid = () => {
         return Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -60,7 +64,7 @@ function RentalCalcIn(props) {
             keyboardDidShowListener.remove();
             keyboardDidHideListener.remove();
         };
-    }, [purchasePrice, interestRate, monthRent, switchableInputs]);
+    }, [purchasePrice, interestRateInput, monthRent, switchableInputs]);
 
     useEffect(() => {
         if (route.params?.inputValues) {
@@ -80,7 +84,10 @@ function RentalCalcIn(props) {
 
             setCalculationId(id);
             setPurchasePrice(purchasePrice?.toString() || '');
-            setInterestRate(interestRate?.toString() || '');
+            setInterestRateInput({
+                value: interestRate?.value?.toString() || '',
+                isInterestOnly: interestRate?.isInterestOnly || false
+            });
             setRehabCost(rehabCost?.toString() || '');
             setLoanTerm(loanTerm?.toString() || '30');
             setMonthRent(monthRent?.toString() || '');
@@ -100,7 +107,7 @@ function RentalCalcIn(props) {
         setIsFormValid(
             purchasePrice !== '' &&
             switchableInputs.downPayment.value !== '' &&
-            interestRate !== '' &&
+            interestRateInput.value !== '' &&
             switchableInputs.propertyTax.value !== '' &&
             monthRent !== ''
         );
@@ -131,8 +138,6 @@ function RentalCalcIn(props) {
     };
 
     const handleInfoPress = (infoText) => {
-        // Implement the logic to show the overlay with infoText
-        // This could be setting a state variable to show a modal, for example
         console.log(infoText);
     };
 
@@ -142,7 +147,7 @@ function RentalCalcIn(props) {
         const inputValues = {
             purchasePrice: toNumber(purchasePrice),
             downPayment: switchableInputs.downPayment,
-            interestRate: toNumber(interestRate),
+            interestRate: interestRateInput,
             loanTerm: toNumber(loanTerm),
             propertyTax: switchableInputs.propertyTax,
             closingCost: switchableInputs.closingCost,
@@ -150,17 +155,14 @@ function RentalCalcIn(props) {
             expenseArray: expenseArray.map(toNumber),
             rehabCost: toNumber(rehabCost),
             monthRent: toNumber(monthRent),
-            // Add default values for missing properties
             propertyInsurance: 0,
             afterRev: 0,
             rehabTime: 0,
             agentCommish: { value: '0', isDollar: false }
         };
 
-        // Calculate a new uid if calculationId is null
         const id = calculationId || uid();
 
-        // Call ExpenseFunction
         const expenseResults = expenses(
             inputValues.purchasePrice,
             inputValues.downPayment,
@@ -176,15 +178,14 @@ function RentalCalcIn(props) {
             inputValues.rehabTime
         );
 
-        // Call CoreOutputs function
         const outputResults = outputs(
             inputValues.afterRev,
             inputValues.rehabTime,
             inputValues.agentCommish,
             inputValues.monthRent,
             inputValues.purchasePrice,
-            expenseResults[2], // cashDown
-            expenseResults[1]  // monthlyCost
+            expenseResults[2],
+            expenseResults[1]
         );
 
         const results = {
@@ -204,16 +205,14 @@ function RentalCalcIn(props) {
             totalCashCost: outputResults[8],
         };
 
-        // Save the calculation to the database using expo-sqlite/next notation
         try {
             await saveCalculation('rental', inputValues, results, id);
         } catch (error) {
             console.error('Error saving calculation to database:', error);
         }
 
-        // Navigate to the result screen
         navigation.navigate(resultScreen, {
-            inputValues: { ...inputValues, id }, // Include the id in inputValues for the result screen
+            inputValues: { ...inputValues, id },
             ...results
         });
     };
@@ -230,8 +229,8 @@ function RentalCalcIn(props) {
         },
         {
             label: "Interest Rate",
-            value: interestRate,
-            onChangeText: setInterestRate,
+            value: interestRateInput.value,
+            onChangeText: (value) => setInterestRateInput(prev => ({ ...prev, value })),
             placeholder: "ex. 5%",
             isRequired: true,
             type: "%"
@@ -330,6 +329,11 @@ function RentalCalcIn(props) {
                     <NumericInput {...numericInputsArray[0]} />
                     <SwitchableNumericInput {...switchableInputsArray[0]}/>
                     <NumericInput {...numericInputsArray[1]} />
+                    <Checkbox
+                        label="Interest Only?"
+                        value={interestRateInput.isInterestOnly}
+                        onValueChange={(newValue) => setInterestRateInput(prev => ({ ...prev, isInterestOnly: newValue }))}
+                    />
                     <SwitchableNumericInput {...switchableInputsArray[1]}/>
                     <LoanTerm
                         label="Loan Term"
@@ -390,15 +394,15 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         marginTop: 16,
         marginLeft: 16,
-      },
-      secondaryTitle: {
+    },
+    secondaryTitle: {
         fontSize: 18,
         fontWeight: 500,
         color: colors.primaryBlack,
         marginVertical: 16,
         marginLeft: 16,
-      },
-      headerTitle: {
+    },
+    headerTitle: {
         fontSize: 14,
         fontWeight: '500',
         color: colors.primaryBlack,

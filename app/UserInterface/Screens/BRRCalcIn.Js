@@ -11,24 +11,19 @@ import LoanTerm from '../Components/LoanTerm.Js';
 import HomeButton from '../Components/HomeButton.Js';
 import SwitchableNumericInput from '../Components/SwitchableNumericInput.Js';
 import { useDatabase } from '../../../database/cashflowDatabase.Js';
+import Checkbox from '../Components/InterestCheckbox.Js';
 
 function BRRCalcIn(props) {
     const navigation = useNavigation();
     const route = useRoute();
     const [purchasePrice, setPurchasePrice] = useState('');
-    // const [downPayment, setDownPayment] = useState('');
-    const [interestRate, setInterestRate] = useState('');
-    // const [closingCost, setClosingCost] = useState('');
-    // const [propertyTax, setPropertyTax] = useState('');
     const [rehabCost, setRehabCost] = useState('');
     const [loanTerm, setLoanTerm] = useState(30);
     const [newloanTerm, setnewLoanTerm] = useState(30);
     const [BRRmonthRent, setBRRmonthRent] = useState('');
-    // const [BRRcapexEst, setBRRcapexEst] = useState('');
     const [afterRev, setAfterRev] = useState('');
     const [rehabTime, setRehabTime] = useState('');
     const [refinanceCost, setRefinanceCost] = useState('');
-    const [newInterest, setNewInterest] = useState('');
     const [expenseArray, setExpenseArray] = useState(['', '', '']);
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
@@ -39,6 +34,10 @@ function BRRCalcIn(props) {
         closingCost: { value: '', isDollar: false },
         propertyTax: { value: '', isDollar: false },
         BRRcapexEst: { value: '', isDollar: false }
+    });
+    const [interestRateInput, setInterestRateInput] = useState({
+        initialInterest: { value: '', isInterestOnly: false },
+        newInterest: { value: '', isInterestOnly: false }
     });
     
     const { saveCalculation } = useDatabase();
@@ -70,7 +69,7 @@ function BRRCalcIn(props) {
             keyboardDidShowListener.remove();
             keyboardDidHideListener.remove();
         };
-    }, [purchasePrice, interestRate, BRRmonthRent, afterRev, newInterest, switchableInputs]);
+    }, [purchasePrice, interestRateInput, BRRmonthRent, afterRev, switchableInputs]);
 
     useEffect(() => {
         if (route.params?.inputValues) {
@@ -95,20 +94,19 @@ function BRRCalcIn(props) {
 
             setCalculationId(id);
             setPurchasePrice(purchasePrice?.toString() || '');
-            // setDownPayment(downPayment?.toString() || '');
-            setInterestRate(interestRate?.toString() || '');
-            // setClosingCost(closingCost?.toString() || '');
-            // setPropertyTax(propertyTax?.toString() || '');
+            setInterestRateInput(prevInputs => ({
+                ...prevInputs,
+                initialInterest : interestRate || { value: '', isInterestOnly: false },
+                newInterest: newInterest || { value: '', isInterestOnly: false }
+            }));
             setRehabCost(rehabCost?.toString() || '');
             setLoanTerm(loanTerm?.toString() || '30');
-            // setBRRcapexEst(BRRcapexEst?.toString() || '');
             setExpenseArray(expenseArray || ['', '', '']);
             setAfterRev(afterRev?.toString() || '');
             setRehabTime(rehabTime?.toString() || '');
             setnewLoanTerm(newloanTerm?.toString() || '30');
             setBRRmonthRent(BRRmonthRent?.toString() || '');
             setRefinanceCost(refinanceCost?.toString() || '');
-            setNewInterest(newInterest?.toString() || '');
             setSwitchableInputs(prevInputs => ({
                 ...prevInputs,
                 downPayment: downPayment || { value: '', isDollar: false },
@@ -123,11 +121,11 @@ function BRRCalcIn(props) {
         setIsFormValid(
             purchasePrice !== '' &&
             switchableInputs.downPayment.value !== '' &&
-            interestRate !== '' &&
+            interestRateInput.initialInterest.value !== '' &&
             switchableInputs.propertyTax.value !== '' &&
             BRRmonthRent !== '' &&
             afterRev !== '' &&
-            newInterest !== ''
+            interestRateInput.newInterest.value !== ''
         );
     };
 
@@ -152,8 +150,6 @@ function BRRCalcIn(props) {
     };
 
     const handleInfoPress = (infoText) => {
-        // Implement the logic to show the overlay with infoText
-        // This could be setting a state variable to show a modal, for example
         console.log(infoText);
     };
 
@@ -163,7 +159,7 @@ function BRRCalcIn(props) {
         const inputValues = {
             purchasePrice: toNumber(purchasePrice),
             downPayment: switchableInputs.downPayment,
-            interestRate: toNumber(interestRate),
+            interestRate: interestRateInput.initialInterest,
             loanTerm: toNumber(loanTerm),
             propertyTax: switchableInputs.propertyTax,
             BRRcapexEst: switchableInputs.BRRcapexEst,
@@ -174,30 +170,27 @@ function BRRCalcIn(props) {
             afterRev: toNumber(afterRev),
             rehabTime: toNumber(rehabTime),
             refinanceCost: toNumber(refinanceCost),
-            newInterest: toNumber(newInterest),
+            newInterest: interestRateInput.newInterest,
             newloanTerm: toNumber(newloanTerm)
         };
 
-        // Calculate a new uid if calculationId is null
         const id = calculationId || uid();
 
-        // Call expenses function for initial loan
         const initialExpenseResults = expenses(
             inputValues.purchasePrice,
             inputValues.downPayment,
             inputValues.interestRate,
             inputValues.loanTerm,
             inputValues.propertyTax,
-            0, // propertyInsurance (not used in BRRR calc)
+            0,
             inputValues.BRRcapexEst,
             inputValues.expenseArray,
             inputValues.rehabCost,
             inputValues.closingCost,
-            0, //We do not want the rent to be applied here
+            0,
             inputValues.rehabTime
         );
 
-        // Call BuyRefi function
         const buyRefiResults = BuyRefi(
             inputValues.purchasePrice,
             inputValues.refinanceCost,
@@ -206,12 +199,12 @@ function BRRCalcIn(props) {
             inputValues.rehabTime,
             inputValues.BRRmonthRent,
             inputValues.BRRcapexEst,
-            initialExpenseResults[2], // cashDown
-            initialExpenseResults[0],  // mortgageCost
-            initialExpenseResults[1], // monthlyCost
-            initialExpenseResults[3],  // monthEx
+            initialExpenseResults[2],
+            initialExpenseResults[0],
+            initialExpenseResults[1],
+            initialExpenseResults[3],
             inputValues.newloanTerm,
-            initialExpenseResults[4]  // PrincipalAmt
+            initialExpenseResults[4]
         );
 
         const results = {
@@ -228,14 +221,12 @@ function BRRCalcIn(props) {
             EquityReturnPerc: buyRefiResults[6]
         };
 
-        // Save the calculation to the database using expo-sqlite/next notation
         try {
             await saveCalculation('brrr', inputValues, results, id);
         } catch (error) {
             console.error('Error saving calculation to database:', error);
         }
 
-        // Navigate to the result screen
         navigation.navigate(resultScreen, {
             inputValues: {...inputValues, id},
             ...results
@@ -244,9 +235,9 @@ function BRRCalcIn(props) {
 
     const handleExpenseDataChange = (costValues) => {
         setExpenseArray(costValues);
-      };
+    };
 
-      const numericInputsArray = [
+    const numericInputsArray = [
         {
             label: "Purchase Price",
             value: purchasePrice,
@@ -255,14 +246,6 @@ function BRRCalcIn(props) {
             isRequired: true,
             type: "$",
             infoPress: () => handleInfoPress("Information about Purchase Price")
-        },
-        {
-            label: "Interest Rate",
-            value: interestRate,
-            onChangeText: setInterestRate,
-            placeholder: "ex. 5%",
-            isRequired: true,
-            type: "%"
         },
         {
             label: "Rehab Cost",
@@ -300,14 +283,6 @@ function BRRCalcIn(props) {
             onChangeText: setRefinanceCost,
             placeholder: "ex. $1000",
             type: "$"
-        },
-        {
-            label: "New Interest Rate",
-            value: newInterest,
-            onChangeText: setNewInterest,
-            placeholder: "ex. 5%",
-            isRequired: true,
-            type: "%"
         }
     ];
 
@@ -387,7 +362,19 @@ function BRRCalcIn(props) {
                    <Text style={styles.secondaryTitle}>Loan Details</Text>                    
                    <NumericInput {...numericInputsArray[0]} />
                    <SwitchableNumericInput {...switchableInputsArray[0]} />
-                   <NumericInput {...numericInputsArray[1]} />
+                   <NumericInput 
+                        label="Interest Rate"
+                        value={interestRateInput.initialInterest.value}
+                        onChangeText={(value) => setInterestRateInput(prev => ({ ...prev, initialInterest: { ...prev.initialInterest, value } }))}
+                        placeholder="ex. 5%"
+                        isRequired={true}
+                        type="%"
+                   />
+                   <Checkbox
+                        label="Interest Only?"
+                        value={interestRateInput.initialInterest.isInterestOnly}
+                        onValueChange={(newValue) => setInterestRateInput(prev => ({ ...prev, initialInterest: { ...prev.initialInterest, isInterestOnly: newValue } }))}
+                    />
                    <SwitchableNumericInput {...switchableInputsArray[1]} />
                    <SwitchableNumericInput {...switchableInputsArray[2]} />
                    <LoanTerm
@@ -396,15 +383,27 @@ function BRRCalcIn(props) {
                         onValueChange={(itemValue) => setLoanTerm(itemValue)}
                     />
                    <Text style={styles.secondaryTitle}>Rehab Details</Text>                    
-                   <NumericInput {...numericInputsArray[2]} />
-                   <NumericInput {...numericInputsArray[5]} />
+                   <NumericInput {...numericInputsArray[1]} />
+                   <NumericInput {...numericInputsArray[4]} />
                    <Text style={styles.secondaryTitle}>Rent Details</Text>
-                   <NumericInput {...numericInputsArray[3]} />
+                   <NumericInput {...numericInputsArray[2]} />
                    <SwitchableNumericInput {...switchableInputsArray[3]} />
                    <Text style={styles.secondaryTitle}>Refinance Details</Text>
-                   <NumericInput {...numericInputsArray[4]} />
-                   <NumericInput {...numericInputsArray[6]} />
-                   <NumericInput {...numericInputsArray[7]} />
+                   <NumericInput {...numericInputsArray[3]} />
+                   <NumericInput {...numericInputsArray[5]} />
+                   <NumericInput 
+                        label="New Interest Rate"
+                        value={interestRateInput.newInterest.value}
+                        onChangeText={(value) => setInterestRateInput(prev => ({ ...prev, newInterest: { ...prev.newInterest, value } }))}
+                        placeholder="ex. 5%"
+                        isRequired={true}
+                        type="%"
+                   />
+                   <Checkbox
+                        label="Interest Only?"
+                        value={interestRateInput.newInterest.isInterestOnly}
+                        onValueChange={(newValue) => setInterestRateInput(prev => ({ ...prev, newInterest: { ...prev.newInterest, isInterestOnly: newValue } }))}
+                    />
                    <LoanTerm
                         label="New Loan Term"
                         value={newloanTerm}
@@ -458,15 +457,15 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         marginTop: 16,
         marginLeft: 16,
-      },
-      secondaryTitle: {
+    },
+    secondaryTitle: {
         fontSize: 18,
         fontWeight: 500,
         color: colors.primaryBlack,
         marginVertical: 16,
         marginLeft: 16,
-      },
-      headerTitle: {
+    },
+    headerTitle: {
         fontSize: 14,
         fontWeight: '500',
         color: colors.primaryBlack,

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text, TouchableOpacity, Image, ScrollView, Modal } from "react-native";
+import { View, StyleSheet, SafeAreaView, StatusBar, Text, TouchableOpacity, Image, ScrollView, Modal, Platform } from "react-native";
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { InformationCircleIcon, ChevronRightIcon, XMarkIcon } from 'react-native-heroicons/outline';
 import colors from '../Colors/colors.Js';

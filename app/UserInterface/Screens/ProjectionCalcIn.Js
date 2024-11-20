@@ -20,7 +20,6 @@ function ProjectionCalcIn(props) {
     const [interestRate, setInterestRate] = useState('');
     const [propertyTax, setPropertyTax] = useState('');
     const [monthRent, setMonthRent] = useState('');
-    // const [capexEst, setCapexEst] = useState('');
     const [loanTerm, setLoanTerm] = useState(30);
     const [rehabCost, setRehabCost] = useState('');
     const [expenseArray, setExpenseArray] = useState(['', '', '']);
@@ -67,6 +66,7 @@ function ProjectionCalcIn(props) {
         if (route.params?.inputValues) {
             const {
                 id,
+                purchasePrice,
                 monthCashflow,
                 downPayment,
                 interestRate,
@@ -80,6 +80,7 @@ function ProjectionCalcIn(props) {
             } = route.params.inputValues;
 
             setCalculationId(id);
+            setPurchasePrice(purchasePrice?.toString() || '');
             setMonthCashflow(monthCashflow?.toString() || '');
             setDownPayment(downPayment?.toString() || '');
             setInterestRate(interestRate?.toString() || '');
@@ -109,9 +110,9 @@ function ProjectionCalcIn(props) {
 
     const handleExpenseDataChange = (costValues) => {
         setExpenseArray(costValues);
-      };
+    };
 
-      const handleSwitchableInputChange = (inputName, newValue) => {
+    const handleSwitchableInputChange = (inputName, newValue) => {
         setSwitchableInputs(prevInputs => ({
             ...prevInputs,
             [inputName]: {
@@ -132,8 +133,6 @@ function ProjectionCalcIn(props) {
     };
 
     const handleInfoPress = (infoText) => {
-        // Implement the logic to show the overlay with infoText
-        // This could be setting a state variable to show a modal, for example
         console.log(infoText);
     };
 
@@ -141,6 +140,7 @@ function ProjectionCalcIn(props) {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
         const inputValues = {
+            purchasePrice: toNumber(purchasePrice),
             monthCashflow: toNumber(monthCashflow),
             downPayment: toNumber(downPayment),
             interestRate: toNumber(interestRate),
@@ -153,17 +153,15 @@ function ProjectionCalcIn(props) {
             rehabCost: toNumber(rehabCost)
         };
 
-        // Calculate a new uid if calculationId is null
         const id = calculationId || uid();
 
-        // Call PriceSuggestion function (assuming it's imported)
         const cashflowResults = PriceSuggestion(
             inputValues.monthCashflow,
             inputValues.downPayment,
             inputValues.interestRate,
             inputValues.loanTerm,
             inputValues.propertyTax,
-            0, // propertyInsurance (not used in this calculator)
+            0,
             inputValues.capexEst,
             inputValues.expenseArray,
             inputValues.monthRent,
@@ -180,14 +178,12 @@ function ProjectionCalcIn(props) {
             targetExp: cashflowResults[5],
         };
 
-        // Save the calculation to the database using SQLite/next notation
         try {
             await saveCalculation('projection', inputValues, results, id);
         } catch (error) {
             console.error('Error saving calculation to database:', error);
         }
 
-        // Navigate to the result screen
         navigation.navigate(resultScreen, {
             inputValues: {...inputValues, id},
             ...results
@@ -363,15 +359,15 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         marginTop: 16,
         marginLeft: 16,
-      },
-      secondaryTitle: {
+    },
+    secondaryTitle: {
         fontSize: 18,
         fontWeight: 500,
         color: colors.primaryBlack,
         marginVertical: 16,
         marginLeft: 16,
-      },
-      headerTitle: {
+    },
+    headerTitle: {
         fontSize: 14,
         fontWeight: '500',
         color: colors.primaryBlack,

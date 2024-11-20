@@ -20,7 +20,7 @@ export const BuyRefi = (
     PurchPrice = Number(PurchPrice);
     // DownPayPerc = Number(DownPayPerc);
     RefinanceCost = Number(RefinanceCost);
-    NewInterest = Number(NewInterest);
+    // NewInterest = Number(NewInterest);
     AfterRep = Number(AfterRep);
     MonthsHeld = Number(MonthsHeld);
     BRRMonthRent = Number(BRRMonthRent);
@@ -35,12 +35,17 @@ export const BuyRefi = (
     const NewLoanAmount = AfterRep * 0.80; // Assuming 80% LTV refinance
   
     // Calculate new mortgage payment
-    const monthlyRate = NewInterest / 12 / 100;
+    const monthlyRate = Number(NewInterest.value) / 12 / 100;
     const numberOfPayments = LoanTerm * 12; 
-    const BRRMortgageCost = (
-      (NewLoanAmount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
-      (Math.pow(1 + monthlyRate, numberOfPayments) - 1)
-    ).toFixed(2);
+    let BRRMortgageCost;
+    if (NewInterest.isInterestOnly) {
+      BRRMortgageCost = NewLoanAmount * monthlyRate;
+    } else {
+      BRRMortgageCost = (
+        (NewLoanAmount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
+        (Math.pow(1 + monthlyRate, numberOfPayments) - 1)
+      ).toFixed(2);
+    }
   
     // Calculate new monthly cost
     let monthlyCapEx;

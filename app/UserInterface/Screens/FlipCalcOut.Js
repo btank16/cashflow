@@ -1,13 +1,13 @@
 import React from 'react';
-import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, Image } from "react-native";
+import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, Text, TouchableOpacity } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
-import NavBar from '../Components/NavBar.Js';
 import ResultDisplay from '../Components/ResultDisplay.Js';
 import BackButton from '../Components/BackButton.Js';
-import CommonStyles from '../Colors/CommonStyles.Js';
-import CustomTitle from '../Components/CustomTitle.Js';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import ExpensePieChart from '../Components/ExpensePieChart.Js';
+import DarkTextLogo from '../../assets/icons/DarkTextLogo.jsx';
 
 function FlipCalcOut(props) {
     const navigation = useNavigation();
@@ -17,50 +17,121 @@ function FlipCalcOut(props) {
 
     const formatDollar = (value) => {
         const number = parseFloat(value);
-        return isNaN(number) ? '$0.00' : '$' + number.toLocaleString('en-US', {
+        if (isNaN(number)) return '$0.00';
+        
+        const absNumber = Math.abs(number);
+        return `${number < 0 ? '-' : ''}$${absNumber.toLocaleString('en-US', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
-        });
-      };
-    
-    const formatPercent = (value) => {
-        const number = parseFloat(value);
-        return isNaN(number) ? '0.00%' : number.toFixed(2) + '%';
+        })}`;
     };
+    
+
+    const resultDisplayArray = [
+        {
+            label: "ROI",
+            value: results.returnPerc,
+            type: "percentage",
+            infoPress: () => handleInfoPress("Information about Monthly Cashflow")
+        },
+        {
+            label: "Cash on Cash ROI",
+            value: results.cashROI,
+            type: "percentage",
+            infoPress: () => handleInfoPress("Information about Cash Down")
+        }
+    ];
+
+    const fullWidthDisplays = [
+        {
+            label: "Cash Down",
+            value: results.cashDown,
+            type: "dollar",
+            textColor: colors.primaryBlack,
+            additionalText: "Down Payment and Rehab Cost",
+            infoPress: () => handleInfoPress("Information about DSCR"),
+            fullWidth: true
+        },
+        {
+            label: "Total Cash Costs",
+            value: results.totalCashCost,
+            type: "dollar",
+            textColor: colors.primaryBlack,
+            additionalText: "The sum of all Cash Costs, including Expenses during the Rehab Period",
+            infoPress: () => handleInfoPress("Information about Break Even"),
+            fullWidth: true
+        }
+    ];
+
+    const handleInfoPress = (infoText) => {
+        console.log(infoText);
+    };
+
+    const expenseChartData = [
+        {
+            name: 'Mortgage Cost',
+            value: results.mortgageCost,
+            color: colors.primaryGreen,
+        },
+        {
+            name: 'Property Taxes',
+            value: results.monthlyPropTax,
+            color: colors.primaryPurple,
+        },
+        {
+            name: 'Operating Expenses',
+            value: results.monthlyOpEx,
+            color: colors.primaryOrange,
+        },
+    ];
 
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
                 <BackButton 
-                    inputValues={inputValues} 
-                    destinationScreen='FlipCalcIn'
+                    inputValues={inputValues}
+                    destinationScreen="FlipCalcIn"
                 />
-                <Image source={require('../../assets/images/WhiteTextLogo.png')} style={CommonStyles.logo} />
+                <TouchableOpacity 
+                    style={styles.logoWrapper}
+                    onPress={() => navigation.navigate('CalcHomeScreen')}
+                >
+                    <DarkTextLogo />
+                </TouchableOpacity>
             </View>
             <ScrollView style={styles.contentContainer}>
-                <CustomTitle title="Fix & Flip Output" />                           
-                <ResultDisplay label="Cash Down" value={formatDollar(results.cashDown)} />
-                <ResultDisplay label="Mortgage Cost" value={formatDollar(results.mortgageCost)} />
-                <ResultDisplay label="Monthly Expenses" value={formatDollar(results.monthEx)} />
-                <ResultDisplay label="Total Monthly Costs" value={formatDollar(results.monthlyCost)} />
-                <ResultDisplay label="Total Cash Costs" value={formatDollar(results.totalCashCost)} />
-                <ResultDisplay label="Net Profit" value={formatDollar(results.totalProfit)} />
-                <ResultDisplay label="ROI" value={formatPercent(results.returnPerc)} />
-                <ResultDisplay label="Cash on Cash ROI" value={formatPercent(results.cashROI)} />
-            </ScrollView>
-            <View style={styles.menuContainer}>
-                <NavBar 
-                    activeTab="Analyze"
-                    onTabPress={(tabName) => {
-                        if (tabName === 'Feedback') {
-                            navigation.navigate('FeedbackScreen');
-                        }
-                        else if (tabName === 'Analyze') {
-                            navigation.navigate('CalcHomeScreen');
-                        }
-                    }}
+                <View style={styles.mainResultContainer}>
+                    <View style={styles.mainLabelContainer}>
+                        <Text style={styles.mainLabel}>Net Profit</Text>
+                        <TouchableOpacity onPress={() => handleInfoPress("Information about Annual Cashflow")}>
+                            <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
+                        </TouchableOpacity>
+                    </View>
+                    <Text style={[
+                        styles.mainValue,
+                        { color: results.totalProfit >= 0 ? colors.primaryGreen : colors.quaternaryRed }
+                    ]}>
+                        {formatDollar(results.totalProfit)}
+                    </Text>
+                </View>
+                <View style={styles.resultsGrid}>
+                    {resultDisplayArray.map((item, index) => (
+                        <ResultDisplay 
+                            key={index}
+                            {...item}
+                        />
+                    ))}
+                    {fullWidthDisplays.map((item, index) => (
+                        <ResultDisplay 
+                            key={`full-${index}`}
+                            {...item}
+                        />
+                    ))}
+                </View>
+                <ExpensePieChart
+                    chartData={expenseChartData}
                 />
-            </View>
+            </ScrollView>
         </SafeAreaView>
     );
 }
@@ -68,43 +139,61 @@ function FlipCalcOut(props) {
 const styles = StyleSheet.create({
     masterBackground: {
         flex: 1,
-        backgroundColor: colors.background,
+        backgroundColor: colors.iconWhite,
         paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     logoContainer: {
         flexDirection: 'row',
-        height: 56,
+        height: 32,
         alignItems: 'center',
-        backgroundColor: colors.background,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(0, 0, 0, 0.1)', // Faded black line
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 5, // for Android shadow
+        backgroundColor: colors.iconWhite,
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+    },
+    logoWrapper: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        alignItems: 'center',
     },
     contentContainer: {
-        flex: 8,
-        backgroundColor: colors.background,
+        backgroundColor: colors.iconWhite,
     },
-    menuContainer: {
-        height: 56,
-        backgroundColor: colors.background,
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(0, 0, 0, 0.1)', // Faded black line
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: -2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 5, // for Android shadow
-    }
+    headerTitle: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: colors.primaryBlack,
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        textAlign: 'center',
+    },
+    mainResultContainer: {
+        alignItems: 'center',
+        marginTop: 24,
+        marginBottom: 8,
+    },
+    mainLabelContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    mainLabel: {
+        fontSize: 16,
+        color: colors.primaryGrey,
+    },
+    mainValue: {
+        fontSize: 40,
+        fontWeight: 'bold',
+        color: colors.primaryBlack,
+    },
+    resultsGrid: {
+        padding: 16,
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+        justifyContent: 'space-between',
+    },
 });
 
 export default FlipCalcOut;

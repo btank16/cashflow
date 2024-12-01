@@ -197,6 +197,8 @@ function FlipCalcIn(props) {
             cashDown: expenseResults[2],
             monthEx: expenseResults[3],
             DSCR: expenseResults[5],
+            monthlyPropTax: expenseResults[6],
+            monthlyOpEx: expenseResults[8],
             totalProfit: outputResults[0],
             returnPerc: outputResults[1],
             cashROI: outputResults[2],

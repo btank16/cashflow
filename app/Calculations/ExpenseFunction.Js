@@ -96,5 +96,6 @@ export const expenses = (
   }
   const CashDown = (DownPayment + RehabCost + closingCostTotal).toFixed(2);
 
-  return [MortgageCost, MonthlyCost, CashDown, MonthEx.toFixed(2), PrincipalAmt.toFixed(2), DSCR];
+  return [MortgageCost, MonthlyCost, CashDown, MonthEx.toFixed(2), PrincipalAmt.toFixed(2), 
+    DSCR, monthlyPropTax.toFixed(2), monthlyCapEx.toFixed(2), totalMonthlyExpenses.toFixed(2)];
 };

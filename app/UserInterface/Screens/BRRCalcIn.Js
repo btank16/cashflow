@@ -204,7 +204,9 @@ function BRRCalcIn(props) {
             initialExpenseResults[1],
             initialExpenseResults[3],
             inputValues.newloanTerm,
-            initialExpenseResults[4]
+            initialExpenseResults[4],
+            inputValues.propertyTax,
+            inputValues.expenseArray
         );
 
         const results = {
@@ -212,13 +214,19 @@ function BRRCalcIn(props) {
             monthlyCost: initialExpenseResults[1],
             cashDown: initialExpenseResults[2],
             monthEx: initialExpenseResults[3],
+            monthlyPropTax: initialExpenseResults[6],
+            monthlyCapEx: 0,
+            monthlyOpEx: initialExpenseResults[8],
             BRRMortgageCost: buyRefiResults[0],
             BRRMonthlyCost: buyRefiResults[1],
             BRRCashflow: buyRefiResults[2],
             BRRAnnualCashflow: buyRefiResults[3],
             MaxEquity: buyRefiResults[4],
             EquityReturn: buyRefiResults[5],
-            EquityReturnPerc: buyRefiResults[6]
+            EquityReturnPerc: buyRefiResults[6],
+            BRRCapEx: buyRefiResults[7],
+            BRRPropTax: buyRefiResults[8],
+            CashOnCash: buyRefiResults[9]
         };
 
         try {

@@ -8,7 +8,7 @@ import BRRRRIcon from '../../assets/icons/BRRRIcon.jsx';
 import WholesaleIcon from '../../assets/icons/WholesaleIcon.jsx';
 import TargetIcon from '../../assets/icons/TargetIcon.jsx';
 import { Swipeable } from 'react-native-gesture-handler';
-import { LinearGradient } from 'expo-linear-gradient';
+import CommercialIcon from '../../assets/icons/CommercialIcon.jsx';
 
 // Add this helper function to format numbers
 const formatNumber = (number) => {
@@ -57,6 +57,18 @@ const getCalculatorDetails = (item) => {
         primColor: colors.secondaryGreen,
         secColor: colors.primaryGreen
       };
+    case 'commercial':
+      return {
+        icon: <CommercialIcon width={12} height={12} color={colors.iconWhite} />,
+          details: [
+            { title: 'Purchase Price', value: `$${formatNumber(inputValues.purchasePrice)}` },
+            { title: 'Monthly Rent', value: `$${formatNumber(inputValues.monthRent)}` },
+            { title: 'DSCR', value: `${formatNumber(results.DSCR)}` },
+          ],
+          name: 'Commercial Multi-Family',
+          primColor: colors.sixthBlue,
+          secColor: colors.fifthBlue
+        };
     case 'flip':
       return {
         icon: <FlipIcon width={12} height={12} fill={colors.iconWhite} />,
@@ -126,6 +138,8 @@ const getNavigationScreen = (calculatorType) => {
       return 'ProjectionCalcOut';
     case 'wholesale':
       return 'WholesaleCalcOut';
+    case 'commercial':
+      return 'CommercialCalcOut';
     default:
       return `${calculatorType}CalcOut`;
   }

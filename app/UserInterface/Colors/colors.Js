@@ -22,6 +22,8 @@ const colors = {
     secondaryBlue: '#C4E9EF',
     tertiaryBlue: '#053647',
     quaternaryBlue: '#C4E9EF',
+    fifthBlue: '#2DB1CE',
+    sixthBlue: '#D7F1F0',
     primaryPurple: '#6D6AEF',
     secondaryPurple: '#D5D6F6',
     primaryOrange: '#CE7534',

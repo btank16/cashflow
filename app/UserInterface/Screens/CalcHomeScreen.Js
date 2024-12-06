@@ -14,12 +14,13 @@ import HistoryItem from '../Components/HistoryItem.Js';
 import FeedbackIcon from '../../assets/icons/FeedbackIcon.jsx';
 import HistoryIcon from '../../assets/icons/HistoryIcon.jsx';
 import UserIcon from '../../assets/icons/UserIcon.jsx';
+import CommercialIcon from '../../assets/icons/CommercialIcon.jsx';
 
 const CalculatorButton = ({ name, screen, Icon, color, article, onInfoPress }) => {
   const navigation = useNavigation();
   return (
     <TouchableOpacity 
-      style={[styles.calculatorButton, { width: name === "Price Target Calculator" ? '100%' : '48%' }]}
+      style={[styles.calculatorButton, { width: '48%' }]}
       onPress={() => navigation.navigate(screen)}
     >
       <TouchableOpacity 
@@ -32,7 +33,11 @@ const CalculatorButton = ({ name, screen, Icon, color, article, onInfoPress }) =
       </TouchableOpacity>
       <View style={styles.calculatorButtonContent}>
         <View style={[styles.iconCircle, { backgroundColor: color }]}>
-          {Icon && <Icon width={24} height={24} fill={colors.iconWhite} />}
+          {Icon && (
+            Icon === CommercialIcon ? 
+              <Icon width={24} height={24} color={colors.iconWhite} /> :
+              <Icon width={24} height={24} fill={colors.iconWhite} />
+          )}
         </View>
         <Text style={styles.calculatorButtonText}>{name}</Text>
       </View>
@@ -163,6 +168,12 @@ function CalcHomeScreen() {
       color: colors.primaryPurple,
       article: articles[4]
     },
+    { 
+      name: "Commercial Multi-Family", 
+      screen: "CommercialCalcIn", 
+      Icon: CommercialIcon, 
+      color: colors.fifthBlue,
+    },
   ];
 
   const renderHistorySection = () => (
@@ -196,7 +207,7 @@ function CalcHomeScreen() {
   return (
     <SafeAreaView style={styles.masterBackground}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerIcon}>
+        <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('UserScreen')}>
           <UserIcon color={colors.primary} size={24} />
         </TouchableOpacity>
         <View style={styles.logoContainer}>

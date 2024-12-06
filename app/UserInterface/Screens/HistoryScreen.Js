@@ -20,7 +20,8 @@ function HistoryScreen() {
     'flip',
     'brrr',
     'projection',
-    'wholesale'
+    'wholesale',
+    'commercial'
   ];
 
   useEffect(() => {
@@ -66,7 +67,8 @@ function HistoryScreen() {
          title === 'flip' ? 'Fix & Flip' :
          title === 'brrr' ? 'BRRRR' :
          title === 'projection' ? 'Price Target' :
-         title === 'wholesale' ? 'Wholesale' : title}
+         title === 'wholesale' ? 'Wholesale' :
+         title === 'commercial' ? 'Commercial' : title}
       </Text>
     </TouchableOpacity>
   );

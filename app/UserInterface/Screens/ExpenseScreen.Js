@@ -1,25 +1,118 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, Platform, StatusBar, TouchableOpacity } from 'react-native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  StyleSheet, 
+  Keyboard,
+  SafeAreaView,
+  ScrollView,
+  Platform,
+  StatusBar,
+  Modal
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronLeftIcon } from 'react-native-heroicons/outline';
+import { Ionicons } from '@expo/vector-icons';
+import BottomSheet from '@gorhom/bottom-sheet';
+import ExpenseLogo from '../../assets/icons/ExpenseLogo.jsx';
 import colors from '../Colors/colors.Js';
 import CalcButton from '../Components/CalcButton.Js';
-import ExpenseLogo from '../../assets/icons/ExpenseLogo.jsx';
+import NumericInput from '../Components/NumericInputBox.Js';
 
 const ExpenseScreen = () => {
   const navigation = useNavigation();
+  const bottomSheetRef = useRef(null);
+  const [isCategoryFocused, setIsCategoryFocused] = useState(false);
+  const [isCostFocused, setIsCostFocused] = useState(false);
+  const [category, setCategory] = useState('');
+  const [cost, setCost] = useState('');
+  const [frequency, setFrequency] = useState('Monthly');
+  const [showFrequencyOptions, setShowFrequencyOptions] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [expenseAmount, setExpenseAmount] = useState('');
+
+  const snapPoints = useMemo(() => ['90%'], []);
+
+  const formatNumber = (value) => {
+    if (!value) return '';
+    return value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  };
+
+  const unformatNumber = (value) => {
+    return value.replace(/,/g, '');
+  };
+
+  const AddExpenseModal = () => (
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={isModalVisible}
+      onRequestClose={() => setIsModalVisible(false)}
+    >
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <TouchableOpacity 
+            style={styles.closeButton}
+            onPress={() => setIsModalVisible(false)}
+          >
+            <Text style={styles.closeButtonText}>×</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.modalTitle}>Add your{'\n'}operating expenses</Text>
+
+          <View style={styles.inputSection}>
+            <View style={styles.categoryInput}>
+              <Text style={styles.inputLabel}>Expense category</Text>
+              <TouchableOpacity style={styles.selectButton}>
+                <Text style={styles.selectButtonText}>Select category</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.frequencyAndCost}>
+              <View style={styles.frequencyInput}>
+                <Text style={styles.inputLabel}>Frequency</Text>
+                <TouchableOpacity style={styles.selectButton}>
+                  <Text style={styles.selectButtonText}>Monthly</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.costInput}>
+                <NumericInput
+                  label="Cost"
+                  value={expenseAmount}
+                  onChangeText={setExpenseAmount}
+                  placeholder="0"
+                  type="$"
+                  isRequired={true}
+                />
+              </View>
+            </View>
+          </View>
+
+          <TouchableOpacity 
+            style={styles.nextButton}
+            onPress={() => {
+              // Handle saving the expense
+              setIsModalVisible(false);
+            }}
+          >
+            <Text style={styles.nextButtonText}>Next</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
 
   return (
     <SafeAreaView style={styles.masterBackground}>
-      <View style={styles.logoContainer}>
+      <View style={styles.header}>
         <TouchableOpacity 
           onPress={() => navigation.navigate('UserScreen')}
           style={styles.backButton}
         >
-          <ChevronLeftIcon
-            size={24}
-            color={colors.primaryBlack}
-          />
+          <ChevronLeftIcon size={24} color={colors.primaryBlack} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Default operating expenses</Text>
       </View>
@@ -45,10 +138,11 @@ const ExpenseScreen = () => {
       <View style={styles.menuContainer}>
         <CalcButton
           title="+  Add Operating Expenses"
-          onPress={() => {
-          }}
+          onPress={() => setIsModalVisible(true)}
         />
       </View>
+
+      <AddExpenseModal />
     </SafeAreaView>
   );
 };
@@ -59,26 +153,28 @@ const styles = StyleSheet.create({
     backgroundColor: colors.iconWhite,
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
-  logoContainer: {
+  header: {
     flexDirection: 'row',
-    height: 32,
     alignItems: 'center',
-    backgroundColor: colors.iconWhite,
-    justifyContent: 'space-between',
+    height: 32,
     paddingHorizontal: 16,
+    position: 'relative',
+  },
+  backButton: {
+    padding: 8,
+    position: 'absolute',
+    left: 8,
+    zIndex: 1,
   },
   headerTitle: {
+    flex: 1,
+    textAlign: 'center',
     fontSize: 14,
     fontWeight: '500',
     color: colors.primaryBlack,
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    textAlign: 'center',
   },
   contentContainer: {
     flex: 1,
-    backgroundColor: colors.iconWhite,
   },
   scrollContent: {
     flexGrow: 1,
@@ -92,7 +188,6 @@ const styles = StyleSheet.create({
   },
   logoWrapper: {
     marginBottom: 12,
-    alignItems: 'center',
   },
   title: {
     fontSize: 24,
@@ -111,12 +206,159 @@ const styles = StyleSheet.create({
     height: 56,
     backgroundColor: colors.iconWhite,
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
+    paddingVertical: 8,
   },
-  backButton: {
-    padding: 8,
-    zIndex: 1,
+  sheetContainer: {
+    flex: 1,
+    padding: 20,
+  },
+  closeButton: {
+    alignSelf: 'flex-start',
+    padding: 10,
+  },
+  closeButtonText: {
+    fontSize: 24,
+    color: colors.primaryBlack,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  sheetTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 30,
+    color: colors.primaryBlack,
+  },
+  inputsContainer: {
+    gap: 20,
+  },
+  inputWrapper: {
+    gap: 8,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.primaryGrey,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 50,
+    backgroundColor: colors.tertiaryGrey,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.quaternaryGrey,
+  },
+  inputFocused: {
+    backgroundColor: colors.iconWhite,
+    borderColor: colors.primaryGreen,
+  },
+  input: {
+    flex: 1,
+    height: '100%',
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: colors.primaryBlack,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  flex1: {
+    flex: 1,
+  },
+  frequencySelector: {
+    height: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    backgroundColor: colors.tertiaryGrey,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.quaternaryGrey,
+  },
+  frequencyText: {
+    fontSize: 16,
+    color: colors.primaryBlack,
+  },
+  currencyContainer: {
+    backgroundColor: colors.secondaryGrey,
+    height: '85%',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+    marginRight: 4,
+    borderRadius: 10,
+  },
+  currencyText: {
+    fontSize: 16,
+    color: colors.fifthGrey,
+  },
+  nextButton: {
+    backgroundColor: colors.primaryGreen,
+    height: 56,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 'auto',
+  },
+  nextButtonText: {
+    color: colors.iconWhite,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: colors.iconWhite,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    height: '90%',
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginVertical: 20,
+  },
+  inputSection: {
+    marginTop: 20,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.primaryGrey,
+    marginBottom: 8,
+  },
+  selectButton: {
+    height: 50,
+    backgroundColor: colors.tertiaryGrey,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.quaternaryGrey,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  selectButtonText: {
+    color: colors.primaryBlack,
+    fontSize: 16,
+  },
+  frequencyAndCost: {
+    flexDirection: 'row',
+    marginTop: 20,
+    gap: 16,
+  },
+  frequencyInput: {
+    flex: 1,
+  },
+  costInput: {
+    flex: 1,
   },
 });
 

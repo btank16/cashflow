@@ -55,17 +55,17 @@ function CommercialCalcOut(props) {
 
     const resultDisplayArray = [
         {
-            label: "Monthly Cashflow",
-            value: results.cashflow,
+            label: "Total Acquisition Costs",
+            value: results.totalAcquisitionCosts,
             type: "dollar",
-            infoPress: () => handleInfoPress("Information about Monthly Cashflow")
+            infoPress: () => handleInfoPress("Information about Total Acquisition Costs")
         },
         {
-            label: "Cash Down",
-            value: results.cashDown,
+            label: "Capital Reserve",
+            value: inputValues.capitalReserve,
             type: "dollar",
             textColor: colors.primaryBlack,
-            infoPress: () => handleInfoPress("Information about Cash Down")
+            infoPress: () => handleInfoPress("Information about Capital Reserve")
         },
         {
             label: "Cash on Cash Return",
@@ -126,6 +126,11 @@ function CommercialCalcOut(props) {
             value: results.monthlyCapEx,
             color: colors.brightGreen,
         },
+        {
+            name: 'Vacancy Loss',
+            value: results.monthlyVacancy,
+            color: colors.primaryRed,
+        }
     ];
 
     return (
@@ -133,7 +138,7 @@ function CommercialCalcOut(props) {
             <View style={styles.logoContainer}>
                 <BackButton 
                     inputValues={inputValues}
-                    destinationScreen="RentalCalcIn"
+                    destinationScreen="CommercialCalcIn"
                 />
                 <TouchableOpacity 
                     style={styles.logoWrapper}

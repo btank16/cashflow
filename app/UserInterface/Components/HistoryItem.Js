@@ -62,12 +62,12 @@ const getCalculatorDetails = (item) => {
         icon: <CommercialIcon width={12} height={12} color={colors.iconWhite} />,
           details: [
             { title: 'Purchase Price', value: `$${formatNumber(inputValues.purchasePrice)}` },
-            { title: 'Monthly Rent', value: `$${formatNumber(inputValues.monthRent)}` },
-            { title: 'DSCR', value: `${formatNumber(results.DSCR)}` },
+            { title: 'Gross Rent', value: `$${formatNumber(inputValues.grossRent)}` },
+            { title: 'Cash on Cash', value: `${formatNumber(results.cashOnCash)}%` },
           ],
           name: 'Commercial Multi-Family',
-          primColor: colors.sixthBlue,
-          secColor: colors.fifthBlue
+          primColor: colors.secondaryPink,
+          secColor: colors.primaryPink
         };
     case 'flip':
       return {

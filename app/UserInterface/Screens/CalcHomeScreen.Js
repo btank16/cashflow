@@ -172,7 +172,7 @@ function CalcHomeScreen() {
       name: "Commercial Multi-Family", 
       screen: "CommercialCalcIn", 
       Icon: CommercialIcon, 
-      color: colors.fifthBlue,
+      color: colors.primaryPink,
     },
   ];
 

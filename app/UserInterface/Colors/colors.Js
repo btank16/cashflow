@@ -39,6 +39,8 @@ const colors = {
     quaternaryGrey: '#D0DDDD',
     fifthGrey: '#485959',
     sixthGrey: '#778A89',
+    primaryPink: '#93087A',
+    secondaryPink: '#EFC4E9',
  
   };
   

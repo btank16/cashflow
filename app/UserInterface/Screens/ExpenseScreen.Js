@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -18,6 +18,8 @@ import ExpenseLogo from '../../assets/icons/ExpenseLogo.jsx';
 import colors from '../Colors/colors.Js';
 import CalcButton from '../Components/CalcButton.Js';
 import NumericInput from '../Components/NumericInputBox.Js';
+import ExpenseItem from '../Components/ExpenseItem.Js';
+import { useDatabase } from '../../../database/cashflowDatabase.Js';
 
 const ExpenseScreen = () => {
   const navigation = useNavigation();
@@ -30,6 +32,19 @@ const ExpenseScreen = () => {
   const [showFrequencyOptions, setShowFrequencyOptions] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [expenseAmount, setExpenseAmount] = useState('');
+  const [expenses, setExpenses] = useState([]);
+  const [filter, setFilter] = useState('All');
+  const db = useDatabase();
+
+  const calculatorTypes = [
+    'All',
+    'rental',
+    'flip',
+    'brrrr',
+    'target',
+    'wholesale',
+    'commercial'
+  ];
 
   const snapPoints = useMemo(() => ['90%'], []);
 
@@ -103,6 +118,53 @@ const ExpenseScreen = () => {
     </Modal>
   );
 
+  useEffect(() => {
+    loadExpenses();
+  }, [filter]);
+
+  const loadExpenses = async () => {
+    try {
+      const savedExpenses = await db.getSavedExpenses();
+      if (filter === 'All') {
+        setExpenses(savedExpenses);
+      } else {
+        const filteredExpenses = savedExpenses.filter(expense => {
+          const calculators = JSON.parse(expense.applicable_calculators);
+          return calculators.includes(filter.toLowerCase());
+        });
+        setExpenses(filteredExpenses);
+      }
+    } catch (error) {
+      console.error('Error loading expenses:', error);
+    }
+  };
+
+  const handleDeleteExpense = async (id) => {
+    try {
+      await db.deleteExpense(id);
+      loadExpenses();
+    } catch (error) {
+      console.error('Error deleting expense:', error);
+    }
+  };
+
+  const FilterButton = ({ title }) => (
+    <TouchableOpacity
+      style={[styles.filterButton, filter === title && styles.activeFilterButton]}
+      onPress={() => setFilter(title)}
+    >
+      <Text style={[styles.filterButtonText, filter === title && styles.activeFilterButtonText]}>
+        {title === 'All' ? 'All' : 
+         title === 'rental' ? 'Rental' :
+         title === 'flip' ? 'Fix & Flip' :
+         title === 'brrrr' ? 'BRRRR' :
+         title === 'target' ? 'Price Target' :
+         title === 'wholesale' ? 'Wholesale' :
+         title === 'commercial' ? 'Commercial' : title}
+      </Text>
+    </TouchableOpacity>
+  );
+
   return (
     <SafeAreaView style={styles.masterBackground}>
       <View style={styles.header}>
@@ -115,22 +177,39 @@ const ExpenseScreen = () => {
         <Text style={styles.headerTitle}>Default operating expenses</Text>
       </View>
 
+      <View style={styles.filterContainer}>
+        <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+          {calculatorTypes.map((type) => (
+            <FilterButton key={type} title={type} />
+          ))}
+        </ScrollView>
+      </View>
+
       <ScrollView 
         style={styles.contentContainer}
         contentContainerStyle={styles.scrollContent}
       >
-        <View style={styles.centerContent}>
-          <View style={styles.logoWrapper}>
-            <ExpenseLogo />
+        {expenses.length > 0 ? (
+          expenses.map((expense) => (
+            <ExpenseItem
+              key={expense.id}
+              expense={expense}
+              onDelete={handleDeleteExpense}
+            />
+          ))
+        ) : (
+          <View style={styles.centerContent}>
+            <View style={styles.logoWrapper}>
+              <ExpenseLogo />
+            </View>
+            <Text style={styles.title}>
+              You don't have any{'\n'}Operating Expenses
+            </Text>
+            <Text style={styles.description}>
+              Add expenses that you regularly use for each calculator. This may include property insurance, maintenance, utilities, management fees, etc.
+            </Text>
           </View>
-
-          <Text style={styles.title}>
-            You don't have any{'\n'}Operating Expenses
-          </Text>
-          <Text style={styles.description}>
-            Add expenses that you regularly use for each calculator. This may include property insurance, maintenance, utilities, management fees, etc.
-          </Text>
-        </View>
+        )}
       </ScrollView>
 
       <View style={styles.menuContainer}>
@@ -173,6 +252,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
+    paddingHorizontal: 16,
   },
   scrollContent: {
     flexGrow: 1,
@@ -357,6 +437,33 @@ const styles = StyleSheet.create({
   },
   costInput: {
     flex: 1,
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: colors.iconWhite,
+  },
+  filterButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    backgroundColor: colors.tertiaryGrey,
+    borderWidth: 1,
+    borderColor: colors.quaternaryGrey,
+    marginRight: 4,
+  },
+  activeFilterButton: {
+    backgroundColor: colors.primaryGreen,
+    borderColor: colors.primaryGreen,
+  },
+  filterButtonText: {
+    color: colors.primaryBlack,
+    fontSize: 14,
+  },
+  activeFilterButtonText: {
+    color: colors.iconWhite,
+    fontWeight: 'bold',
   },
 });
 

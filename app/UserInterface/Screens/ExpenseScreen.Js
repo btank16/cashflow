@@ -14,8 +14,6 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronLeftIcon } from 'react-native-heroicons/outline';
-import { Ionicons } from '@expo/vector-icons';
-import BottomSheet from '@gorhom/bottom-sheet';
 import ExpenseLogo from '../../assets/icons/ExpenseLogo.jsx';
 import colors from '../Colors/colors.Js';
 import CalcButton from '../Components/CalcButton.Js';
@@ -138,7 +136,7 @@ const ExpenseScreen = () => {
       <View style={styles.menuContainer}>
         <CalcButton
           title="+  Add Operating Expenses"
-          onPress={() => setIsModalVisible(true)}
+          onPress={() => navigation.navigate('FirstAddExpense')}
         />
       </View>
 

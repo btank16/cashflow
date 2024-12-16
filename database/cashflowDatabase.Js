@@ -15,10 +15,9 @@ export const initHistoryDB = async (db) => {
     );
     CREATE TABLE IF NOT EXISTS saved_expenses (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      unique_id TEXT,
       date TEXT,
-      name TEXT,
-      amount REAL,
+      category TEXT,
+      cost TEXT,
       frequency TEXT,
       applicable_calculators TEXT
     );
@@ -70,14 +69,29 @@ export function useDatabase() {
     }
   };
 
-  const saveExpense = async (uniqueId, name, amount, frequency, applicableCalculators) => {
+  const saveExpense = async (category, cost, frequency, applicableCalculators) => {
     const date = new Date().toISOString();
     const applicableCalculatorsJSON = JSON.stringify(applicableCalculators);
 
-    return db.runAsync(
-      'INSERT INTO saved_expenses (unique_id, date, name, amount, frequency, applicable_calculators) VALUES (?, ?, ?, ?, ?, ?)',
-      [uniqueId, date, name, amount, frequency, applicableCalculatorsJSON]
+    // First, check if an expense with the same category, cost, and frequency exists
+    const existingExpense = await db.getFirstAsync(
+      'SELECT id FROM saved_expenses WHERE category = ? AND cost = ? AND frequency = ?',
+      [category, cost, frequency]
     );
+
+    if (existingExpense) {
+      // If expense exists, update only the applicable_calculators field
+      return db.runAsync(
+        'UPDATE saved_expenses SET applicable_calculators = ? WHERE id = ?',
+        [applicableCalculatorsJSON, existingExpense.id]
+      );
+    } else {
+      // If no matching expense exists, insert a new one
+      return db.runAsync(
+        'INSERT INTO saved_expenses (date, category, cost, frequency, applicable_calculators) VALUES (?, ?, ?, ?, ?)',
+        [date, category, cost, frequency, applicableCalculatorsJSON]
+      );
+    }
   };
 
   const getAllCalculations = async () => {
@@ -100,6 +114,33 @@ export function useDatabase() {
     return db.runAsync('DELETE FROM saved_expenses WHERE id = ?', [id]);
   };
 
+  const checkExistingExpense = async (category, cost, frequency) => {
+    try {
+      const results = await db.getAllAsync(
+        'SELECT * FROM saved_expenses WHERE category = ? AND cost = ? AND frequency = ?',
+        [category, cost, frequency]
+      );
+      
+      if (results && results.length > 0) {
+        return {
+          exists: true,
+          calculators: JSON.parse(results[0].applicable_calculators)
+        };
+      }
+      
+      return {
+        exists: false,
+        calculators: []
+      };
+    } catch (error) {
+      console.error('Error checking existing expense:', error);
+      return {
+        exists: false,
+        calculators: []
+      };
+    }
+  };
+
   return {
     saveCalculation,
     saveExpense,
@@ -107,6 +148,7 @@ export function useDatabase() {
     getCalculationsByType,
     getSavedExpenses,
     deleteCalculation,
-    deleteExpense
+    deleteExpense,
+    checkExistingExpense,
   };
 }

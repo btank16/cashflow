@@ -17,6 +17,8 @@ import CommercialCalcIn from './app/UserInterface/Screens/CommercialCalcIn.Js';
 import CommercialCalcOut from './app/UserInterface/Screens/CommercialCalcOut.Js';
 import UserScreen from './app/UserInterface/Screens/UserScreen.Js';
 import ExpenseScreen from './app/UserInterface/Screens/ExpenseScreen.Js';
+import FirstAddExpense from './app/UserInterface/Screens/FirstAddExpense.Js';
+import SecondAddExpense from './app/UserInterface/Screens/SecondAddExpense.Js';
 
 const Stack = createStackNavigator();
 
@@ -44,6 +46,8 @@ function AppNavigator() {
       <Stack.Screen name="HistoryScreen" component={HistoryScreen} />
       <Stack.Screen name="UserScreen" component={UserScreen} />
       <Stack.Screen name="ExpenseScreen" component={ExpenseScreen} />
+      <Stack.Screen name="FirstAddExpense" component={FirstAddExpense} />
+      <Stack.Screen name="SecondAddExpense" component={SecondAddExpense} />
     </Stack.Navigator>
   );
 }

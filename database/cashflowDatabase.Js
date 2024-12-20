@@ -73,24 +73,34 @@ export function useDatabase() {
     const date = new Date().toISOString();
     const applicableCalculatorsJSON = JSON.stringify(applicableCalculators);
 
-    // First, check if an expense with the same category, cost, and frequency exists
-    const existingExpense = await db.getFirstAsync(
-      'SELECT id FROM saved_expenses WHERE category = ? AND cost = ? AND frequency = ?',
-      [category, cost, frequency]
-    );
+    try {
+      // First check if an identical expense exists (matching category, cost, and frequency)
+      const existingExpense = await db.getFirstAsync(
+        'SELECT * FROM saved_expenses WHERE category = ? AND cost = ? AND frequency = ?',
+        [category, cost, frequency]
+      );
 
-    if (existingExpense) {
-      // If expense exists, update only the applicable_calculators field
-      return db.runAsync(
-        'UPDATE saved_expenses SET applicable_calculators = ? WHERE id = ?',
-        [applicableCalculatorsJSON, existingExpense.id]
-      );
-    } else {
-      // If no matching expense exists, insert a new one
-      return db.runAsync(
-        'INSERT INTO saved_expenses (date, category, cost, frequency, applicable_calculators) VALUES (?, ?, ?, ?, ?)',
-        [date, category, cost, frequency, applicableCalculatorsJSON]
-      );
+      if (existingExpense) {
+        // Parse existing calculators and merge with new ones
+        const existingCalculators = JSON.parse(existingExpense.applicable_calculators);
+        const updatedCalculators = [...new Set([...existingCalculators, ...applicableCalculators])];
+        const updatedCalculatorsJSON = JSON.stringify(updatedCalculators);
+
+        // Update only the applicable_calculators for the existing expense
+        return db.runAsync(
+          'UPDATE saved_expenses SET applicable_calculators = ? WHERE id = ?',
+          [updatedCalculatorsJSON, existingExpense.id]
+        );
+      } else {
+        // If no matching expense exists, insert a new one
+        return db.runAsync(
+          'INSERT INTO saved_expenses (date, category, cost, frequency, applicable_calculators) VALUES (?, ?, ?, ?, ?)',
+          [date, category, cost, frequency, applicableCalculatorsJSON]
+        );
+      }
+    } catch (error) {
+      console.error('Error in saveExpense:', error);
+      throw error;
     }
   };
 

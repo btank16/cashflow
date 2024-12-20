@@ -82,7 +82,11 @@ const ExpenseItem = ({ expense, onDelete }) => {
     >
       <View style={styles.expenseItem}>
         <View style={styles.header}>
-          <Text style={styles.category}>{category}</Text>
+          <View style={styles.categoryContainer}>
+            <Text style={styles.category} numberOfLines={2}>
+              {category} <Text style={styles.frequency}>({frequency})</Text>
+            </Text>
+          </View>
           <TouchableOpacity 
             onPress={() => swipeableRef.current?.openRight()}
             style={styles.menuButton}
@@ -135,11 +139,20 @@ const styles = StyleSheet.create({
   menuButton: {
     padding: 4,
   },
+  categoryContainer: {
+    flex: 1,
+    paddingRight: 8,
+  },
   category: {
     fontSize: 12,
     fontWeight: '500',
-    color: colors.primaryGrey,
+    color: colors.primaryBlack,
     marginBottom: 4,
+    flexWrap: 'wrap',
+  },
+  frequency: {
+    fontWeight: '400',
+    color: colors.primaryGrey,
   },
   cost: {
     fontSize: 24,

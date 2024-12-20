@@ -12,6 +12,7 @@ import SwitchableNumericInput from '../Components/SwitchableNumericInput.Js';
 import LoanTerm from '../Components/LoanTerm.Js';
 import { useDatabase } from '../../../database/cashflowDatabase.Js';
 import Checkbox from '../Components/InterestCheckbox.Js';
+import OperatingExpenses from '../Components/OperatingExpenses.Js';
 
 function RentalCalcIn(props) {
     const navigation = useNavigation();
@@ -39,6 +40,9 @@ function RentalCalcIn(props) {
         value: '',
         isInterestOnly: false
     });
+    const [operatingExpensesActive, setOperatingExpensesActive] = useState(true);
+    const [operatingExpenses, setOperatingExpenses] = useState([]);
+    const [saveNewExpenses, setSaveNewExpenses] = useState(false);
 
     const uid = () => {
         return Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -308,6 +312,15 @@ function RentalCalcIn(props) {
         };
     }, []);
 
+    const handleOperatingExpensesChange = (expenses) => {
+        setOperatingExpenses(expenses);
+        // You can process the expenses here as needed for your calculations
+    };
+
+    const handleSaveNewExpensesChange = (value) => {
+        setSaveNewExpenses(value);
+    };
+
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
@@ -349,7 +362,12 @@ function RentalCalcIn(props) {
                     <NumericInput {...numericInputsArray[2]}/>
                     <NumericInput {...numericInputsArray[3]}/>
                     <SwitchableNumericInput {...switchableInputsArray[3]}/>
-                    <ExpenseArray onDataChange={handleExpenseDataChange}/>
+                    <OperatingExpenses
+                        calculatorType="rental"
+                        onActiveChange={setOperatingExpensesActive}
+                        onExpensesChange={handleOperatingExpensesChange}
+                        onSaveNewExpensesChange={handleSaveNewExpensesChange}
+                    />
                 </ScrollView>
             </KeyboardAvoidingView>
             <View style={styles.menuContainer}>

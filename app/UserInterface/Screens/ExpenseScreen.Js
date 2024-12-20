@@ -12,7 +12,7 @@ import {
   StatusBar,
   Modal
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { ChevronLeftIcon } from 'react-native-heroicons/outline';
 import ExpenseLogo from '../../assets/icons/ExpenseLogo.jsx';
 import colors from '../Colors/colors.Js';
@@ -118,9 +118,11 @@ const ExpenseScreen = () => {
     </Modal>
   );
 
-  useEffect(() => {
-    loadExpenses();
-  }, [filter]);
+  useFocusEffect(
+    useCallback(() => {
+      loadExpenses();
+    }, [filter])
+  );
 
   const loadExpenses = async () => {
     try {

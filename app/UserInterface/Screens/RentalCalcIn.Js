@@ -3,7 +3,6 @@ import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, Keyboa
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NumericInput from '../Components/NumericInputBox.Js';
-import ExpenseArray from '../Components/ExpenseArray.Js';
 import CalcButton from '../Components/CalcButton.Js';
 import { expenses } from '../../Calculations/ExpenseFunction.Js';
 import { outputs } from '../../Calculations/CoreOutputs.Js';
@@ -21,7 +20,6 @@ function RentalCalcIn(props) {
     const [rehabCost, setRehabCost] = useState('');
     const [loanTerm, setLoanTerm] = useState(30);
     const [monthRent, setMonthRent] = useState('');
-    const [expenseArray, setExpenseArray] = useState(['', '', '']);
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
     const [resultScreen, setResultScreen] = useState('RentalCalcOut');
@@ -32,7 +30,7 @@ function RentalCalcIn(props) {
         propertyTax: { value: '', isDollar: false },
         capexEst: { value: '', isDollar: false }
     });
-    const { saveCalculation } = useDatabase();
+    const { saveCalculation, saveExpense } = useDatabase();
     const [calculationId, setCalculationId] = useState(null);
     const [showHeaderTitle, setShowHeaderTitle] = useState(false);
     const scrollY = useRef(new Animated.Value(0)).current;
@@ -83,7 +81,7 @@ function RentalCalcIn(props) {
                 loanTerm,
                 monthRent,
                 capexEst,
-                expenseArray,
+                operatingExpenseArray,
             } = route.params.inputValues;
 
             setCalculationId(id);
@@ -95,7 +93,6 @@ function RentalCalcIn(props) {
             setRehabCost(rehabCost?.toString() || '');
             setLoanTerm(loanTerm?.toString() || '30');
             setMonthRent(monthRent?.toString() || '');
-            setExpenseArray(expenseArray || ['', '', '']);
             
             setSwitchableInputs(prevInputs => ({
                 ...prevInputs,
@@ -104,6 +101,12 @@ function RentalCalcIn(props) {
                 propertyTax: propertyTax || { value: '', isDollar: false },
                 capexEst: capexEst || { value: '', isDollar: false }
             }));
+
+            if (operatingExpenseArray) {
+                setOperatingExpensesActive(operatingExpenseArray.isActive);
+                setOperatingExpenses(operatingExpenseArray.expenses);
+                setSaveNewExpenses(operatingExpenseArray.saveNewExpenses);
+            }
         }
     }, [route.params?.inputValues]);
 
@@ -115,10 +118,6 @@ function RentalCalcIn(props) {
             switchableInputs.propertyTax.value !== '' &&
             monthRent !== ''
         );
-    };
-
-    const handleExpenseDataChange = (costValues) => {
-        setExpenseArray(costValues);
     };
 
     const handleSwitchableInputChange = (inputName, newValue) => {
@@ -148,6 +147,29 @@ function RentalCalcIn(props) {
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
+        if (saveNewExpenses && operatingExpenses.length > 0) {
+            try {
+                for (const expense of operatingExpenses) {
+                    if (!expense.fromSaved && expense.category && expense.cost) {
+                        const formattedCategory = expense.category
+                            .toLowerCase()
+                            .split(' ')
+                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                            .join(' ');
+
+                        await saveExpense(
+                            formattedCategory,
+                            expense.cost,
+                            expense.frequency,
+                            ['rental']
+                        );
+                    }
+                }
+            } catch (error) {
+                console.error('Error saving operating expenses:', error);
+            }
+        }
+
         const inputValues = {
             purchasePrice: toNumber(purchasePrice),
             downPayment: switchableInputs.downPayment,
@@ -156,13 +178,17 @@ function RentalCalcIn(props) {
             propertyTax: switchableInputs.propertyTax,
             closingCost: switchableInputs.closingCost,
             capexEst: switchableInputs.capexEst,
-            expenseArray: expenseArray.map(toNumber),
             rehabCost: toNumber(rehabCost),
             monthRent: toNumber(monthRent),
             propertyInsurance: 0,
             afterRev: 0,
             rehabTime: 0,
-            agentCommish: { value: '0', isDollar: false }
+            agentCommish: { value: '0', isDollar: false },
+            operatingExpenseArray: {
+                isActive: operatingExpensesActive,
+                expenses: operatingExpenses,
+                saveNewExpenses: saveNewExpenses
+            }
         };
 
         const id = calculationId || uid();
@@ -175,11 +201,11 @@ function RentalCalcIn(props) {
             inputValues.propertyTax,
             inputValues.propertyInsurance,
             inputValues.capexEst,
-            inputValues.expenseArray,
             inputValues.rehabCost,
             inputValues.closingCost,
             inputValues.monthRent,
-            inputValues.rehabTime
+            inputValues.rehabTime,
+            inputValues.operatingExpenseArray
         );
 
         const outputResults = outputs(
@@ -314,7 +340,6 @@ function RentalCalcIn(props) {
 
     const handleOperatingExpensesChange = (expenses) => {
         setOperatingExpenses(expenses);
-        // You can process the expenses here as needed for your calculations
     };
 
     const handleSaveNewExpensesChange = (value) => {
@@ -339,6 +364,7 @@ function RentalCalcIn(props) {
                     keyboardShouldPersistTaps="handled"
                     onScroll={handleScroll}
                     scrollEventThrottle={16}
+                    nestedScrollEnabled={true}
                 >                
                     <Text style={styles.title}>Rental Calculator</Text>
                     <Text style={styles.secondaryTitle}>Loan Details</Text>
@@ -400,6 +426,7 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         backgroundColor: colors.iconWhite,
+        width: '100%',
     },
     menuContainer: {
         height: 56,

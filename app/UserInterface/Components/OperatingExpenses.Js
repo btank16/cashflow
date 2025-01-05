@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, TextInput, Keyboard, TouchableWithoutFeedback } from 'react-native';
-import { ChevronDownIcon, PlusIcon, ChevronUpIcon, CheckIcon, TrashIcon } from 'react-native-heroicons/outline';
+import { PlusIcon, CheckIcon, TrashIcon, ArrowLongRightIcon } from 'react-native-heroicons/outline';
 import ExpenseLogo from '../../assets/icons/ExpenseLogo.jsx';
 import colors from '../Colors/colors.Js';
 import { useDatabase } from '../../../database/cashflowDatabase.Js';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 const frequencies = [
   { label: 'Monthly', value: 'Monthly' },
@@ -19,7 +20,7 @@ const OperatingExpenses = ({
   onSaveNewExpensesChange
 }) => {
   const [isActive, setIsActive] = useState(true);
-  const [newExpenses, setNewExpenses] = useState([{ 
+  const [activeExpenses, setActiveExpenses] = useState([{ 
     category: '', 
     frequency: 'Monthly', 
     cost: '',
@@ -30,16 +31,33 @@ const OperatingExpenses = ({
   const db = useDatabase();
   const [focusedInputs, setFocusedInputs] = useState({});
   const [removedSavedExpenses, setRemovedSavedExpenses] = useState([]);
+  const navigation = useNavigation();
 
   useEffect(() => {
     loadSavedExpenses();
   }, [calculatorType]);
 
   useEffect(() => {
-    // Combine new and saved expenses and notify parent
-    const allExpenses = [...newExpenses, ...savedExpenses];
-    onExpensesChange(allExpenses);
-  }, [newExpenses, savedExpenses]);
+    // Only pass active expenses to parent component
+    onExpensesChange(activeExpenses);
+  }, [activeExpenses]);
+
+  useEffect(() => {
+    const keyboardDidHideListener = Keyboard.addListener(
+      'keyboardDidHide',
+      () => {
+        // Close all frequency dropdowns when keyboard hides
+        setActiveExpenses(activeExpenses.map(exp => ({
+          ...exp,
+          showFrequency: false
+        })));
+      }
+    );
+
+    return () => {
+      keyboardDidHideListener.remove();
+    };
+  }, [activeExpenses]);
 
   const loadSavedExpenses = async () => {
     try {
@@ -60,8 +78,8 @@ const OperatingExpenses = ({
   };
 
   const addNewExpense = () => {
-    setNewExpenses([
-      ...newExpenses, 
+    setActiveExpenses([
+      ...activeExpenses, 
       { category: '', frequency: 'Monthly', cost: '', showFrequency: false }
     ]);
   };
@@ -74,144 +92,57 @@ const OperatingExpenses = ({
       .join(' ');
   };
 
-  const toggleSaveNewExpenses = async () => {
+  const toggleSaveNewExpenses = () => {
     const newValue = !saveNewExpenses;
     setSaveNewExpenses(newValue);
     onSaveNewExpensesChange(newValue);
-
-    if (newValue) {
-      // Save all new expenses that aren't from saved expenses
-      try {
-        const expensesToSave = newExpenses.filter(expense => !expense.fromSaved);
-        
-        for (const expense of expensesToSave) {
-          const formattedCategory = toTitleCase(expense.category);
-          
-          // Check if expense already exists
-          const { exists, calculators } = await db.checkExistingExpense(
-            formattedCategory,
-            expense.cost,
-            expense.frequency
-          );
-
-          if (exists) {
-            // If expense exists but doesn't include current calculator type,
-            // add it to the applicable calculators
-            if (!calculators.includes(calculatorType)) {
-              const updatedCalculators = [...calculators, calculatorType];
-              await db.saveExpense(
-                formattedCategory,
-                expense.cost,
-                expense.frequency,
-                updatedCalculators
-              );
-            }
-          } else {
-            // If expense doesn't exist, create new entry
-            await db.saveExpense(
-              formattedCategory,
-              expense.cost,
-              expense.frequency,
-              [calculatorType]
-            );
-          }
-        }
-      } catch (error) {
-        console.error('Error saving expenses:', error);
-      }
-    }
   };
 
-  const updateNewExpense = async (index, field, value) => {
-    const updated = newExpenses.map((expense, i) => 
+  const updateActiveExpense = (index, field, value) => {
+    const updated = activeExpenses.map((expense, i) => 
       i === index ? { ...expense, [field]: value } : expense
     );
-    setNewExpenses(updated);
-
-    // If checkbox is checked and this isn't a saved expense, handle database operation
-    if (saveNewExpenses && !updated[index].fromSaved) {
-      try {
-        const expenseToUpdate = updated[index];
-        const formattedCategory = toTitleCase(expenseToUpdate.category);
-        
-        // Only proceed if we have both category and cost
-        if (expenseToUpdate.category && expenseToUpdate.cost) {
-          // Check if expense already exists
-          const { exists, calculators } = await db.checkExistingExpense(
-            formattedCategory,
-            expenseToUpdate.cost,
-            expenseToUpdate.frequency
-          );
-
-          if (exists) {
-            // If expense exists but doesn't include current calculator type,
-            // add it to the applicable calculators
-            if (!calculators.includes(calculatorType)) {
-              const updatedCalculators = [...calculators, calculatorType];
-              await db.saveExpense(
-                formattedCategory,
-                expenseToUpdate.cost,
-                expenseToUpdate.frequency,
-                updatedCalculators
-              );
-            }
-          } else {
-            // If expense doesn't exist, create new entry
-            await db.saveExpense(
-              formattedCategory,
-              expenseToUpdate.cost,
-              expenseToUpdate.frequency,
-              [calculatorType]
-            );
-          }
-        }
-      } catch (error) {
-        console.error('Error saving expense:', error);
-      }
-    }
+    setActiveExpenses(updated);
   };
 
   const deleteExpense = (indexToDelete) => {
-    const expenseToDelete = newExpenses[indexToDelete];
+    const expenseToDelete = activeExpenses[indexToDelete];
     
     // If the expense was from saved expenses, restore it
     if (expenseToDelete.fromSaved) {
-      // Find the original saved expense
-      const originalSaved = removedSavedExpenses.find(saved => 
-        saved.category === expenseToDelete.category &&
-        saved.cost === expenseToDelete.cost &&
-        saved.frequency === expenseToDelete.frequency
-      );
-
-      if (originalSaved) {
-        // Restore to saved expenses
-        setSavedExpenses([...savedExpenses, originalSaved]);
-        // Remove from removed saved expenses
-        setRemovedSavedExpenses(removedSavedExpenses.filter(saved => saved.id !== originalSaved.id));
-      }
+      // Restore to saved expenses
+      setSavedExpenses([...savedExpenses, expenseToDelete.originalSaved]);
     }
 
     // Remove from active expenses
-    setNewExpenses(newExpenses.filter((_, index) => index !== indexToDelete));
+    setActiveExpenses(activeExpenses.filter((_, index) => index !== indexToDelete));
   };
 
   const addSavedExpenseToActive = (savedExpense) => {
     // Add to active expenses with a flag indicating it came from saved
-    setNewExpenses([
-      ...newExpenses,
+    setActiveExpenses([
+      ...activeExpenses,
       {
         category: savedExpense.category,
         frequency: savedExpense.frequency,
         cost: savedExpense.cost,
         showFrequency: false,
-        fromSaved: true, // Add this flag
-        originalSaved: savedExpense // Store the original saved expense
+        fromSaved: true,
+        originalSaved: savedExpense
       }
     ]);
 
-    // Remove from saved expenses and store in removed array
+    // Remove from saved expenses
     setSavedExpenses(savedExpenses.filter(expense => expense.id !== savedExpense.id));
-    setRemovedSavedExpenses([...removedSavedExpenses, savedExpense]);
+  };
+
+  const handleFrequencyPress = (index) => {
+    Keyboard.dismiss();
+    const updatedExpenses = activeExpenses.map((exp, i) => ({
+      ...exp,
+      showFrequency: i === index ? !exp.showFrequency : false
+    }));
+    setActiveExpenses(updatedExpenses);
   };
 
   const renderExpenseInput = (expense, index) => (
@@ -219,11 +150,11 @@ const OperatingExpenses = ({
       <View style={styles.expenseInputs}>
         <View style={[
           styles.expenseHeader,
-          newExpenses.length === 1 && styles.expenseHeaderSingle
+          activeExpenses.length === 1 && styles.expenseHeaderSingle
         ]}>
           <View style={[
             styles.inputContainer,
-            newExpenses.length > 1 && styles.inputContainerWithDelete
+            activeExpenses.length > 1 && styles.inputContainerWithDelete
           ]}>
             <Text style={styles.inputLabel}>Expense category</Text>
             <View style={[
@@ -234,7 +165,7 @@ const OperatingExpenses = ({
                 style={styles.input}
                 placeholder="Select category"
                 value={expense.category}
-                onChangeText={(value) => updateNewExpense(index, 'category', value)}
+                onChangeText={(value) => updateActiveExpense(index, 'category', value)}
                 onFocus={() => setFocusedInputs(prev => ({ ...prev, [`category-${index}`]: true }))}
                 onBlur={() => setFocusedInputs(prev => ({ ...prev, [`category-${index}`]: false }))}
                 placeholderTextColor={colors.sixthGrey}
@@ -242,7 +173,7 @@ const OperatingExpenses = ({
             </View>
           </View>
           
-          {newExpenses.length > 1 && (
+          {activeExpenses.length > 1 && (
             <TouchableOpacity 
               style={styles.deleteButton}
               onPress={() => deleteExpense(index)}
@@ -257,14 +188,7 @@ const OperatingExpenses = ({
             <Text style={styles.inputLabel}>Frequency</Text>
             <TouchableOpacity 
               style={styles.frequencyButton}
-              onPress={() => {
-                Keyboard.dismiss();
-                const updatedExpenses = newExpenses.map((exp, i) => ({
-                  ...exp,
-                  showFrequency: i === index ? !exp.showFrequency : false
-                }));
-                setNewExpenses(updatedExpenses);
-              }}
+              onPress={() => handleFrequencyPress(index)}
             >
               <Text style={styles.frequencyButtonText}>{expense.frequency}</Text>
               <Ionicons 
@@ -283,12 +207,12 @@ const OperatingExpenses = ({
                       option.value === frequencies[frequencies.length - 1].value && styles.lastFrequencyOption
                     ]}
                     onPress={() => {
-                      const updatedExpenses = newExpenses.map((exp, i) => 
+                      const updatedExpenses = activeExpenses.map((exp, i) => 
                         i === index 
                           ? { ...exp, frequency: option.value, showFrequency: false }
                           : exp
                       );
-                      setNewExpenses(updatedExpenses);
+                      setActiveExpenses(updatedExpenses);
                     }}
                   >
                     <Text style={styles.frequencyOptionText}>{option.label}</Text>
@@ -309,7 +233,7 @@ const OperatingExpenses = ({
                 style={styles.costInputField}
                 placeholder="ex. 500"
                 value={expense.cost}
-                onChangeText={(value) => updateNewExpense(index, 'cost', value)}
+                onChangeText={(value) => updateActiveExpense(index, 'cost', value)}
                 keyboardType="numeric"
                 onFocus={() => setFocusedInputs(prev => ({ ...prev, [`cost-${index}`]: true }))}
                 onBlur={() => setFocusedInputs(prev => ({ ...prev, [`cost-${index}`]: false }))}
@@ -319,10 +243,32 @@ const OperatingExpenses = ({
           </View>
         </View>
       </View>
-      {index < newExpenses.length - 1 && (
+      {index < activeExpenses.length - 1 && (
         <View style={styles.expenseDivider} />
       )}
     </React.Fragment>
+  );
+
+  const SavedExpenseItem = ({ expense, onAdd }) => (
+    <View style={styles.savedExpenseItem}>
+      <View style={styles.savedExpenseHeader}>
+        <Text numberOfLines={2} style={styles.savedExpenseCategory}>
+          {expense.category}
+        </Text>
+        <Text style={styles.savedExpenseFrequency}>
+          ({expense.frequency})
+        </Text>
+      </View>
+      <View style={styles.savedExpenseBottom}>
+        <Text style={styles.savedExpenseCost}>${expense.cost}</Text>
+        <TouchableOpacity
+          style={styles.addSavedButton}
+          onPress={() => onAdd(expense)}
+        >
+          <PlusIcon size={16} color={colors.iconWhite} />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 
   const renderSavedExpenses = () => {
@@ -336,94 +282,87 @@ const OperatingExpenses = ({
     }
 
     return (
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.savedExpensesContainer}
-      >
-        {savedExpenses.map((expense, index) => (
-          <View key={expense.id} style={styles.savedExpenseItem}>
-            <View style={styles.savedExpenseHeader}>
-              <Text numberOfLines={2} style={styles.savedExpenseCategory}>
-                {expense.category}
-              </Text>
-              <Text style={styles.savedExpenseFrequency}>
-                ({expense.frequency})
-              </Text>
-            </View>
-            <View style={styles.savedExpenseBottom}>
-              <Text style={styles.savedExpenseCost}>${expense.cost}</Text>
-              <TouchableOpacity
-                style={styles.addSavedButton}
-                onPress={() => addSavedExpenseToActive(expense)}
-              >
-                <PlusIcon size={16} color={colors.iconWhite} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        ))}
-      </ScrollView>
+      <View style={styles.savedExpensesOuterContainer}>
+        <ScrollView 
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.savedExpensesContainer}
+          nestedScrollEnabled={true}
+        >
+          {savedExpenses.map((expense) => (
+            <SavedExpenseItem
+              key={expense.id}
+              expense={expense}
+              onAdd={addSavedExpenseToActive}
+            />
+          ))}
+        </ScrollView>
+      </View>
     );
   };
 
   return (
-    <TouchableWithoutFeedback onPress={() => {
-      Keyboard.dismiss();
-      setNewExpenses(newExpenses.map(exp => ({...exp, showFrequency: false})));
-    }}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <View style={styles.titleContainer}>
-            <Text style={styles.title}>Operating Expenses</Text>
-            <Switch
-              value={isActive}
-              onValueChange={handleToggleActive}
-              trackColor={{ false: colors.quaternaryGrey, true: colors.primaryGreen }}
-            />
-          </View>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>Operating Expenses</Text>
+          <Switch
+            value={isActive}
+            onValueChange={handleToggleActive}
+            trackColor={{ false: colors.quaternaryGrey, true: colors.primaryGreen }}
+          />
         </View>
+      </View>
 
-        {isActive && (
-          <View style={styles.content}>
-            <Text style={styles.sectionTitle}>Active Expenses</Text>
-            {newExpenses.map((expense, index) => renderExpenseInput(expense, index))}
-            <TouchableOpacity 
-              style={styles.addButton}
-              onPress={addNewExpense}
-            >
-              <PlusIcon size={20} color={colors.primaryGreen} />
-              <Text style={styles.addButtonText}>Add New Expense</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.checkboxContainer}
-              onPress={toggleSaveNewExpenses}
-            >
-              <View style={[
-                styles.checkbox,
-                saveNewExpenses ? styles.activeCheckbox : styles.inactiveCheckbox
-              ]}>
-                {saveNewExpenses && <CheckIcon size={16} color={colors.iconWhite} />}
-              </View>
-              <Text style={styles.checkboxLabel}>
-                Save new expenses for this calculator
-              </Text>
-              <Ionicons 
-                name="information-circle-outline" 
-                size={20} 
-                color={colors.primaryGrey}
-                style={styles.infoIcon}
-              />
-            </TouchableOpacity>
-            
-            <View style={styles.divider} />
+      {isActive && (
+        <View style={styles.content}>
+          <Text style={styles.sectionTitle}>Active Expenses</Text>
+          {activeExpenses.map((expense, index) => renderExpenseInput(expense, index))}
+          <TouchableOpacity 
+            style={styles.addButton}
+            onPress={addNewExpense}
+          >
+            <PlusIcon size={20} color={colors.primaryGreen} />
+            <Text style={styles.addButtonText}>Add New Expense</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.checkboxContainer}
+            onPress={toggleSaveNewExpenses}
+          >
+            <View style={[
+              styles.checkbox,
+              saveNewExpenses ? styles.activeCheckbox : styles.inactiveCheckbox
+            ]}>
+              {saveNewExpenses && <CheckIcon size={16} color={colors.iconWhite} />}
+            </View>
+            <Text style={styles.checkboxLabel}>
+              Save new expenses for this calculator
+            </Text>
+            <Ionicons 
+              name="information-circle-outline" 
+              size={20} 
+              color={colors.primaryGrey}
+              style={styles.infoIcon}
+            />
+          </TouchableOpacity>
+          
+          <View style={styles.divider} />
 
+          <View style={styles.savedExpensesSection}>
             <Text style={styles.sectionTitle}>Saved Expenses</Text>
             {renderSavedExpenses()}
+            <TouchableOpacity 
+              style={styles.viewAllButton}
+              onPress={() => navigation.navigate('ExpenseScreen')}
+            >
+              <Text style={styles.viewAllButtonText}>View all Saved Expenses</Text>
+              <ArrowLongRightIcon size={18} color={colors.primaryGreen} style={{ marginBottom: -2 }}/>
+            </TouchableOpacity>
           </View>
-        )}
-      </View>
-    </TouchableWithoutFeedback>
+        </View>
+      )}
+    </View>
   );
 };
 
@@ -456,6 +395,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.tertiaryGrey,
     paddingHorizontal: 16,
     paddingVertical: 16,
+    width: '100%',
   },
   sectionTitle: {
     fontSize: 16,
@@ -684,27 +624,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.primaryGrey,
   },
-  savedExpensesContainer: {
-    paddingVertical: 8,
-    paddingRight: 16, // Add padding for last item
-    gap: 8,
-  },
-  savedExpenseItem: {
-    backgroundColor: colors.iconWhite,
-    borderRadius: 8,
-    padding: 12,
-    width: 160,
-    marginLeft: 8,
-    justifyContent: 'space-between',
-  },
   savedExpenseHeader: {
     marginBottom: 8,
+    height: 44,
   },
   savedExpenseCategory: {
     fontSize: 14,
     color: colors.primaryGrey,
     fontWeight: '500',
     marginBottom: 2,
+    lineHeight: 18,
   },
   savedExpenseFrequency: {
     fontSize: 12,
@@ -727,6 +656,47 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryGreen,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  savedExpensesSection: {
+    width: '100%',
+  },
+  savedExpensesOuterContainer: {
+    marginLeft: -16,
+    marginRight: -16,
+    paddingLeft: 16,
+    height: 124,
+  },
+  savedExpensesContainer: {
+    flexDirection: 'row',
+    paddingRight: 16,
+    paddingLeft: 2,
+  },
+  savedExpenseItem: {
+    backgroundColor: colors.iconWhite,
+    borderRadius: 8,
+    padding: 12,
+    width: 160,
+    marginRight: 8,
+    height: 120,
+    justifyContent: 'space-between',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
+  },
+  viewAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  viewAllButtonText: {
+    color: colors.primaryGreen,
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
 

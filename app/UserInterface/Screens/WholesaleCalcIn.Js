@@ -3,11 +3,11 @@ import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, Keyboa
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NumericInput from '../Components/NumericInputBox.Js';
-import ExpenseArray from '../Components/ExpenseArray.Js';
 import CalcButton from '../Components/CalcButton.Js';
 import HomeButton from '../Components/HomeButton.Js';
 import { useDatabase } from '../../../database/cashflowDatabase.Js';
 import { wholesalefunction } from '../../Calculations/WholesalingFunction.Js';
+import OperatingExpenses from '../Components/OperatingExpenses.Js';
 
 function WholesaleCalcIn(props) {
     const navigation = useNavigation();
@@ -15,7 +15,6 @@ function WholesaleCalcIn(props) {
     const [purchasePrice, setPurchasePrice] = useState('');
     const [rehabCost, setRehabCost] = useState('');
     const [afterRev, setAfterRev] = useState('');
-    const [expenseArray, setExpenseArray] = useState(['', '', '']);
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
     const [resultScreen, setResultScreen] = useState('WholesaleCalcOut');
@@ -24,6 +23,9 @@ function WholesaleCalcIn(props) {
     const [calculationId, setCalculationId] = useState(null);
     const [showHeaderTitle, setShowHeaderTitle] = useState(false);
     const scrollY = useRef(new Animated.Value(0)).current;
+    const [operatingExpensesActive, setOperatingExpensesActive] = useState(true);
+    const [operatingExpenses, setOperatingExpenses] = useState([]);
+    const [saveNewExpenses, setSaveNewExpenses] = useState(false);
 
     const uid = () => {
         return Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -58,14 +60,19 @@ function WholesaleCalcIn(props) {
                 purchasePrice,
                 afterRev,
                 rehabCost,
-                expenseArray,
+                operatingExpenseArray
             } = route.params.inputValues;
 
             setPurchasePrice(purchasePrice?.toString() || '');
             setAfterRev(afterRev?.toString() || '');
             setRehabCost(rehabCost?.toString() || '');
-            setExpenseArray(expenseArray || ['', '', '']);
             setCalculationId(id);
+
+            if (operatingExpenseArray) {
+                setOperatingExpensesActive(operatingExpenseArray.isActive);
+                setOperatingExpenses(operatingExpenseArray.expenses);
+                setSaveNewExpenses(operatingExpenseArray.saveNewExpenses);
+            }
         }
     }, [route.params?.inputValues]);
 
@@ -77,10 +84,6 @@ function WholesaleCalcIn(props) {
         );
     };
 
-    const handleExpenseDataChange = (costValues) => {
-        setExpenseArray(costValues);
-    };
-
     const handleInfoPress = (infoText) => {
         // Implement the logic to show the overlay with infoText
         // This could be setting a state variable to show a modal, for example
@@ -90,11 +93,38 @@ function WholesaleCalcIn(props) {
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
+        if (saveNewExpenses && operatingExpenses.length > 0) {
+            try {
+                for (const expense of operatingExpenses) {
+                    if (expense.category && expense.cost) {
+                        const formattedCategory = expense.category
+                            .toLowerCase()
+                            .split(' ')
+                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                            .join(' ');
+
+                        await saveExpense(
+                            formattedCategory,
+                            expense.cost,
+                            expense.frequency,
+                            ['wholesale']
+                        );
+                    }
+                }
+            } catch (error) {
+                console.error('Error saving operating expenses:', error);
+            }
+        }
+
         const inputValues = {
             purchasePrice: toNumber(purchasePrice),
-            expenseArray: expenseArray.map(toNumber),
             rehabCost: toNumber(rehabCost),
-            afterRev: toNumber(afterRev)
+            afterRev: toNumber(afterRev),
+            operatingExpenseArray: {
+                isActive: operatingExpensesActive,
+                expenses: operatingExpenses,
+                saveNewExpenses: saveNewExpenses
+            }
         };
 
         // Calculate a new uid if calculationId is null
@@ -105,7 +135,7 @@ function WholesaleCalcIn(props) {
             inputValues.purchasePrice,
             inputValues.rehabCost,
             inputValues.afterRev,
-            inputValues.expenseArray
+            inputValues.operatingExpenseArray
         );
 
         const results = {
@@ -174,6 +204,14 @@ function WholesaleCalcIn(props) {
         };
     }, []);
 
+    const handleOperatingExpensesChange = (expenses) => {
+        setOperatingExpenses(expenses);
+    };
+
+    const handleSaveNewExpensesChange = (value) => {
+        setSaveNewExpenses(value);
+    };
+
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
@@ -192,12 +230,19 @@ function WholesaleCalcIn(props) {
                     keyboardShouldPersistTaps="handled"
                     onScroll={handleScroll}
                     scrollEventThrottle={16}
+                    nestedScrollEnabled={true}
                 >                
                     <Text style={styles.title}>Wholesaling Calculator</Text>
                     <NumericInput {...numericInputsArray[0]} />
                     <NumericInput {...numericInputsArray[1]} />
                     <NumericInput {...numericInputsArray[2]} />
-                    <ExpenseArray onDataChange={handleExpenseDataChange}/>
+                    <OperatingExpenses
+                        calculatorType="wholesale"
+                        onActiveChange={setOperatingExpensesActive}
+                        onExpensesChange={handleOperatingExpensesChange}
+                        onSaveNewExpensesChange={handleSaveNewExpensesChange}
+                        initialExpenses={operatingExpenses}
+                    />
                 </ScrollView>
             </KeyboardAvoidingView>
             <View style={styles.menuContainer}>
@@ -230,6 +275,7 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         backgroundColor: colors.iconWhite,
+        width: '100%',
     },
     menuContainer: {
         height: 56,

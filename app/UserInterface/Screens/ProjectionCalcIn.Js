@@ -3,13 +3,13 @@ import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, Keyboa
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NumericInput from '../Components/NumericInputBox.Js';
-import ExpenseArray from '../Components/ExpenseArray.Js';
 import LoanTerm from '../Components/LoanTerm.Js';
 import CalcButton from '../Components/CalcButton.Js';
 import HomeButton from '../Components/HomeButton.Js';
 import SwitchableNumericInput from '../Components/SwitchableNumericInput.Js';
 import { useDatabase } from '../../../database/cashflowDatabase.Js';
 import { PriceSuggestion } from '../../Calculations/SuggestPrice.Js';
+import OperatingExpenses from '../Components/OperatingExpenses.Js';
 
 function ProjectionCalcIn(props) {
     const navigation = useNavigation();
@@ -22,7 +22,6 @@ function ProjectionCalcIn(props) {
     const [monthRent, setMonthRent] = useState('');
     const [loanTerm, setLoanTerm] = useState(30);
     const [rehabCost, setRehabCost] = useState('');
-    const [expenseArray, setExpenseArray] = useState(['', '', '']);
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
@@ -31,10 +30,13 @@ function ProjectionCalcIn(props) {
         closingCost: { value: '', isDollar: false },
         capexEst: { value: '', isDollar: false }
     });
-    const { saveCalculation } = useDatabase();
+    const { saveCalculation, saveExpense } = useDatabase();
     const [calculationId, setCalculationId] = useState(null);
     const [showHeaderTitle, setShowHeaderTitle] = useState(false);
     const scrollY = useRef(new Animated.Value(0)).current;
+    const [operatingExpensesActive, setOperatingExpensesActive] = useState(true);
+    const [operatingExpenses, setOperatingExpenses] = useState([]);
+    const [saveNewExpenses, setSaveNewExpenses] = useState(false);
 
     const uid = () => {
         return Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -73,10 +75,10 @@ function ProjectionCalcIn(props) {
                 propertyTax,
                 loanTerm,
                 monthRent,
-                expenseArray,
                 closingCost,
                 capexEst,
-                rehabCost 
+                rehabCost,
+                operatingExpenseArray
             } = route.params.inputValues;
 
             setCalculationId(id);
@@ -87,7 +89,6 @@ function ProjectionCalcIn(props) {
             setPropertyTax(propertyTax?.toString() || '');
             setLoanTerm(loanTerm?.toString() || '30');
             setMonthRent(monthRent?.toString() || '');
-            setExpenseArray(expenseArray || ['', '', '']);
             setRehabCost(rehabCost?.toString() || '');
            
             setSwitchableInputs(prevInputs => ({
@@ -95,6 +96,12 @@ function ProjectionCalcIn(props) {
                 closingCost: closingCost || { value: '', isDollar: false },
                 capexEst: capexEst || { value: '', isDollar: false }
             }));
+
+            if (operatingExpenseArray) {
+                setOperatingExpensesActive(operatingExpenseArray.isActive);
+                setOperatingExpenses(operatingExpenseArray.expenses);
+                setSaveNewExpenses(operatingExpenseArray.saveNewExpenses);
+            }
         }
     }, [route.params?.inputValues]);
 
@@ -108,9 +115,6 @@ function ProjectionCalcIn(props) {
         );
     };
 
-    const handleExpenseDataChange = (costValues) => {
-        setExpenseArray(costValues);
-    };
 
     const handleSwitchableInputChange = (inputName, newValue) => {
         setSwitchableInputs(prevInputs => ({
@@ -139,6 +143,29 @@ function ProjectionCalcIn(props) {
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
+        if (saveNewExpenses && operatingExpenses.length > 0) {
+            try {
+                for (const expense of operatingExpenses) {
+                    if (expense.category && expense.cost) {
+                        const formattedCategory = expense.category
+                            .toLowerCase()
+                            .split(' ')
+                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                            .join(' ');
+
+                        await saveExpense(
+                            formattedCategory,
+                            expense.cost,
+                            expense.frequency,
+                            ['target']
+                        );
+                    }
+                }
+            } catch (error) {
+                console.error('Error saving operating expenses:', error);
+            }
+        }
+
         const inputValues = {
             purchasePrice: toNumber(purchasePrice),
             monthCashflow: toNumber(monthCashflow),
@@ -147,10 +174,14 @@ function ProjectionCalcIn(props) {
             loanTerm: toNumber(loanTerm),
             propertyTax: toNumber(propertyTax),
             capexEst: switchableInputs.capexEst,
-            expenseArray: expenseArray.map(toNumber),
             monthRent: toNumber(monthRent),
             closingCost: switchableInputs.closingCost,
-            rehabCost: toNumber(rehabCost)
+            rehabCost: toNumber(rehabCost),
+            operatingExpenseArray: {
+                isActive: operatingExpensesActive,
+                expenses: operatingExpenses,
+                saveNewExpenses: saveNewExpenses
+            }
         };
 
         const id = calculationId || uid();
@@ -163,10 +194,10 @@ function ProjectionCalcIn(props) {
             inputValues.propertyTax,
             0,
             inputValues.capexEst,
-            inputValues.expenseArray,
             inputValues.monthRent,
             inputValues.closingCost,
-            inputValues.rehabCost
+            inputValues.rehabCost,
+            inputValues.operatingExpenseArray
         );
 
         const results = {
@@ -276,6 +307,14 @@ function ProjectionCalcIn(props) {
         };
     }, []);
 
+    const handleOperatingExpensesChange = (expenses) => {
+        setOperatingExpenses(expenses);
+    };
+
+    const handleSaveNewExpensesChange = (value) => {
+        setSaveNewExpenses(value);
+    };
+
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
@@ -294,6 +333,7 @@ function ProjectionCalcIn(props) {
                     keyboardShouldPersistTaps="handled"
                     onScroll={handleScroll}
                     scrollEventThrottle={16}
+                    nestedScrollEnabled={true}
                 >                
                     <Text style={styles.title}>Price Target Calculator</Text>
                     <Text style={styles.secondaryTitle}>Loan Details</Text>
@@ -311,7 +351,13 @@ function ProjectionCalcIn(props) {
                     <NumericInput {...numericInputsArray[1]} />
                     <NumericInput {...numericInputsArray[4]} />
                     <SwitchableNumericInput {...switchableInputsArray[1]}/>
-                    <ExpenseArray onDataChange={handleExpenseDataChange}/>
+                    <OperatingExpenses
+                        calculatorType="target"
+                        onActiveChange={setOperatingExpensesActive}
+                        onExpensesChange={handleOperatingExpensesChange}
+                        onSaveNewExpensesChange={handleSaveNewExpensesChange}
+                        initialExpenses={operatingExpenses}
+                    />
                 </ScrollView>
             </KeyboardAvoidingView>
             <View style={styles.menuContainer}>
@@ -344,6 +390,7 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         backgroundColor: colors.iconWhite,
+        width: '100%',
     },
     menuContainer: {
         height: 56,

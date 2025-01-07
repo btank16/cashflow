@@ -3,7 +3,6 @@ import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, Keyboa
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NumericInput from '../Components/NumericInputBox.Js';
-import ExpenseArray from '../Components/ExpenseArray.Js';
 import CalcButton from '../Components/CalcButton.Js';
 import HomeButton from '../Components/HomeButton.Js';
 import SwitchableNumericInput from '../Components/SwitchableNumericInput.Js';
@@ -12,6 +11,7 @@ import { useDatabase } from '../../../database/cashflowDatabase.Js';
 import { expenses } from '../../Calculations/ExpenseFunction.Js';
 import { outputs } from '../../Calculations/CoreOutputs.Js';
 import Checkbox from '../Components/InterestCheckbox.Js';
+import OperatingExpenses from '../Components/OperatingExpenses.Js';
 
 function FlipCalcIn(props) {
     const navigation = useNavigation();
@@ -21,7 +21,6 @@ function FlipCalcIn(props) {
     const [loanTerm, setLoanTerm] = useState(30);
     const [afterRev, setAfterRev] = useState('');
     const [rehabTime, setRehabTime] = useState('');
-    const [expenseArray, setExpenseArray] = useState(['', '', '']);
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
     const [resultScreen, setResultScreen] = useState('FlipCalcOut');
@@ -36,10 +35,13 @@ function FlipCalcIn(props) {
         value: '',
         isInterestOnly: false
     });
-    const { saveCalculation } = useDatabase();
+    const { saveCalculation, saveExpense } = useDatabase();
     const [calculationId, setCalculationId] = useState(null);
     const [showHeaderTitle, setShowHeaderTitle] = useState(false);
     const scrollY = useRef(new Animated.Value(0)).current;
+    const [operatingExpensesActive, setOperatingExpensesActive] = useState(true);
+    const [operatingExpenses, setOperatingExpenses] = useState([]);
+    const [saveNewExpenses, setSaveNewExpenses] = useState(false);
 
     const uid = () => {
         return Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -78,10 +80,10 @@ function FlipCalcIn(props) {
                 propertyTax,
                 rehabCost,
                 loanTerm,
-                expenseArray,
                 afterRev,
                 rehabTime,
-                agentCommish
+                agentCommish,
+                operatingExpenseArray
             } = route.params.inputValues;
 
             setCalculationId(id);
@@ -92,7 +94,6 @@ function FlipCalcIn(props) {
             });
             setRehabCost(rehabCost?.toString() || '');
             setLoanTerm(loanTerm?.toString() || '30');
-            setExpenseArray(expenseArray || ['', '', '']);
             setAfterRev(afterRev?.toString() || '');
             setRehabTime(rehabTime?.toString() || '');
        
@@ -103,6 +104,12 @@ function FlipCalcIn(props) {
                 propertyTax: propertyTax || { value: '', isDollar: false },
                 agentCommish: agentCommish || { value: '', isDollar: false }
             }));
+
+            if (operatingExpenseArray) {
+                setOperatingExpensesActive(operatingExpenseArray.isActive);
+                setOperatingExpenses(operatingExpenseArray.expenses);
+                setSaveNewExpenses(operatingExpenseArray.saveNewExpenses);
+            }
         }
     }, [route.params?.inputValues]);
 
@@ -115,10 +122,6 @@ function FlipCalcIn(props) {
             afterRev !== ''
         );
     };
-
-    const handleExpenseDataChange = (costValues) => {
-        setExpenseArray(costValues);
-      };
 
       const handleSwitchableInputChange = (inputName, newValue) => {
         setSwitchableInputs(prevInputs => ({
@@ -147,6 +150,29 @@ function FlipCalcIn(props) {
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
+        if (saveNewExpenses && operatingExpenses.length > 0) {
+            try {
+                for (const expense of operatingExpenses) {
+                    if (expense.category && expense.cost) {
+                        const formattedCategory = expense.category
+                            .toLowerCase()
+                            .split(' ')
+                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                            .join(' ');
+
+                        await saveExpense(
+                            formattedCategory,
+                            expense.cost,
+                            expense.frequency,
+                            ['flip']
+                        );
+                    }
+                }
+            } catch (error) {
+                console.error('Error saving operating expenses:', error);
+            }
+        }
+        
         const inputValues = {
             purchasePrice: toNumber(purchasePrice),
             downPayment: switchableInputs.downPayment,
@@ -154,14 +180,18 @@ function FlipCalcIn(props) {
             loanTerm: toNumber(loanTerm),
             propertyTax: switchableInputs.propertyTax,
             closingCost: switchableInputs.closingCost,
-            expenseArray: expenseArray.map(toNumber),
             rehabCost: toNumber(rehabCost),
             afterRev: toNumber(afterRev),
             rehabTime: toNumber(rehabTime),
             agentCommish: switchableInputs.agentCommish,
             propertyInsurance: 0,
             capexEst: { value: '0', isDollar: false },
-            monthRent: 0
+            monthRent: 0,
+            operatingExpenseArray: {
+                isActive: operatingExpensesActive,
+                expenses: operatingExpenses,
+                saveNewExpenses: saveNewExpenses
+            }
         };
 
         const id = calculationId || uid();
@@ -174,11 +204,11 @@ function FlipCalcIn(props) {
             inputValues.propertyTax,
             inputValues.propertyInsurance,
             inputValues.capexEst,
-            inputValues.expenseArray,
             inputValues.rehabCost,
             inputValues.closingCost,
             inputValues.monthRent,
-            inputValues.rehabTime
+            inputValues.rehabTime,
+            inputValues.operatingExpenseArray
         );
 
         const outputResults = outputs(
@@ -317,6 +347,14 @@ function FlipCalcIn(props) {
         };
     }, []);
 
+    const handleOperatingExpensesChange = (expenses) => {
+        setOperatingExpenses(expenses);
+    };
+
+    const handleSaveNewExpensesChange = (value) => {
+        setSaveNewExpenses(value);
+    };
+
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
@@ -335,6 +373,7 @@ function FlipCalcIn(props) {
                 keyboardShouldPersistTaps="handled"
                 onScroll={handleScroll}
                 scrollEventThrottle={16}
+                nestedScrollEnabled={true}
                 >   
                    <Text style={styles.title}>Fix & Flip Calculator</Text>
                    <Text style={styles.secondaryTitle}>Loan Details</Text>                    
@@ -359,7 +398,13 @@ function FlipCalcIn(props) {
                     <Text style={styles.secondaryTitle}>Sale Details</Text>
                     <NumericInput {...numericInputsArray[3]} />
                     <SwitchableNumericInput {...switchableInputsArray[3]} />
-                    <ExpenseArray onDataChange={handleExpenseDataChange}/>
+                    <OperatingExpenses
+                        calculatorType="flip"
+                        onActiveChange={setOperatingExpensesActive}
+                        onExpensesChange={handleOperatingExpensesChange}
+                        onSaveNewExpensesChange={handleSaveNewExpensesChange}
+                        initialExpenses={operatingExpenses}
+                    />
                 </ScrollView>
             </KeyboardAvoidingView>
             <View style={styles.menuContainer}>
@@ -392,6 +437,7 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         backgroundColor: colors.iconWhite,
+        width: '100%',
     },
     menuContainer: {
         height: 56,

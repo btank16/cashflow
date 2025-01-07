@@ -3,7 +3,6 @@ import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, Keyboa
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
 import NumericInput from '../Components/NumericInputBox.Js';
-import ExpenseArray from '../Components/ExpenseArray.Js';
 import CalcButton from '../Components/CalcButton.Js';
 import { expenses } from '../../Calculations/ExpenseFunction.Js';
 import { BuyRefi } from '../../Calculations/BRRROutput.Js';
@@ -12,6 +11,7 @@ import HomeButton from '../Components/HomeButton.Js';
 import SwitchableNumericInput from '../Components/SwitchableNumericInput.Js';
 import { useDatabase } from '../../../database/cashflowDatabase.Js';
 import Checkbox from '../Components/InterestCheckbox.Js';
+import OperatingExpenses from '../Components/OperatingExpenses.Js';
 
 function BRRCalcIn(props) {
     const navigation = useNavigation();
@@ -24,7 +24,6 @@ function BRRCalcIn(props) {
     const [afterRev, setAfterRev] = useState('');
     const [rehabTime, setRehabTime] = useState('');
     const [refinanceCost, setRefinanceCost] = useState('');
-    const [expenseArray, setExpenseArray] = useState(['', '', '']);
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
     const [resultScreen, setResultScreen] = useState('BRRCalcOut');
@@ -35,15 +34,19 @@ function BRRCalcIn(props) {
         propertyTax: { value: '', isDollar: false },
         BRRcapexEst: { value: '', isDollar: false }
     });
+    const { saveCalculation, saveExpense } = useDatabase();
     const [interestRateInput, setInterestRateInput] = useState({
         initialInterest: { value: '', isInterestOnly: false },
         newInterest: { value: '', isInterestOnly: false }
     });
     
-    const { saveCalculation } = useDatabase();
     const [calculationId, setCalculationId] = useState(null);
     const [showHeaderTitle, setShowHeaderTitle] = useState(false);
     const scrollY = useRef(new Animated.Value(0)).current;
+    const [operatingExpensesActive, setOperatingExpensesActive] = useState(true);
+    const [operatingExpenses, setOperatingExpenses] = useState([]);
+    const [saveNewExpenses, setSaveNewExpenses] = useState(false);
+
 
     const uid = () => {
         return Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -83,13 +86,13 @@ function BRRCalcIn(props) {
                 rehabCost,
                 loanTerm,
                 BRRcapexEst,
-                expenseArray,
                 afterRev,
                 rehabTime,
                 newloanTerm,
                 BRRmonthRent,
                 refinanceCost,
-                newInterest
+                newInterest,
+                operatingExpenseArray,
             } = route.params.inputValues;
 
             setCalculationId(id);
@@ -101,7 +104,6 @@ function BRRCalcIn(props) {
             }));
             setRehabCost(rehabCost?.toString() || '');
             setLoanTerm(loanTerm?.toString() || '30');
-            setExpenseArray(expenseArray || ['', '', '']);
             setAfterRev(afterRev?.toString() || '');
             setRehabTime(rehabTime?.toString() || '');
             setnewLoanTerm(newloanTerm?.toString() || '30');
@@ -114,6 +116,12 @@ function BRRCalcIn(props) {
                 propertyTax: propertyTax || { value: '', isDollar: false },
                 BRRcapexEst: BRRcapexEst || { value: '', isDollar: false }
             }));
+
+            if (operatingExpenseArray) {
+                setOperatingExpensesActive(operatingExpenseArray.isActive);
+                setOperatingExpenses(operatingExpenseArray.expenses);
+                setSaveNewExpenses(operatingExpenseArray.saveNewExpenses);
+            }
         }
     }, [route.params?.inputValues]);
 
@@ -156,6 +164,29 @@ function BRRCalcIn(props) {
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
+        if (saveNewExpenses && operatingExpenses.length > 0) {
+            try {
+                for (const expense of operatingExpenses) {
+                    if (expense.category && expense.cost) {
+                        const formattedCategory = expense.category
+                            .toLowerCase()
+                            .split(' ')
+                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                            .join(' ');
+
+                        await saveExpense(
+                            formattedCategory,
+                            expense.cost,
+                            expense.frequency,
+                            ['brrrr']
+                        );
+                    }
+                }
+            } catch (error) {
+                console.error('Error saving operating expenses:', error);
+            }
+        }
+
         const inputValues = {
             purchasePrice: toNumber(purchasePrice),
             downPayment: switchableInputs.downPayment,
@@ -163,7 +194,6 @@ function BRRCalcIn(props) {
             loanTerm: toNumber(loanTerm),
             propertyTax: switchableInputs.propertyTax,
             BRRcapexEst: switchableInputs.BRRcapexEst,
-            expenseArray: expenseArray.map(toNumber),
             rehabCost: toNumber(rehabCost),
             closingCost: switchableInputs.closingCost,
             BRRmonthRent: toNumber(BRRmonthRent),
@@ -171,7 +201,12 @@ function BRRCalcIn(props) {
             rehabTime: toNumber(rehabTime),
             refinanceCost: toNumber(refinanceCost),
             newInterest: interestRateInput.newInterest,
-            newloanTerm: toNumber(newloanTerm)
+            newloanTerm: toNumber(newloanTerm),
+            operatingExpenseArray: {
+                isActive: operatingExpensesActive,
+                expenses: operatingExpenses,
+                saveNewExpenses: saveNewExpenses
+            }
         };
 
         const id = calculationId || uid();
@@ -184,11 +219,11 @@ function BRRCalcIn(props) {
             inputValues.propertyTax,
             0,
             inputValues.BRRcapexEst,
-            inputValues.expenseArray,
             inputValues.rehabCost,
             inputValues.closingCost,
             0,
-            inputValues.rehabTime
+            inputValues.rehabTime,
+            inputValues.operatingExpenseArray
         );
 
         const buyRefiResults = BuyRefi(
@@ -206,7 +241,7 @@ function BRRCalcIn(props) {
             inputValues.newloanTerm,
             initialExpenseResults[4],
             inputValues.propertyTax,
-            inputValues.expenseArray
+            initialExpenseResults[8]
         );
 
         const results = {
@@ -239,10 +274,6 @@ function BRRCalcIn(props) {
             inputValues: {...inputValues, id},
             ...results
         });
-    };
-
-    const handleExpenseDataChange = (costValues) => {
-        setExpenseArray(costValues);
     };
 
     const numericInputsArray = [
@@ -347,6 +378,15 @@ function BRRCalcIn(props) {
         };
     }, []);
 
+
+    const handleOperatingExpensesChange = (expenses) => {
+        setOperatingExpenses(expenses);
+    };
+
+    const handleSaveNewExpensesChange = (value) => {
+        setSaveNewExpenses(value);
+    };
+
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
@@ -365,6 +405,7 @@ function BRRCalcIn(props) {
                 keyboardShouldPersistTaps="handled"
                 onScroll={handleScroll}
                 scrollEventThrottle={16}
+                nestedScrollEnabled={true}
                 >   
                    <Text style={styles.title}>BRRRR Calculator</Text>
                    <Text style={styles.secondaryTitle}>Loan Details</Text>                    
@@ -417,7 +458,13 @@ function BRRCalcIn(props) {
                         value={newloanTerm}
                         onValueChange={(itemValue) => setnewLoanTerm(itemValue)}
                     />
-                    <ExpenseArray onDataChange={handleExpenseDataChange}/>
+                    <OperatingExpenses
+                        calculatorType="brrrr"
+                        onActiveChange={setOperatingExpensesActive}
+                        onExpensesChange={handleOperatingExpensesChange}
+                        onSaveNewExpensesChange={handleSaveNewExpensesChange}
+                        initialExpenses={operatingExpenses}
+                    />
                 </ScrollView>
             </KeyboardAvoidingView>
             <View style={styles.menuContainer}>
@@ -450,6 +497,7 @@ const styles = StyleSheet.create({
     },
     contentContainer: {
         backgroundColor: colors.iconWhite,
+        width: '100%',
     },
     menuContainer: {
         height: 56,

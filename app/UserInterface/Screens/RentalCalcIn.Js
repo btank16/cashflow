@@ -150,7 +150,7 @@ function RentalCalcIn(props) {
         if (saveNewExpenses && operatingExpenses.length > 0) {
             try {
                 for (const expense of operatingExpenses) {
-                    if (!expense.fromSaved && expense.category && expense.cost) {
+                    if (expense.category && expense.cost) {
                         const formattedCategory = expense.category
                             .toLowerCase()
                             .split(' ')
@@ -393,6 +393,7 @@ function RentalCalcIn(props) {
                         onActiveChange={setOperatingExpensesActive}
                         onExpensesChange={handleOperatingExpensesChange}
                         onSaveNewExpensesChange={handleSaveNewExpensesChange}
+                        initialExpenses={operatingExpenses}
                     />
                 </ScrollView>
             </KeyboardAvoidingView>

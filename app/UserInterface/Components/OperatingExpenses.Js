@@ -17,7 +17,8 @@ const OperatingExpenses = ({
   calculatorType, 
   onActiveChange, 
   onExpensesChange,
-  onSaveNewExpensesChange
+  onSaveNewExpensesChange,
+  initialExpenses = []
 }) => {
   const [isActive, setIsActive] = useState(true);
   const [activeExpenses, setActiveExpenses] = useState([{ 
@@ -34,8 +35,26 @@ const OperatingExpenses = ({
   const navigation = useNavigation();
 
   useEffect(() => {
-    loadSavedExpenses();
-  }, [calculatorType]);
+    if (initialExpenses && initialExpenses.length > 0) {
+      const areExpensesDifferent = JSON.stringify(initialExpenses) !== JSON.stringify(activeExpenses);
+      if (areExpensesDifferent) {
+        // First set active expenses
+        setActiveExpenses(initialExpenses.map(expense => ({
+          ...expense,
+          showFrequency: false
+        })));
+
+        // Then load saved expenses with the updated active expenses
+        loadSavedExpenses();
+      }
+    }
+  }, [initialExpenses]);
+
+  useEffect(() => {
+    if (activeExpenses.length > 0) {
+      loadSavedExpenses();
+    }
+  }, [JSON.stringify(activeExpenses)]);
 
   useEffect(() => {
     // Only pass active expenses to parent component
@@ -64,7 +83,15 @@ const OperatingExpenses = ({
       const expenses = await db.getSavedExpenses();
       const filteredExpenses = expenses.filter(expense => {
         const calculators = JSON.parse(expense.applicable_calculators);
-        return calculators.includes(calculatorType);
+        
+        // Check if this saved expense is already in activeExpenses
+        const isAlreadyActive = activeExpenses.some(activeExp => 
+          activeExp.category === expense.category && 
+          activeExp.cost === expense.cost &&
+          activeExp.frequency === expense.frequency
+        );
+
+        return calculators.includes(calculatorType) && !isAlreadyActive;
       });
       setSavedExpenses(filteredExpenses);
     } catch (error) {
@@ -228,10 +255,9 @@ const OperatingExpenses = ({
               styles.textInputContainer,
               focusedInputs[`cost-${index}`] && styles.inputFocused
             ]}>
-              <Text style={styles.dollarSign}>$</Text>
               <TextInput
                 style={styles.costInputField}
-                placeholder="ex. 500"
+                placeholder="ex. 100"
                 value={expense.cost}
                 onChangeText={(value) => updateActiveExpense(index, 'cost', value)}
                 keyboardType="numeric"
@@ -239,6 +265,9 @@ const OperatingExpenses = ({
                 onBlur={() => setFocusedInputs(prev => ({ ...prev, [`cost-${index}`]: false }))}
                 placeholderTextColor={colors.sixthGrey}
               />
+              <View style={styles.typeContainer}>
+                <Text style={styles.typeText}>$</Text>
+              </View>
             </View>
           </View>
         </View>
@@ -414,16 +443,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: 24,
-  },
-  emptyStateText: {
-    fontSize: 16,
-    color: colors.primaryGrey,
-    textAlign: 'center',
-    marginTop: 16,
-  },
+
   inputContainer: {
     marginBottom: 16,
   },
@@ -433,16 +453,7 @@ const styles = StyleSheet.create({
     color: colors.primaryGrey,
     marginBottom: 8,
   },
-  input: {
-    height: 50,
-    backgroundColor: colors.tertiaryGrey,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.quaternaryGrey,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: colors.primaryBlack,
-  },
+
   frequencyAndCost: {
     flexDirection: 'row',
     gap: 16,
@@ -453,11 +464,7 @@ const styles = StyleSheet.create({
   costInput: {
     flex: 1,
   },
-  dollarSign: {
-    paddingLeft: 16,
-    fontSize: 16,
-    color: colors.primaryBlack,
-  },
+
   costInputField: {
     flex: 1,
     height: '100%',
@@ -562,11 +569,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.primaryBlack,
   },
-  dollarSign: {
-    paddingLeft: 16,
-    fontSize: 16,
-    color: colors.fifthGrey,
-  },
+
   costInputField: {
     flex: 1,
     height: '100%',
@@ -575,12 +578,7 @@ const styles = StyleSheet.create({
     color: colors.primaryBlack,
     backgroundColor: 'transparent',
   },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.primaryGrey,
-    marginBottom: 8,
-  },
+
   expenseDivider: {
     height: 1,
     backgroundColor: colors.quaternaryGrey,
@@ -697,6 +695,18 @@ const styles = StyleSheet.create({
     color: colors.primaryGreen,
     fontSize: 14,
     fontWeight: '500',
+  },
+  typeContainer: {
+    backgroundColor: colors.secondaryGrey,
+    paddingHorizontal: 8,
+    height: '85%',
+    justifyContent: 'center',
+    borderRadius: 10,
+    marginRight: 4,
+  },
+  typeText: {
+    color: colors.fifthGrey,
+    fontSize: 16,
   },
 });
 

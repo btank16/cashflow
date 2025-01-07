@@ -10,7 +10,7 @@ export const CommercialCalc = (
   vacancy,
   capEx,
   propertyTax,
-  expenseArray,
+  OperatingExpense,
 ) => {
   // Calculate down payment
   let DownPayPerc
@@ -86,7 +86,22 @@ export const CommercialCalc = (
     }
 
   // Sum up all monthly expenses
-  const totalMonthlyExpenses = expenseArray.reduce((sum, expense) => sum + expense, 0);
+  let totalMonthlyExpenses = 0;
+  let totalFixedExpenses = 0;
+  
+  if (OperatingExpense.isActive && OperatingExpense.expenses) {
+    OperatingExpense.expenses.forEach(expense => {
+      const cost = Number(expense.cost);
+      
+      if (expense.frequency === 'Annually') {
+        totalMonthlyExpenses += cost / 12;
+      } else if (expense.frequency === 'Monthly') {
+        totalMonthlyExpenses += cost;
+      } else if (expense.frequency === 'Non-recurring') {
+        totalFixedExpenses += cost;
+      }
+    });
+  }
 
   // Calculate total monthly cost
   const MonthEx = monthlyPropTax + monthlyCapEx + totalMonthlyExpenses + monthlyVacancy;
@@ -114,7 +129,7 @@ export const CommercialCalc = (
     }
 
   // Calculate cash down
-  const totalAcquisitionCosts = (downPaymentAmount + closingCostTotal + realAcqCosts).toFixed(2);
+  const totalAcquisitionCosts = (downPaymentAmount + closingCostTotal + realAcqCosts + totalFixedExpenses).toFixed(2);
 
     // Calculate monthly cashflow
     const Cashflow = (monthlyRent - MonthlyCost).toFixed(2);

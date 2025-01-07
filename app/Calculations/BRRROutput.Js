@@ -16,7 +16,7 @@ export const BuyRefi = (
     LoanTerm,
     PrincipalAmt,
     propTax,
-    ExpenseArray
+    OperatingExpense
   ) => {
     // Convert inputs to numbers
     PurchPrice = Number(PurchPrice);
@@ -32,7 +32,7 @@ export const BuyRefi = (
     MonthlyCost = Number(MonthlyCost);
     LoanTerm = Number(LoanTerm);  
     MonthEx = Number(MonthEx)
-  
+    OperatingExpense = Number(OperatingExpense)
     // Calculate new loan amount after refinance
     const NewLoanAmount = AfterRep * 0.80; // Assuming 80% LTV refinance
   
@@ -65,10 +65,9 @@ export const BuyRefi = (
       monthlyCapEx = (BRRMonthRent * (Number(BRRCapex.value) / 100));
     }
 
-    const totalMonthlyExpenses = ExpenseArray.reduce((sum, expense) => sum + expense, 0);
 
     const BRRMonthlyCost = (
-      parseFloat(BRRMortgageCost) + BRRPropTax + totalMonthlyExpenses + monthlyCapEx).toFixed(2);
+      parseFloat(BRRMortgageCost) + BRRPropTax + OperatingExpense + monthlyCapEx).toFixed(2);
   
     // Calculate new cashflow
     const BRRCashflow = (BRRMonthRent - BRRMonthlyCost).toFixed(2);

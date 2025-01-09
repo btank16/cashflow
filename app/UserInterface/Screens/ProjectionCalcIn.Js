@@ -192,7 +192,6 @@ function ProjectionCalcIn(props) {
             inputValues.interestRate,
             inputValues.loanTerm,
             inputValues.propertyTax,
-            0,
             inputValues.capexEst,
             inputValues.monthRent,
             inputValues.closingCost,
@@ -207,6 +206,12 @@ function ProjectionCalcIn(props) {
             targetPriceCash: cashflowResults[3],
             netZeroExp: cashflowResults[4],
             targetExp: cashflowResults[5],
+            netZeroTax: cashflowResults[6],
+            targetTax: cashflowResults[7],
+            monthlyCapEx: cashflowResults[8],
+            totalMonthlyExpenses: cashflowResults[9],
+            MaxZeroMortgage: cashflowResults[10],
+            MaxCashflowMortgage: cashflowResults[11],
         };
 
         try {

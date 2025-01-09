@@ -28,6 +28,7 @@ const colors = {
     secondaryPurple: '#D5D6F6',
     primaryOrange: '#CE7534',
     secondaryOrange: '#F7E0C4',
+    tertiaryOrange: '#D79248',
     primaryRed: '#D5D6F6',
     secondaryRed: '#F3DCDB',
     tertiaryRed: '#E5BEBB',

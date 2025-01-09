@@ -4,12 +4,11 @@ export const PriceSuggestion = (
   IntRate,
   LoanTerm,
   PropTaxPerc,
-  PropInsurance,
   CapExEst,
-  ExpenseArray,
   MonthRent,
   closingCost,
-  rehabCost
+  rehabCost,
+  OperatingExpense
 ) => {
   // Convert inputs to numbers
   CashflowTarget = Number(CashflowTarget);
@@ -18,20 +17,38 @@ export const PriceSuggestion = (
   const MonthInt = IntRate / 12; // Monthly interest rate
   LoanTerm = Number(LoanTerm) * 12; // Convert years to months
   PropTaxPerc = Number(PropTaxPerc) / 100 / 12; // Monthly property tax rate
-  PropInsurance = Number(PropInsurance) / 12; // Monthly insurance
   MonthRent = Number(MonthRent);
   rehabCost = Number(rehabCost);
 
-  const totalMonthlyExpenses = ExpenseArray.reduce((sum, expense) => sum + Number(expense), 0);
+
+  // Calculate total monthly expenses
+  let totalMonthlyExpenses = 0;
+  let totalFixedExpenses = 0;
+  
+  if (OperatingExpense.isActive && OperatingExpense.expenses) {
+    OperatingExpense.expenses.forEach(expense => {
+      const cost = Number(expense.cost);
+      
+      if (expense.frequency === 'Annually') {
+        totalMonthlyExpenses += cost / 12;
+      } else if (expense.frequency === 'Monthly') {
+        totalMonthlyExpenses += cost;
+      } else if (expense.frequency === 'Non-recurring') {
+        totalFixedExpenses += cost;
+      }
+    });
+  }
+  
+  // Calculate monthly CapEx
   let monthlyCapEx;
   if (CapExEst.isDollar) {
     monthlyCapEx = Number(CapExEst.value) / 12;
   } else {
     monthlyCapEx = (MonthRent * (Number(CapExEst.value) / 100));
   }
-  const CapExTotal = monthlyCapEx + totalMonthlyExpenses;
+
   // Calculates the total expenses known without the purchase price
-  const ExpNoProperty = CapExTotal + PropInsurance;
+  const ExpNoProperty = monthlyCapEx + totalMonthlyExpenses;
 
   // Calculates the maximum monthly payment that makes the cashflow target
   const MaxCashflowMortgage = MonthRent - (ExpNoProperty + CashflowTarget);
@@ -67,12 +84,19 @@ export const PriceSuggestion = (
       closingCostTarget = (TargetPrice * (Number(closingCost.value) / 100));
       closingCostZero = (NetZeroPrice * (Number(closingCost.value) / 100));
     }
-    const netZeroCash = (NetZeroPrice * DownPayPerc) + closingCostZero + rehabCost;
-    const targetPriceCash = (TargetPrice * DownPayPerc) + closingCostTarget + rehabCost;
+    const netZeroCash = (NetZeroPrice * DownPayPerc) + closingCostZero + rehabCost + totalFixedExpenses;
+    const targetPriceCash = (TargetPrice * DownPayPerc) + closingCostTarget + rehabCost + totalFixedExpenses;
+
+    // Calculate Property Tax for each scenario
+    const netZeroTax = NetZeroPrice * PropTaxPerc;
+    const targetTax = TargetPrice * PropTaxPerc;
 
     // Calculate Monthly Expenses for Each Scenario
-    const netZeroExp = MaxZeroMortgage + (NetZeroPrice * PropTaxPerc) + ExpNoProperty;
-    const targetExp = MaxCashflowMortgage + (TargetPrice * PropTaxPerc) + ExpNoProperty;
+    const netZeroExp = MaxZeroMortgage + netZeroTax + ExpNoProperty;
+    const targetExp = MaxCashflowMortgage + targetTax + ExpNoProperty;
 
-  return [TargetPrice.toFixed(2), NetZeroPrice.toFixed(2), netZeroCash.toFixed(2), targetPriceCash.toFixed(2), netZeroExp.toFixed(2), targetExp.toFixed(2)];
+  return [TargetPrice.toFixed(2), NetZeroPrice.toFixed(2), netZeroCash.toFixed(2), 
+    targetPriceCash.toFixed(2), netZeroExp.toFixed(2), targetExp.toFixed(2), 
+    netZeroTax.toFixed(2), targetTax.toFixed(2), monthlyCapEx.toFixed(2), 
+    totalMonthlyExpenses.toFixed(2), MaxZeroMortgage.toFixed(2), MaxCashflowMortgage.toFixed(2)];
 };

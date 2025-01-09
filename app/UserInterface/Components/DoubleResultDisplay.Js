@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.tertiaryGrey,
     width: '48%',
-    minHeight: 180, // Double the height of ResultDisplay
+    minHeight: 180, 
   },
   fullWidth: {
     width: '100%',

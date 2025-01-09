@@ -26,7 +26,7 @@ function WholesaleCalcIn(props) {
     const [operatingExpensesActive, setOperatingExpensesActive] = useState(true);
     const [operatingExpenses, setOperatingExpenses] = useState([]);
     const [saveNewExpenses, setSaveNewExpenses] = useState(false);
-
+    const [monthsHeld, setMonthsHeld] = useState('');
     const uid = () => {
         return Date.now().toString(36) + Math.random().toString(36).substr(2);
     }
@@ -60,12 +60,14 @@ function WholesaleCalcIn(props) {
                 purchasePrice,
                 afterRev,
                 rehabCost,
+                monthsHeld,
                 operatingExpenseArray
             } = route.params.inputValues;
 
             setPurchasePrice(purchasePrice?.toString() || '');
             setAfterRev(afterRev?.toString() || '');
             setRehabCost(rehabCost?.toString() || '');
+            setMonthsHeld(monthsHeld?.toString() || '');
             setCalculationId(id);
 
             if (operatingExpenseArray) {
@@ -120,6 +122,7 @@ function WholesaleCalcIn(props) {
             purchasePrice: toNumber(purchasePrice),
             rehabCost: toNumber(rehabCost),
             afterRev: toNumber(afterRev),
+            monthsHeld: toNumber(monthsHeld),
             operatingExpenseArray: {
                 isActive: operatingExpensesActive,
                 expenses: operatingExpenses,
@@ -135,6 +138,7 @@ function WholesaleCalcIn(props) {
             inputValues.purchasePrice,
             inputValues.rehabCost,
             inputValues.afterRev,
+            inputValues.monthsHeld,
             inputValues.operatingExpenseArray
         );
 
@@ -185,6 +189,13 @@ function WholesaleCalcIn(props) {
             placeholder: "ex. $250,000",
             isRequired: true,
             type: "$"
+        },
+        {
+            label: "Months Held",
+            value: monthsHeld,
+            onChangeText: setMonthsHeld,
+            placeholder: "ex. 2 months",
+            type: "Months"
         }
     ];
 
@@ -236,12 +247,15 @@ function WholesaleCalcIn(props) {
                     <NumericInput {...numericInputsArray[0]} />
                     <NumericInput {...numericInputsArray[1]} />
                     <NumericInput {...numericInputsArray[2]} />
+                    <NumericInput {...numericInputsArray[3]} />
                     <OperatingExpenses
                         calculatorType="wholesale"
                         onActiveChange={setOperatingExpensesActive}
                         onExpensesChange={handleOperatingExpensesChange}
                         onSaveNewExpensesChange={handleSaveNewExpensesChange}
                         initialExpenses={operatingExpenses}
+                        sectionTitle="Additional Expenses"
+                        viewAllButtonText="View all Saved Expenses"
                     />
                 </ScrollView>
             </KeyboardAvoidingView>

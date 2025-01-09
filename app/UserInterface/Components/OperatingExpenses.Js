@@ -18,7 +18,9 @@ const OperatingExpenses = ({
   onActiveChange, 
   onExpensesChange,
   onSaveNewExpensesChange,
-  initialExpenses = []
+  initialExpenses = [],
+  sectionTitle = "Operating Expenses",
+  viewAllButtonText = "View all Saved Expenses"
 }) => {
   const [isActive, setIsActive] = useState(true);
   const [activeExpenses, setActiveExpenses] = useState([{ 
@@ -334,7 +336,7 @@ const OperatingExpenses = ({
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>Operating Expenses</Text>
+          <Text style={styles.title}>{sectionTitle}</Text>
           <Switch
             value={isActive}
             onValueChange={handleToggleActive}
@@ -385,7 +387,7 @@ const OperatingExpenses = ({
               style={styles.viewAllButton}
               onPress={() => navigation.navigate('ExpenseScreen')}
             >
-              <Text style={styles.viewAllButtonText}>View all Saved Expenses</Text>
+              <Text style={styles.viewAllButtonText}>{viewAllButtonText}</Text>
               <ArrowLongRightIcon size={18} color={colors.primaryGreen} style={{ marginBottom: -2 }}/>
             </TouchableOpacity>
           </View>

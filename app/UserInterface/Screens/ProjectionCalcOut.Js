@@ -135,7 +135,11 @@ function ProjectionCalcOut(props) {
                     </Text>
                 </View>
                 
-                <PriceBar />
+                <PriceBar 
+                    listingPrice={inputValues.purchasePrice}
+                    targetPrice={results.TargetPrice}
+                    evenPrice={results.NetZeroPrice}
+                />
                 
                 <View style={styles.resultsGrid}>
                     <ResultDisplay {...mainResultDisplay} />

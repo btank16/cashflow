@@ -16,11 +16,11 @@ import HistoryIcon from '../../assets/icons/HistoryIcon.jsx';
 import UserIcon from '../../assets/icons/UserIcon.jsx';
 import CommercialIcon from '../../assets/icons/CommercialIcon.jsx';
 
-const CalculatorButton = ({ name, screen, Icon, color, article, onInfoPress }) => {
+const CalculatorButton = ({ name, screen, Icon, color, article, onInfoPress, fullWidth }) => {
   const navigation = useNavigation();
   return (
     <TouchableOpacity 
-      style={[styles.calculatorButton, { width: '48%' }]}
+      style={[styles.calculatorButton, { width: fullWidth ? '100%' : '48%' }]}
       onPress={() => navigation.navigate(screen)}
     >
       <TouchableOpacity 
@@ -166,14 +166,15 @@ function CalcHomeScreen() {
       screen: "ProjectionCalcIn", 
       Icon: TargetIcon, 
       color: colors.primaryPurple,
-      article: articles[4]
+      article: articles[4],
+      fullWidth: true
     },
-    { 
-      name: "Commercial Multi-Family", 
-      screen: "CommercialCalcIn", 
-      Icon: CommercialIcon, 
-      color: colors.primaryPink,
-    },
+    // { 
+    //   name: "Commercial Multi-Family", 
+    //   screen: "CommercialCalcIn", 
+    //   Icon: CommercialIcon, 
+    //   color: colors.primaryPink,
+    // },
   ];
 
   const renderHistorySection = () => (

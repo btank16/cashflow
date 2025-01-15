@@ -57,13 +57,13 @@ const calculatorData = [
     color: colors.brightGreen,
     type: 'wholesale'
   },
-  {
-    id: 'commercial',
-    name: 'Commercial Multi-Family',
-    Icon: CommercialIcon,
-    color: colors.primaryPink,
-    type: 'commercial'
-  },
+  // {
+  //   id: 'commercial',
+  //   name: 'Commercial Multi-Family',
+  //   Icon: CommercialIcon,
+  //   color: colors.primaryPink,
+  //   type: 'commercial'
+  // },
 ];
 
 const SecondAddExpense = () => {

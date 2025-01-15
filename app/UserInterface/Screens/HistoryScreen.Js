@@ -21,7 +21,7 @@ function HistoryScreen() {
     'brrr',
     'projection',
     'wholesale',
-    'commercial'
+    // 'commercial'
   ];
 
   useEffect(() => {

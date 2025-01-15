@@ -43,7 +43,7 @@ const ExpenseScreen = () => {
     'brrrr',
     'target',
     'wholesale',
-    'commercial'
+    // 'commercial'
   ];
 
   const snapPoints = useMemo(() => ['90%'], []);

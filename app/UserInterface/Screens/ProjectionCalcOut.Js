@@ -10,6 +10,22 @@ import PriceBar from '../Components/PriceBar.Js';
 import DarkTextLogo from '../../assets/icons/DarkTextLogo';
 import ExpensePieChart from '../Components/ExpensePieChart.Js';
 
+const getListingPriceColor = (purchasePrice, targetPrice, netZeroPrice) => {
+    if (purchasePrice < targetPrice) return colors.tertiaryOrange;
+    if (purchasePrice <= netZeroPrice) return colors.primaryGreen;
+    return colors.quaternaryRed;
+};
+
+const getListingPriceText = (purchasePrice, targetPrice, netZeroPrice) => {
+    if (purchasePrice < targetPrice) {
+        return "Property is either undervalued or other factors (ex. Property Distress) drive the Listing Price down";
+    }
+    if (purchasePrice <= netZeroPrice) {
+        return "Purchase at the Listing Price will Break Even or have Positive Cashflow";
+    }
+    return "Purchase at the Listing Price will have Negative Cashflow";
+};
+
 function ProjectionCalcOut(props) {
     const navigation = useNavigation();
     const route = useRoute();
@@ -29,18 +45,6 @@ function ProjectionCalcOut(props) {
 
     const handleInfoPress = (infoText) => {
         console.log(infoText);
-    };
-
-    const mainResultDisplay = {
-        label: "Listing Price",
-        value: inputValues.purchasePrice,
-        type: "dollar",
-        infoPress: () => handleInfoPress("Information about Purchase Price"),
-        fullWidth: true,
-        textColor: inputValues.purchasePrice <= results.NetZeroPrice ? colors.primaryGreen : colors.quaternaryRed,
-        additionalText: inputValues.purchasePrice <= results.NetZeroPrice ? 
-            "Purchase at the Listing Price will Break Even or have Positive Cashflow" :
-            "Purchase at the Listing Price will have Negative Cashflow"
     };
 
     const doubleResultDisplays = [
@@ -142,7 +146,25 @@ function ProjectionCalcOut(props) {
                 />
                 
                 <View style={styles.resultsGrid}>
-                    <ResultDisplay {...mainResultDisplay} />
+                    {inputValues.purchasePrice > 0 && (
+                        <ResultDisplay 
+                            label="Listing Price"
+                            value={inputValues.purchasePrice}
+                            type="dollar"
+                            infoPress={() => handleInfoPress("Information about Purchase Price")}
+                            fullWidth={true}
+                            textColor={getListingPriceColor(
+                                inputValues.purchasePrice, 
+                                results.TargetPrice, 
+                                results.NetZeroPrice
+                            )}
+                            additionalText={getListingPriceText(
+                                inputValues.purchasePrice, 
+                                results.TargetPrice, 
+                                results.NetZeroPrice
+                            )}
+                        />
+                    )}
                     <View style={styles.doubleResultsRow}>
                         {doubleResultDisplays.map((item, index) => (
                             <DoubleResultDisplay 

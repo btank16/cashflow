@@ -1,4 +1,6 @@
-# cashflow
+# Cashflow App
+
+Property of Cashflow Software ltd.
 
 ## General Description
 

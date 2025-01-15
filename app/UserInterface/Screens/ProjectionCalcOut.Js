@@ -1,111 +1,214 @@
-import React from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text, Image } from "react-native";
+import React, { useState } from 'react';
+import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, Text, TouchableOpacity } from "react-native";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
-import NavBar from '../Components/NavBar.Js';
 import ResultDisplay from '../Components/ResultDisplay.Js';
-import { LinearGradient } from 'expo-linear-gradient';
+import DoubleResultDisplay from '../Components/DoubleResultDisplay.Js';
 import BackButton from '../Components/BackButton.Js';
-import CommonStyles from '../Colors/CommonStyles.Js';
-import CustomTitle from '../Components/CustomTitle.Js';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import PriceBar from '../Components/PriceBar.Js';
+import DarkTextLogo from '../../assets/icons/DarkTextLogo';
+import ExpensePieChart from '../Components/ExpensePieChart.Js';
+
+const getListingPriceColor = (purchasePrice, targetPrice, netZeroPrice) => {
+    if (purchasePrice < targetPrice) return colors.tertiaryOrange;
+    if (purchasePrice <= netZeroPrice) return colors.primaryGreen;
+    return colors.quaternaryRed;
+};
+
+const getListingPriceText = (purchasePrice, targetPrice, netZeroPrice) => {
+    if (purchasePrice < targetPrice) {
+        return "Property is either undervalued or other factors (ex. Property Distress) drive the Listing Price down";
+    }
+    if (purchasePrice <= netZeroPrice) {
+        return "Purchase at the Listing Price will Break Even or have Positive Cashflow";
+    }
+    return "Purchase at the Listing Price will have Negative Cashflow";
+};
 
 function ProjectionCalcOut(props) {
     const navigation = useNavigation();
     const route = useRoute();
     const { inputValues, ...results } = route.params;
-    const { monthCashflow } = inputValues;
-
-    const targetPriceNum = Number(parseFloat(results.TargetPrice).toFixed(2));
-    const netZeroPriceNum = Number(parseFloat(results.NetZeroPrice).toFixed(2));
-
-    const isTargetLower = targetPriceNum <= netZeroPriceNum;
-
-    const leftPrice = isTargetLower ? targetPriceNum : netZeroPriceNum;
-    const rightPrice = isTargetLower ? netZeroPriceNum : targetPriceNum;
+    const [showTargetPrice, setShowTargetPrice] = useState(true);
 
     const formatDollar = (value) => {
         const number = parseFloat(value);
-        return isNaN(number) ? '$0.00' : '$' + number.toLocaleString('en-US', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2
-        });
+        if (isNaN(number)) return '$0.00';
+        
+        const absNumber = Math.abs(number);
+        return `${number < 0 ? '-' : ''}$${absNumber.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        })}`;
     };
+
+    const handleInfoPress = (infoText) => {
+        console.log(infoText);
+    };
+
+    const doubleResultDisplays = [
+        {
+            topLabel: "Target Price",
+            topValue: formatDollar(results.TargetPrice),
+            bottomLabel: "Cash Down",
+            bottomValue: formatDollar(results.targetPriceCash),
+            topInfoPress: () => handleInfoPress("Information about Target Price"),
+            bottomInfoPress: () => handleInfoPress("Information about Cash Down")
+        },
+        {
+            topLabel: "Break Even Price",
+            topValue: formatDollar(results.NetZeroPrice),
+            bottomLabel: "Cash Down",
+            bottomValue: formatDollar(results.netZeroCash),
+            topInfoPress: () => handleInfoPress("Information about Break Even Price"),
+            bottomInfoPress: () => handleInfoPress("Information about Cash Down")
+        }
+    ];
+
+    const targetExpenseChartData = [
+        {
+            name: 'Mortgage Cost',
+            value: results.MaxCashflowMortgage,
+            color: colors.primaryGreen,
+        },
+        {
+            name: 'Property Taxes',
+            value: results.targetTax,
+            color: colors.primaryPurple,
+        },
+        {
+            name: 'Operating Expenses',
+            value: results.totalMonthlyExpenses,
+            color: colors.primaryOrange,
+        },
+        {
+            name: 'Capital Expenditure',
+            value: results.monthlyCapEx,
+            color: colors.brightGreen,
+        },
+    ];
+
+    const breakEvenExpenseChartData = [
+        {
+            name: 'Mortgage Cost',
+            value: results.MaxZeroMortgage,
+            color: colors.primaryGreen,
+        },
+        {
+            name: 'Property Taxes',
+            value: results.netZeroTax,
+            color: colors.primaryPurple,
+        },
+        {
+            name: 'Operating Expenses',
+            value: results.totalMonthlyExpenses,
+            color: colors.primaryOrange,
+        },
+        {
+            name: 'Capital Expenditure',
+            value: results.monthlyCapEx,
+            color: colors.brightGreen,
+        },
+    ];
 
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
                 <BackButton 
-                    inputValues={inputValues} 
-                    destinationScreen='ProjectionCalcIn'
+                    inputValues={inputValues}
+                    destinationScreen="ProjectionCalcIn"
                 />
-                <Image source={require('../../assets/CashflowText.png')} style={CommonStyles.logo} />
+                <TouchableOpacity 
+                    style={styles.logoWrapper}
+                    onPress={() => navigation.navigate('CalcHomeScreen')}
+                >
+                    <DarkTextLogo />
+                </TouchableOpacity>
             </View>
-            <View style={styles.contentContainer}>
-                <CustomTitle title="Cashflow Projection Output" />                           
-                <ResultDisplay label="Monthly Cashflow Target" value={`$${monthCashflow}`} />
-                <View style={styles.rowCont}>
-                    <View style={styles.priceBox}>
-                        <Text style={styles.priceLabel} numberOfLines={2} adjustsFontSizeToFit>
-                            {isTargetLower ? "Target Price:" : "Break Even Price:"}
-                        </Text>
-                        <LinearGradient
-                            colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0)']}
-                            style={styles.gradientContainer}
-                        >
-                            <View style={styles.priceValueContainer}>
-                                <Text style={styles.priceValue} adjustsFontSizeToFit>{formatDollar(leftPrice)}</Text>
-                            </View>
-                        </LinearGradient>
-                        <View style={styles.arrow} />
+            <ScrollView style={styles.contentContainer}>
+                <View style={styles.mainResultContainer}>
+                    <View style={styles.mainLabelContainer}>
+                        <Text style={styles.mainLabel}>Monthly Cashflow Target</Text>
+                        <TouchableOpacity onPress={() => handleInfoPress("Information about Monthly Cashflow")}>
+                            <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
+                        </TouchableOpacity>
                     </View>
-                    <View style={styles.priceBox}>
-                        <Text style={styles.priceLabel} numberOfLines={2} adjustsFontSizeToFit>
-                            {isTargetLower ? "Break Even Price:" : "Target Price:"}
-                        </Text>
-                        <LinearGradient
-                            colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0)']}
-                            style={styles.gradientContainer}
-                        >
-                            <View style={styles.priceValueContainer}>
-                                <Text style={styles.priceValue} adjustsFontSizeToFit>{formatDollar(rightPrice)}</Text>
-                            </View>
-                        </LinearGradient>
-                        <View style={styles.arrow} />
-                    </View>
+                    <Text style={styles.mainValue}>
+                        {formatDollar(inputValues.monthCashflow)}
+                    </Text>
                 </View>
-                <View style={styles.trendlineContainer}>
-                    <View style={styles.trendline}>
-                        <View style={[styles.dot, styles.leftDot]} />
-                        <View style={[styles.dot, styles.rightDot]} />
-                    </View>
-                </View>
-                <View style={styles.columnsContainer}>
-                    <View style={styles.column}>
-                        <Text style={styles.columnTitle}>Target Price Costs</Text>
-                        <ResultDisplay label="Cash Down" value={formatDollar(results.targetPriceCash)} />
-                        <ResultDisplay label="Monthly Expenses" value={formatDollar(results.targetExp)} />
-                    </View>
-                    <View style={styles.columnDivider} />
-                    <View style={styles.column}>
-                        <Text style={styles.columnTitle}>Break Even Costs</Text>
-                        <ResultDisplay label="Cash Down" value={formatDollar(results.netZeroCash)} />
-                        <ResultDisplay label="Monthly Expenses" value={formatDollar(results.netZeroExp)} />
-                    </View>
-                </View>
-            </View>
-            <View style={styles.menuContainer}>
-                <NavBar 
-                    activeTab="Analyze"
-                    onTabPress={(tabName) => {
-                        if (tabName === 'Feedback') {
-                            navigation.navigate('FeedbackScreen');
-                        }
-                        else if (tabName === 'Analyze') {
-                            navigation.navigate('CalcHomeScreen');
-                        }
-                    }}
+                
+                <PriceBar 
+                    listingPrice={inputValues.purchasePrice}
+                    targetPrice={results.TargetPrice}
+                    evenPrice={results.NetZeroPrice}
                 />
-            </View>
+                
+                <View style={styles.resultsGrid}>
+                    {inputValues.purchasePrice > 0 && (
+                        <ResultDisplay 
+                            label="Listing Price"
+                            value={inputValues.purchasePrice}
+                            type="dollar"
+                            infoPress={() => handleInfoPress("Information about Purchase Price")}
+                            fullWidth={true}
+                            textColor={getListingPriceColor(
+                                inputValues.purchasePrice, 
+                                results.TargetPrice, 
+                                results.NetZeroPrice
+                            )}
+                            additionalText={getListingPriceText(
+                                inputValues.purchasePrice, 
+                                results.TargetPrice, 
+                                results.NetZeroPrice
+                            )}
+                        />
+                    )}
+                    <View style={styles.doubleResultsRow}>
+                        {doubleResultDisplays.map((item, index) => (
+                            <DoubleResultDisplay 
+                                key={index}
+                                {...item}
+                            />
+                        ))}
+                    </View>
+                </View>
+                
+                <View style={styles.toggleContainer}>
+                    <TouchableOpacity 
+                        style={[
+                            styles.toggleButton, 
+                            showTargetPrice && styles.toggleButtonActive
+                        ]}
+                        onPress={() => setShowTargetPrice(true)}
+                    >
+                        <Text style={[
+                            styles.toggleText,
+                            showTargetPrice && styles.toggleTextActive
+                        ]}>Target Price{'\n'}Monthly Costs</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={[
+                            styles.toggleButton, 
+                            !showTargetPrice && styles.toggleButtonActive
+                        ]}
+                        onPress={() => setShowTargetPrice(false)}
+                    >
+                        <Text style={[
+                            styles.toggleText,
+                            !showTargetPrice && styles.toggleTextActive
+                        ]}>Break Even Price{'\n'}Monthly Costs</Text>
+                    </TouchableOpacity>
+                </View>
+                <ExpensePieChart
+                    chartData={showTargetPrice ? targetExpenseChartData : breakEvenExpenseChartData}
+                    chartTitle={showTargetPrice ? 
+                        "Total Monthly Expenses\n(Target Price)" : 
+                        "Total Monthly Expenses\n(Break Even Price)"
+                    }
+                />
+            </ScrollView>
         </SafeAreaView>
     );
 }
@@ -113,134 +216,80 @@ function ProjectionCalcOut(props) {
 const styles = StyleSheet.create({
     masterBackground: {
         flex: 1,
-        backgroundColor: colors.background,
+        backgroundColor: colors.iconWhite,
         paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     logoContainer: {
         flexDirection: 'row',
-        height: 56,
+        height: 32,
         alignItems: 'center',
-        backgroundColor: colors.background,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(0, 0, 0, 0.1)',
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 5,
+        backgroundColor: colors.iconWhite,
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+    },
+    logoWrapper: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        alignItems: 'center',
     },
     contentContainer: {
-        flex: 1,
-        backgroundColor: colors.background,
-        justifyContent: 'center',
+        backgroundColor: colors.iconWhite,
     },
-    menuContainer: {
-        height: 56,
-        backgroundColor: colors.background,
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(0, 0, 0, 0.1)',
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 5,
+    mainResultContainer: {
+        alignItems: 'center',
+        marginTop: 24,
+        marginBottom: 8,
     },
-    trendlineContainer: {
+    mainLabelContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingTop: 6,
-        marginBottom: 20,
+        gap: 8,
     },
-    priceBox: {
-        width: 140,
-        alignItems: 'center',
-    },
-    priceLabel: {
+    mainLabel: {
         fontSize: 16,
-        color: colors.basicText,
-        marginBottom: 5,
+        color: colors.primaryGrey,
+    },
+    mainValue: {
+        fontSize: 40,
         fontWeight: 'bold',
+        color: colors.primaryBlack,
     },
-    gradientContainer: {
-        borderRadius: 10,
-        padding: 2,
+    resultsGrid: {
+        padding: 16,
+        gap: 12,
     },
-    priceValueContainer: {
+    doubleResultsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    toggleContainer: {
+        flexDirection: 'row',
+        marginHorizontal: 16,
+        borderRadius: 12,
+        backgroundColor: colors.secondaryGrey,
+        padding: 4,
+        borderWidth: 1,
+        borderColor: colors.tertiaryGrey,
+    },
+    toggleButton: {
+        flex: 1,
+        paddingVertical: 12,
         borderRadius: 8,
-        overflow: 'hidden',
-        backgroundColor: colors.fieldColor,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 6,
-        elevation: 5,
         alignItems: 'center',
         justifyContent: 'center',
-        height: 30,
-        width: '100%',
     },
-    priceValue: {
-        fontSize: 16,
-        color: colors.basicText,
+    toggleButtonActive: {
+        backgroundColor: colors.primaryGreen,
     },
-    arrow: {
-        width: 0,
-        height: 0,
-        backgroundColor: 'transparent',
-        borderStyle: 'solid',
-        borderLeftWidth: 10,
-        borderRightWidth: 10,
-        borderTopWidth: 10,
-        borderLeftColor: 'transparent',
-        borderRightColor: 'transparent',
-        borderTopColor: 'rgba(0,0,0,0.1)',
+    toggleText: {
+        fontSize: 14,
+        color: colors.primaryBlack,
+        textAlign: 'center',
     },
-    trendline: {
-        flex: 1,
-        height: 4,
-        borderRadius: 2,
-        marginHorizontal: 70,
-        backgroundColor: colors.accent,
-    },
-    dot: {
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-        backgroundColor: colors.basicText,
-        position: 'absolute',
-        top: -4,
-    },
-    leftDot: {
-        left: -6,
-    },
-    rightDot: {
-        right: -6,
-    },
-    rowCont: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-end',
-    },
-    columnsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 20,
-    },
-    column: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    columnTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: colors.basicText,
-        marginBottom: 10,
-    },
-    columnDivider: {
-        width: 1,
-        backgroundColor: colors.accent,
-        marginHorizontal: 10,
+    toggleTextActive: {
+        color: colors.iconWhite,
+        fontWeight: '500',
     },
 });
 

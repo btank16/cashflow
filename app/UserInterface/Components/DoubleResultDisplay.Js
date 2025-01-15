@@ -1,0 +1,93 @@
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import colors from '../Colors/colors.Js';
+
+const DoubleResultDisplay = ({ 
+  topLabel, 
+  topValue, 
+  bottomLabel, 
+  bottomValue,
+  type,
+  topInfoPress,
+  bottomInfoPress,
+  fullWidth 
+}) => {
+  return (
+    <View style={[styles.container, fullWidth && styles.fullWidth]}>
+      <View style={styles.resultSection}>
+        <View style={styles.labelContainer}>
+          <Text style={styles.label} numberOfLines={2}>{topLabel}</Text>
+          <View style={styles.infoButtonContainer}>
+            <TouchableOpacity onPress={topInfoPress}>
+              <Ionicons name="information-circle-outline" size={20} color={colors.sixthGrey} />
+            </TouchableOpacity>
+          </View>
+        </View>
+        <Text style={[styles.value]} numberOfLines={1}>{topValue}</Text>
+      </View>
+
+      <View style={styles.divider} />
+
+      <View style={styles.resultSection}>
+        <View style={styles.labelContainer}>
+          <Text style={styles.label} numberOfLines={2}>{bottomLabel}</Text>
+          <View style={styles.infoButtonContainer}>
+            <TouchableOpacity onPress={bottomInfoPress}>
+              <Ionicons name="information-circle-outline" size={20} color={colors.sixthGrey} />
+            </TouchableOpacity>
+          </View>
+        </View>
+        <Text style={[styles.value]} numberOfLines={1}>{bottomValue}</Text>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: colors.secondaryGrey,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.tertiaryGrey,
+    width: '48%',
+    minHeight: 180, 
+  },
+  fullWidth: {
+    width: '100%',
+  },
+  resultSection: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  labelContainer: {
+    flexDirection: 'row',
+    marginBottom: 8,
+    minHeight: 40,
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  label: {
+    fontSize: 14,
+    color: colors.primaryBlack,
+    flex: 1,
+    paddingRight: 28,
+  },
+  infoButtonContainer: {
+    marginLeft: 4,
+  },
+  value: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: colors.primaryBlack,
+    marginBottom: 4,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.quaternaryGrey,
+    marginVertical: 12,
+  },
+});
+
+export default DoubleResultDisplay;

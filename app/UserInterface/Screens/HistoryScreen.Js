@@ -1,108 +1,154 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import { Platform, View, SafeAreaView, FlatList, StyleSheet, TouchableOpacity, Text, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { ChevronLeftIcon } from 'react-native-heroicons/outline';
 import { useDatabase } from '../../../database/cashflowDatabase.Js';
 import colors from '../Colors/colors.Js';
-import CommonStyles from '../Colors/CommonStyles.Js';
-import CustomTitle from '../Components/CustomTitle.Js';
+import HistoryItem from '../Components/HistoryItem.Js';
+import FeedbackIcon from '../../assets/icons/FeedbackIcon.jsx';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 function HistoryScreen() {
   const [calculations, setCalculations] = useState([]);
-  const { getAllCalculations } = useDatabase();
+  const [filter, setFilter] = useState('All');
+  const { getAllCalculations, getCalculationsByType, deleteCalculation } = useDatabase();
   const navigation = useNavigation();
+
+  const calculatorTypes = [
+    'All',
+    'rental',
+    'flip',
+    'brrr',
+    'projection',
+    'wholesale',
+    // 'commercial'
+  ];
 
   useEffect(() => {
     loadCalculations();
-  }, []);
+  }, [filter]);
 
   const loadCalculations = async () => {
-    const allCalculations = await getAllCalculations();
-    setCalculations(allCalculations);
+    if (filter === 'All') {
+      const allCalculations = await getAllCalculations();
+      setCalculations(allCalculations);
+    } else {
+      const filteredCalculations = await getCalculationsByType(filter);
+      setCalculations(filteredCalculations);
+    }
   };
 
-  const renderItem = ({ item }) => {
-    const calculationData = JSON.parse(item.input_values);
-    const resultsData = JSON.parse(item.results);
-
-    const getNavigationScreen = (calculatorType) => {
-      switch (calculatorType.toLowerCase()) {
-        case 'rental':
-          return 'RentalCalcOut';
-        case 'flip':
-          return 'FlipCalcOut';
-        case 'brrr':
-          return 'BRRCalcOut';
-        case 'projection':
-          return 'ProjectionCalcOut';
-        case 'wholesale':
-          return 'WholesaleCalcOut';
-        default:
-          return `${calculatorType}CalcOut`; // Fallback to original behavior
-      }
-    };
-
-    return (
-      <TouchableOpacity 
-        style={styles.item}
-        onPress={() => navigation.navigate(getNavigationScreen(item.calculator_type), {
-          inputValues: {
-            ...calculationData,
-            id: item.unique_id // Include the id when navigating to the input screen
-          },
-          ...resultsData
-        })}
-      >
-        <Text style={styles.title}>{item.calculator_type} Calculation</Text>
-        <Text style={styles.date}>{new Date(item.date).toLocaleString()}</Text>
-        <Text style={styles.details}>
-          Purchase Price: ${calculationData.purchasePrice}
-        </Text>
-      </TouchableOpacity>
-    );
+  const handleDeleteCalculation = async (id) => {
+    try {
+      await deleteCalculation(id);
+      loadCalculations(); // Reload the list after deletion
+    } catch (error) {
+      console.error('Error deleting calculation:', error);
+      // Optionally, you can show an error message to the user here
+    }
   };
+
+  const renderItem = ({ item }) => (
+    <HistoryItem
+      item={item}
+      onDelete={() => handleDeleteCalculation(item.id)}
+      navigation={navigation}
+    />
+  );
+
+  const FilterButton = ({ title }) => (
+    <TouchableOpacity
+      style={[styles.filterButton, filter === title && styles.activeFilterButton]}
+      onPress={() => setFilter(title)}
+    >
+      <Text style={[styles.filterButtonText, filter === title && styles.activeFilterButtonText]}>
+        {title === 'All' ? 'All' : 
+         title === 'rental' ? 'Rental' :
+         title === 'flip' ? 'Fix & Flip' :
+         title === 'brrr' ? 'BRRRR' :
+         title === 'projection' ? 'Price Target' :
+         title === 'wholesale' ? 'Wholesale' :
+         title === 'commercial' ? 'Commercial' : title}
+      </Text>
+    </TouchableOpacity>
+  );
 
   return (
-    <View style={CommonStyles.container}>
-      <CustomTitle title="Calculation History" />
-      <FlatList
-        data={calculations}
-        renderItem={renderItem}
-        keyExtractor={item => item.id.toString()}
-      />
-    </View>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaView style={styles.masterBackground}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <ChevronLeftIcon color={colors.iconWhite} size={24} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Search history</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('FeedbackScreen')}>
+            <FeedbackIcon color={colors.iconWhite} size={24} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.filterContainer}>
+          <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+            {calculatorTypes.map((type) => (
+              <FilterButton key={type} title={type} />
+            ))}
+          </ScrollView>
+        </View>
+        <FlatList
+          data={calculations}
+          renderItem={renderItem}
+          keyExtractor={item => item.id.toString()}
+          contentContainerStyle={styles.listContainer}
+        />
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  item: {
-    backgroundColor: colors.white,
-    padding: 20,
-    marginVertical: 8,
-    marginHorizontal: 16,
-    borderRadius: 10,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.23,
-    shadowRadius: 2.62,
-    elevation: 4,
+  masterBackground: {
+    flex: 1,
+    backgroundColor: colors.darkGreenPrimary,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
-  title: {
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    backgroundColor: colors.darkGreenPrimary,
+  },
+  headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: colors.primary,
+    color: colors.iconWhite,
   },
-  date: {
+  filterContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 16,
+    backgroundColor: colors.darkGreenPrimary,
+  },
+  filterButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    backgroundColor: colors.darkGreenSecondary,
+    borderWidth: 1,
+    borderColor: colors.darkGreenTertiary,
+    marginRight: 4,
+  },
+  activeFilterButton: {
+    backgroundColor: colors.primaryGreen,
+  },
+  filterButtonText: {
+    color: colors.iconWhite,
     fontSize: 14,
-    color: colors.secondary,
-    marginTop: 4,
   },
-  details: {
-    fontSize: 16,
-    color: colors.text,
-    marginTop: 8,
+  activeFilterButtonText: {
+    fontWeight: 'bold',
+  },
+  listContainer: {
+    paddingHorizontal: 16,
   },
 });
 

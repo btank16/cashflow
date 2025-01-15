@@ -85,3 +85,8 @@ logs
 .Trashes
 ehthumbs.db
 Thumbs.db
+# Expo
+.expo
+dist/
+web-build/
+node_modules

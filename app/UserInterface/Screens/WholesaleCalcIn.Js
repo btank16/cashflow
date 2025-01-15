@@ -1,16 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Image } from "react-native";
+import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Text, Animated } from "react-native";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
-import NavBar from '../Components/NavBar.Js';
 import NumericInput from '../Components/NumericInputBox.Js';
-import ExpenseArray from '../Components/ExpenseArray.Js';
 import CalcButton from '../Components/CalcButton.Js';
 import HomeButton from '../Components/HomeButton.Js';
-import CommonStyles from '../Colors/CommonStyles.Js';
-import CustomTitle from '../Components/CustomTitle.Js';
 import { useDatabase } from '../../../database/cashflowDatabase.Js';
 import { wholesalefunction } from '../../Calculations/WholesalingFunction.Js';
+import OperatingExpenses from '../Components/OperatingExpenses.Js';
 
 function WholesaleCalcIn(props) {
     const navigation = useNavigation();
@@ -18,14 +15,18 @@ function WholesaleCalcIn(props) {
     const [purchasePrice, setPurchasePrice] = useState('');
     const [rehabCost, setRehabCost] = useState('');
     const [afterRev, setAfterRev] = useState('');
-    const [expenseArray, setExpenseArray] = useState(['', '', '']);
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
     const [resultScreen, setResultScreen] = useState('WholesaleCalcOut');
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
     const { saveCalculation } = useDatabase();
     const [calculationId, setCalculationId] = useState(null);
-
+    const [showHeaderTitle, setShowHeaderTitle] = useState(false);
+    const scrollY = useRef(new Animated.Value(0)).current;
+    const [operatingExpensesActive, setOperatingExpensesActive] = useState(true);
+    const [operatingExpenses, setOperatingExpenses] = useState([]);
+    const [saveNewExpenses, setSaveNewExpenses] = useState(false);
+    const [monthsHeld, setMonthsHeld] = useState('');
     const uid = () => {
         return Date.now().toString(36) + Math.random().toString(36).substr(2);
     }
@@ -59,14 +60,21 @@ function WholesaleCalcIn(props) {
                 purchasePrice,
                 afterRev,
                 rehabCost,
-                expenseArray,
+                monthsHeld,
+                operatingExpenseArray
             } = route.params.inputValues;
 
             setPurchasePrice(purchasePrice?.toString() || '');
             setAfterRev(afterRev?.toString() || '');
             setRehabCost(rehabCost?.toString() || '');
-            setExpenseArray(expenseArray || ['', '', '']);
+            setMonthsHeld(monthsHeld?.toString() || '');
             setCalculationId(id);
+
+            if (operatingExpenseArray) {
+                setOperatingExpensesActive(operatingExpenseArray.isActive);
+                setOperatingExpenses(operatingExpenseArray.expenses);
+                setSaveNewExpenses(operatingExpenseArray.saveNewExpenses);
+            }
         }
     }, [route.params?.inputValues]);
 
@@ -78,18 +86,48 @@ function WholesaleCalcIn(props) {
         );
     };
 
-    const handleExpenseDataChange = (costValues) => {
-        setExpenseArray(costValues);
+    const handleInfoPress = (infoText) => {
+        // Implement the logic to show the overlay with infoText
+        // This could be setting a state variable to show a modal, for example
+        console.log(infoText);
     };
 
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
+        if (saveNewExpenses && operatingExpenses.length > 0) {
+            try {
+                for (const expense of operatingExpenses) {
+                    if (expense.category && expense.cost) {
+                        const formattedCategory = expense.category
+                            .toLowerCase()
+                            .split(' ')
+                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                            .join(' ');
+
+                        await saveExpense(
+                            formattedCategory,
+                            expense.cost,
+                            expense.frequency,
+                            ['wholesale']
+                        );
+                    }
+                }
+            } catch (error) {
+                console.error('Error saving operating expenses:', error);
+            }
+        }
+
         const inputValues = {
             purchasePrice: toNumber(purchasePrice),
-            expenseArray: expenseArray.map(toNumber),
             rehabCost: toNumber(rehabCost),
-            afterRev: toNumber(afterRev)
+            afterRev: toNumber(afterRev),
+            monthsHeld: toNumber(monthsHeld),
+            operatingExpenseArray: {
+                isActive: operatingExpensesActive,
+                expenses: operatingExpenses,
+                saveNewExpenses: saveNewExpenses
+            }
         };
 
         // Calculate a new uid if calculationId is null
@@ -100,7 +138,8 @@ function WholesaleCalcIn(props) {
             inputValues.purchasePrice,
             inputValues.rehabCost,
             inputValues.afterRev,
-            inputValues.expenseArray
+            inputValues.monthsHeld,
+            inputValues.operatingExpenseArray
         );
 
         const results = {
@@ -126,79 +165,105 @@ function WholesaleCalcIn(props) {
         });
     };
 
+    const numericInputsArray = [
+        {
+            label: "Contract Price",
+            value: purchasePrice,
+            onChangeText: setPurchasePrice,
+            placeholder: "ex. 225,000",
+            isRequired: true,
+            type: "$",
+            infoPress: () => handleInfoPress("Information about Purchase Price")
+        },
+        {
+            label: "Estimated Rehab Cost",
+            value: rehabCost,
+            onChangeText: setRehabCost,
+            placeholder: "ex. $10,000",
+            type: "$"
+        },
+        {
+            label: "After Repair Value",
+            value: afterRev,
+            onChangeText: setAfterRev,
+            placeholder: "ex. $250,000",
+            isRequired: true,
+            type: "$"
+        },
+        {
+            label: "Months Held",
+            value: monthsHeld,
+            onChangeText: setMonthsHeld,
+            placeholder: "ex. 2 months",
+            type: "Months"
+        }
+    ];
+
+    const handleScroll = Animated.event(
+        [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+        { useNativeDriver: false }
+    );
+
+    useEffect(() => {
+        const titleHeight = 45;
+        const listener = scrollY.addListener(({ value }) => {
+            setShowHeaderTitle(value > titleHeight);
+        });
+
+        return () => {
+            scrollY.removeListener(listener);
+        };
+    }, []);
+
+    const handleOperatingExpensesChange = (expenses) => {
+        setOperatingExpenses(expenses);
+    };
+
+    const handleSaveNewExpensesChange = (value) => {
+        setSaveNewExpenses(value);
+    };
+
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
                 <HomeButton/>
-                <Image source={require('../../assets/CashflowText.png')} style={CommonStyles.logo} />
+                {showHeaderTitle && (
+                    <Text style={styles.headerTitle}>Wholesaling Calculator</Text>
+                )}
             </View>
             <KeyboardAvoidingView 
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={styles.keyContainer}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={styles.keyContainer}
             >
                 <ScrollView
-                ref={scrollViewRef}
-                contentContainerStyle={styles.contentContainer}
-                keyboardShouldPersistTaps="handled"
+                    ref={scrollViewRef}
+                    contentContainerStyle={styles.contentContainer}
+                    keyboardShouldPersistTaps="handled"
+                    onScroll={handleScroll}
+                    scrollEventThrottle={16}
+                    nestedScrollEnabled={true}
                 >                
-                    <CustomTitle title="Wholesaling Calculator" />                           
-                    <View style={styles.rowCont}>
-                        <View style={{ flex: 2 }}>
-                            <NumericInput
-                                label="Contract Price ($):"
-                                value={purchasePrice}
-                                onChangeText={setPurchasePrice}
-                                placeholder="ex. $150,000"
-                                isRequired={true}
-                            />
-                        </View>
-                    </View>  
-                    <View style={styles.rowCont}>
-                        <View style={{ flex: 1 }}>
-                            <NumericInput
-                                label="Estimated Rehab Cost ($):"
-                                value={rehabCost}
-                                onChangeText={setRehabCost}
-                                placeholder="ex. $5,000"
-                                isRequired={true}
-                            />
-                        </View>
-                    </View> 
-                    <View style={styles.rowCont}>
-                        <View style={{ flex: 2 }}>
-                            <NumericInput
-                                label="After Repair Value ($):"
-                                value={afterRev}
-                                onChangeText={setAfterRev}
-                                placeholder="ex. $250,000"
-                                isRequired={true}
-                            />
-                        </View>
-                    </View>
-                    <ExpenseArray onDataChange={handleExpenseDataChange}/>
-                    <View style={styles.buttonSpaceholder} />
+                    <Text style={styles.title}>Wholesaling Calculator</Text>
+                    <NumericInput {...numericInputsArray[0]} />
+                    <NumericInput {...numericInputsArray[1]} />
+                    <NumericInput {...numericInputsArray[2]} />
+                    <NumericInput {...numericInputsArray[3]} />
+                    <OperatingExpenses
+                        calculatorType="wholesale"
+                        onActiveChange={setOperatingExpensesActive}
+                        onExpensesChange={handleOperatingExpensesChange}
+                        onSaveNewExpensesChange={handleSaveNewExpensesChange}
+                        initialExpenses={operatingExpenses}
+                        sectionTitle="Additional Expenses"
+                        viewAllButtonText="View all Saved Expenses"
+                    />
                 </ScrollView>
             </KeyboardAvoidingView>
-            {Platform.OS === 'ios' || !isKeyboardVisible ? (
-                <View style={styles.buttonContainer}>
-                    <CalcButton
-                        title="Calculate"
-                        onPress={onCalculatePress}
-                        disabled={!isFormValid}
-                    />
-                </View>
-            ) : null}
             <View style={styles.menuContainer}>
-                <NavBar 
-                    activeTab="Analyze"
-                    onTabPress={(tabName) => {
-                        if (tabName === 'Feedback') {
-                            navigation.navigate('FeedbackScreen');
-                        }
-                        else if (tabName === 'Analyze') {
-                            navigation.navigate('CalcHomeScreen');
-                        }
-                    }}
+                <CalcButton
+                    title="Calculate"
+                    onPress={onCalculatePress}
+                    disabled={!isFormValid}
                 />
             </View>
         </SafeAreaView>
@@ -208,60 +273,47 @@ function WholesaleCalcIn(props) {
 const styles = StyleSheet.create({
     masterBackground: {
         flex: 1,
-        backgroundColor: colors.background,
+        backgroundColor: colors.iconWhite,
         paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     logoContainer: {
         flexDirection: 'row',
-        height: 56,
+        height: 32,
         alignItems: 'center',
-        backgroundColor: colors.background,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(0, 0, 0, 0.1)',
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 5,
+        backgroundColor: colors.iconWhite,
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
     },
     keyContainer: {
         flex: 1,
     },
     contentContainer: {
-        backgroundColor: colors.background,
+        backgroundColor: colors.iconWhite,
+        width: '100%',
     },
     menuContainer: {
         height: 56,
-        backgroundColor: colors.background,
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(0, 0, 0, 0.1)',
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: -2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 5,
+        backgroundColor: colors.iconWhite,
+        paddingHorizontal: 16,
+        paddingTop: 12,
+        paddingBottom: 8,
     },
-    rowCont: {
-        flexDirection: 'row',
-        justifyContent: 'space-evenly',
-        alignItems: 'flex-end',
-        width: '100%',
-    },
-    buttonSpaceholder: {
-        height: 45, 
-    },
-    buttonContainer: {
+    title: {
+        fontSize: 32,
+        fontWeight: 500,
+        color: colors.primaryBlack,
+        marginBottom: 8,
+        marginTop: 16,
+        marginLeft: 16,
+      },
+      headerTitle: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: colors.primaryBlack,
         position: 'absolute',
-        bottom: Platform.OS === 'ios' ? 96 : 61,
         left: 0,
         right: 0,
-        paddingHorizontal: 50,
+        textAlign: 'center',
     },
 });
 

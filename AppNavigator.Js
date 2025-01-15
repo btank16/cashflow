@@ -13,6 +13,12 @@ import RentalCalcOut from './app/UserInterface/Screens/RentalCalcOut.Js'
 import WholesaleCalcIn from './app/UserInterface/Screens/WholesaleCalcIn.Js';
 import WholesaleCalcOut from './app/UserInterface/Screens/WholesaleCalcOut.Js';
 import HistoryScreen from './app/UserInterface/Screens/HistoryScreen.Js';
+import CommercialCalcIn from './app/UserInterface/Screens/CommercialCalcIn.Js';
+import CommercialCalcOut from './app/UserInterface/Screens/CommercialCalcOut.Js';
+import UserScreen from './app/UserInterface/Screens/UserScreen.Js';
+import ExpenseScreen from './app/UserInterface/Screens/ExpenseScreen.Js';
+import FirstAddExpense from './app/UserInterface/Screens/FirstAddExpense.Js';
+import SecondAddExpense from './app/UserInterface/Screens/SecondAddExpense.Js';
 
 const Stack = createStackNavigator();
 
@@ -33,9 +39,15 @@ function AppNavigator() {
       <Stack.Screen name="ProjectionCalcOut" component={ProjectionCalcOut} />
       <Stack.Screen name="RentalCalcIn" component={RentalCalcIn} />
       <Stack.Screen name="RentalCalcOut" component={RentalCalcOut} />
+      <Stack.Screen name="CommercialCalcIn" component={CommercialCalcIn} />
+      <Stack.Screen name="CommercialCalcOut" component={CommercialCalcOut} />
       <Stack.Screen name="WholesaleCalcIn" component={WholesaleCalcIn} />
       <Stack.Screen name="WholesaleCalcOut" component={WholesaleCalcOut} />
       <Stack.Screen name="HistoryScreen" component={HistoryScreen} />
+      <Stack.Screen name="UserScreen" component={UserScreen} />
+      <Stack.Screen name="ExpenseScreen" component={ExpenseScreen} />
+      <Stack.Screen name="FirstAddExpense" component={FirstAddExpense} />
+      <Stack.Screen name="SecondAddExpense" component={SecondAddExpense} />
     </Stack.Navigator>
   );
 }

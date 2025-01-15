@@ -2,11 +2,29 @@ export const wholesalefunction = (
     contractPrice,
     rehabCost,
     afterRepairValue,
-    expenseArray
+    monthsHeld,
+    OperatingExpense
 ) => {
     // Calculate total expenses for the wholesaler
-    const totalExpenses = expenseArray.reduce((sum, expense) => sum + expense, 0);
-  
+    let totalMonthlyExpenses = 0;
+    let totalFixedExpenses = 0;
+    
+    if (OperatingExpense.isActive && OperatingExpense.expenses) {
+      OperatingExpense.expenses.forEach(expense => {
+        const cost = Number(expense.cost);
+        
+        if (expense.frequency === 'Annually') {
+          totalMonthlyExpenses += cost / 12;
+        } else if (expense.frequency === 'Monthly') {
+          totalMonthlyExpenses += cost;
+        } else if (expense.frequency === 'Non-recurring') {
+          totalFixedExpenses += cost;
+        }
+      });
+    }
+    
+    const totalExpenses = (totalMonthlyExpenses * monthsHeld) + totalFixedExpenses;
+
     // Calculate Maximum Allowable Offer (MAO)
     const maximumAllowableOffer = (afterRepairValue * 0.7) - rehabCost;
   
@@ -19,12 +37,12 @@ export const wholesalefunction = (
     const salePrice15Percent = contractPrice + fee15Percent;
   
     return [
-      maximumAllowableOffer,
-      totalExpenses,
-      fee5Percent,
-      fee15Percent,
-      salePrice5Percent,
-      salePrice15Percent
+      maximumAllowableOffer.toFixed(2),
+      totalExpenses.toFixed(2),
+      fee5Percent.toFixed(2),
+      fee15Percent.toFixed(2),
+      salePrice5Percent.toFixed(2),
+      salePrice15Percent.toFixed(2)
     ];
   }
   

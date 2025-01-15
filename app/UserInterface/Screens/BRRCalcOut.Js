@@ -1,13 +1,13 @@
-import React from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, Text, ScrollView, Image } from "react-native";
+import React, { useState } from 'react';
+import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, Text, TouchableOpacity } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import colors from '../Colors/colors.Js';
-import NavBar from '../Components/NavBar.Js';
 import ResultDisplay from '../Components/ResultDisplay.Js';
 import BackButton from '../Components/BackButton.Js';
-import CommonStyles from '../Colors/CommonStyles.Js';
-import CustomTitle from '../Components/CustomTitle.Js';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import ExpensePieChart from '../Components/ExpensePieChart.Js';
+import DarkTextLogo from '../../assets/icons/DarkTextLogo.jsx';
 
 
 function BRRCalcOut(props) {
@@ -18,52 +18,183 @@ function BRRCalcOut(props) {
 
     const formatDollar = (value) => {
         const number = parseFloat(value);
-        return isNaN(number) ? '$0.00' : '$' + number.toLocaleString('en-US', {
+        if (isNaN(number)) return '$0.00';
+        
+        const absNumber = Math.abs(number);
+        return `${number < 0 ? '-' : ''}$${absNumber.toLocaleString('en-US', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
-        });
-      };
-    
-      const formatPercent = (value) => {
-        const number = parseFloat(value);
-        return isNaN(number) ? '0.00%' : number.toFixed(2) + '%';
-      };
+        })}`;
+    };
+
+      const resultDisplayArray = [
+        {
+            label: "Monthly Cashflow (post-refinance)",
+            value: results.BRRCashflow,
+            type: "dollar",
+            infoPress: () => handleInfoPress("Information about Monthly Cashflow")
+        },
+        {
+            label: "Cash Down",
+            value: results.cashDown,
+            type: "dollar",
+            textColor: colors.primaryBlack,
+            infoPress: () => handleInfoPress("Information about Cash Down")
+        },
+        {
+            label: "Cash on Cash Return",
+            value: results.CashOnCash,
+            type: "percentage",
+            infoPress: () => handleInfoPress("Information about Cash on Cash Return")
+        },
+        {
+            label: "ROI from Equity",
+            value: results.EquityReturnPerc,
+            type: "percentage",
+            infoPress: () => handleInfoPress("Information about Maximum Equity Usage")
+        }
+    ];
+
+    const handleInfoPress = (infoText) => {
+        console.log(infoText);
+    };
+
+    const expenseChartData = [
+        {
+            name: 'Mortgage Cost',
+            value: results.mortgageCost,
+            color: colors.primaryGreen,
+        },
+        {
+            name: 'Property Taxes',
+            value: results.monthlyPropTax,
+            color: colors.primaryPurple,
+        },
+        {
+            name: 'Operating Expenses',
+            value: results.monthlyOpEx,
+            color: colors.primaryOrange,
+        },
+        {
+            name: 'Capital Expenditure',
+            value: results.monthlyCapEx,
+            color: colors.brightGreen,
+        },
+    ];
+
+    const BRRexpenseChartData = [
+        {
+            name: 'Mortgage Cost',
+            value: results.BRRMortgageCost,
+            color: colors.primaryGreen,
+        },
+        {
+            name: 'Property Taxes',
+            value: results.BRRPropTax,
+            color: colors.primaryPurple,
+        },
+        {
+            name: 'Operating Expenses',
+            value: results.monthlyOpEx,
+            color: colors.primaryOrange,
+        },
+        {
+            name: 'Capital Expenditure',
+            value: results.BRRCapEx,
+            color: colors.brightGreen,
+        },
+    ];
+
+    const fullWidthDisplays = [
+        {
+            label: "Maximum Equity Usage",
+            value: results.MaxEquity,
+            type: "dollar",
+            additionalText: "Assumes an 80% Loan-to-Value refinance",
+            infoPress: () => handleInfoPress("Information about Maximum Equity Usage"),
+            fullWidth: true
+        },
+    ];
+
+    const [showRefinanced, setShowRefinanced] = useState(false);
 
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
                 <BackButton 
-                    inputValues={inputValues} 
-                    destinationScreen='BRRCalcIn'
+                    inputValues={inputValues}
+                    destinationScreen="BRRCalcIn"
                 />
-                <Image source={require('../../assets/CashflowText.png')} style={CommonStyles.logo} />
+                <TouchableOpacity 
+                    style={styles.logoWrapper}
+                    onPress={() => navigation.navigate('CalcHomeScreen')}
+                >
+                    <DarkTextLogo />
+                </TouchableOpacity>
             </View>
             <ScrollView style={styles.contentContainer}>
-            <CustomTitle title="BRRR Output" />            
-            <ResultDisplay label="Cash Down" value={formatDollar(results.cashDown)} />
-                <ResultDisplay label="Mortgage Cost" value={formatDollar(results.mortgageCost)} />
-                <ResultDisplay label="Total Monthly Costs" value={formatDollar(results.monthlyCost)} />
-                <ResultDisplay label="Refinanced Mortgage Cost" value={formatDollar(results.BRRMortgageCost)} />
-                <ResultDisplay label="Refinanced Total Monthly Costs" value={formatDollar(results.BRRMonthlyCost)} />
-                <ResultDisplay label="Monthly Cashflow (post-Refinance)" value={formatDollar(results.BRRCashflow)} />
-                <ResultDisplay label="Annual Cashflow (post-Refinance)" value={formatDollar(results.BRRAnnualCashflow)} />
-                <ResultDisplay label="Maximum Equity Usage" value={formatDollar(results.MaxEquity)} />
-                <ResultDisplay label="Net Equity Return" value={formatDollar(results.EquityReturn)} />
-                <ResultDisplay label="Equity ROI" value={formatPercent(results.EquityReturnPerc)} />
-            </ScrollView>
-            <View style={styles.menuContainer}>
-                <NavBar 
-                    activeTab="Analyze"
-                    onTabPress={(tabName) => {
-                        if (tabName === 'Feedback') {
-                            navigation.navigate('FeedbackScreen');
-                        }
-                        else if (tabName === 'Analyze') {
-                            navigation.navigate('CalcHomeScreen');
-                        }
-                    }}
+                <View style={styles.mainResultContainer}>
+                    <View style={styles.mainLabelContainer}>
+                        <Text style={styles.mainLabel}>Annual Cashflow (post-refinance)</Text>
+                        <TouchableOpacity onPress={() => handleInfoPress("Information about Annual Cashflow")}>
+                            <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
+                        </TouchableOpacity>
+                    </View>
+                    <Text style={[
+                        styles.mainValue,
+                        { color: Number(results.BRRAnnualCashflow) >= 0 ? colors.primaryGreen : colors.quaternaryRed }
+                    ]}>
+                        {formatDollar(results.BRRAnnualCashflow)}
+                    </Text>
+                </View>
+                <View style={styles.resultsGrid}>
+                    {resultDisplayArray.map((item, index) => (
+                        <ResultDisplay 
+                            key={index}
+                            {...item}
+                        />
+                    ))}
+                    {fullWidthDisplays.map((item, index) => (
+                        <ResultDisplay 
+                            key={`full-${index}`}
+                            {...item}
+                        />
+                    ))}
+                </View>
+                <View style={styles.toggleContainer}>
+                    <TouchableOpacity 
+                        style={[
+                            styles.toggleButton, 
+                            !showRefinanced && styles.toggleButtonActive
+                        ]}
+                        onPress={() => setShowRefinanced(false)}
+                    >
+                        <Text style={[
+                            styles.toggleText,
+                            !showRefinanced && styles.toggleTextActive
+                        ]}>Initial Monthly Costs</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={[
+                            styles.toggleButton, 
+                            showRefinanced && styles.toggleButtonActive
+                        ]}
+                        onPress={() => setShowRefinanced(true)}
+                    >
+                        <Text style={[
+                            styles.toggleText,
+                            showRefinanced && styles.toggleTextActive
+                        ]}>Post-Refinance Monthly Costs</Text>
+                    </TouchableOpacity>
+                </View>
+                <ExpensePieChart
+                    chartData={showRefinanced ? BRRexpenseChartData : expenseChartData}
+                    chartTitle={showRefinanced ? 
+                        "Total Monthly Expenses\n(Post-Refinance)" : 
+                        "Total Monthly Expenses\n(Initial)"
+                    }
                 />
-            </View>
+            </ScrollView>
         </SafeAreaView>
     );
 }
@@ -71,43 +202,90 @@ function BRRCalcOut(props) {
 const styles = StyleSheet.create({
     masterBackground: {
         flex: 1,
-        backgroundColor: colors.background,
+        backgroundColor: colors.iconWhite,
         paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     logoContainer: {
         flexDirection: 'row',
-        height: 56,
+        height: 32,
         alignItems: 'center',
-        backgroundColor: colors.background,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(0, 0, 0, 0.1)', // Faded black line
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 5, // for Android shadow
+        backgroundColor: colors.iconWhite,
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+    },
+    logoWrapper: {
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        alignItems: 'center',
     },
     contentContainer: {
-        flex: 8,
-        backgroundColor: colors.background,
+        backgroundColor: colors.iconWhite,
     },
-    menuContainer: {
-        height: 56,
-        backgroundColor: colors.background,
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(0, 0, 0, 0.1)', // Faded black line
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: -2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 5, // for Android shadow
-    }
+    headerTitle: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: colors.primaryBlack,
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        textAlign: 'center',
+    },
+    mainResultContainer: {
+        alignItems: 'center',
+        marginTop: 24,
+        marginBottom: 8,
+    },
+    mainLabelContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    mainLabel: {
+        fontSize: 16,
+        color: colors.primaryGrey,
+    },
+    mainValue: {
+        fontSize: 40,
+        fontWeight: 'bold',
+        color: colors.primaryBlack,
+    },
+    resultsGrid: {
+        padding: 16,
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 12,
+        justifyContent: 'space-between',
+    },
+    toggleContainer: {
+        flexDirection: 'row',
+        marginHorizontal: 16,
+        // marginTop: 16,
+        borderRadius: 12,
+        backgroundColor: colors.secondaryGrey,
+        padding: 4,
+        borderWidth: 1,
+        borderColor: colors.tertiaryGrey,
+    },
+    toggleButton: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    toggleButtonActive: {
+        backgroundColor: colors.primaryGreen,
+    },
+    toggleText: {
+        fontSize: 14,
+        color: colors.primaryBlack,
+        textAlign: 'center',
+    },
+    toggleTextActive: {
+        color: colors.iconWhite,
+        fontWeight: '500',
+    },
 });
 
 export default BRRCalcOut;

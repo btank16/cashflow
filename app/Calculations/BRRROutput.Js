@@ -14,13 +14,15 @@ export const BuyRefi = (
     MonthlyCost,
     MonthEx,
     LoanTerm,
-    PrincipalAmt
+    PrincipalAmt,
+    propTax,
+    OperatingExpense
   ) => {
     // Convert inputs to numbers
     PurchPrice = Number(PurchPrice);
     // DownPayPerc = Number(DownPayPerc);
     RefinanceCost = Number(RefinanceCost);
-    NewInterest = Number(NewInterest);
+    // NewInterest = Number(NewInterest);
     AfterRep = Number(AfterRep);
     MonthsHeld = Number(MonthsHeld);
     BRRMonthRent = Number(BRRMonthRent);
@@ -30,17 +32,30 @@ export const BuyRefi = (
     MonthlyCost = Number(MonthlyCost);
     LoanTerm = Number(LoanTerm);  
     MonthEx = Number(MonthEx)
-  
+    OperatingExpense = Number(OperatingExpense)
     // Calculate new loan amount after refinance
     const NewLoanAmount = AfterRep * 0.80; // Assuming 80% LTV refinance
   
     // Calculate new mortgage payment
-    const monthlyRate = NewInterest / 12 / 100;
+    const monthlyRate = Number(NewInterest.value) / 12 / 100;
     const numberOfPayments = LoanTerm * 12; 
-    const BRRMortgageCost = (
-      (NewLoanAmount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
-      (Math.pow(1 + monthlyRate, numberOfPayments) - 1)
-    ).toFixed(2);
+    let BRRMortgageCost;
+    if (NewInterest.isInterestOnly) {
+      BRRMortgageCost = NewLoanAmount * monthlyRate;
+    } else {
+      BRRMortgageCost = (
+        (NewLoanAmount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
+        (Math.pow(1 + monthlyRate, numberOfPayments) - 1)
+      ).toFixed(2);
+    }
+
+    // Calculate property tax and insurance
+    let BRRPropTax;
+    if (propTax.isDollar) {
+      BRRPropTax = Number(propTax.value) / 12;
+    } else {
+      BRRPropTax = (AfterRep * (Number(propTax.value) / 100)) / 12;
+    }
   
     // Calculate new monthly cost
     let monthlyCapEx;
@@ -49,8 +64,10 @@ export const BuyRefi = (
     } else {
       monthlyCapEx = (BRRMonthRent * (Number(BRRCapex.value) / 100));
     }
+
+
     const BRRMonthlyCost = (
-      parseFloat(BRRMortgageCost) + MonthEx + monthlyCapEx).toFixed(2);
+      parseFloat(BRRMortgageCost) + BRRPropTax + OperatingExpense + monthlyCapEx).toFixed(2);
   
     // Calculate new cashflow
     const BRRCashflow = (BRRMonthRent - BRRMonthlyCost).toFixed(2);
@@ -67,6 +84,9 @@ export const BuyRefi = (
     const EquityReturnPerc = totalInvestment > 0 
       ? (((EquityReturn) / totalInvestment) * 100).toFixed(2)
       : "N/A";
+
+    const CashOnCash = ((BRRAnnualCashflow / CashDown) * 100).toFixed(2);
+
   
     return [
       BRRMortgageCost,
@@ -75,6 +95,9 @@ export const BuyRefi = (
       BRRAnnualCashflow,
       MaxEquity,
       EquityReturn.toFixed(2),
-      EquityReturnPerc
+      EquityReturnPerc,
+      monthlyCapEx,
+      BRRPropTax,
+      CashOnCash
     ];
   };

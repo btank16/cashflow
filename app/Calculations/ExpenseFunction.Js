@@ -6,11 +6,11 @@ export const expenses = (
   PropTax,
   PropInsurance,
   CapExEst,
-  ExpenseArray,
   RehabCost,
   ClosingCost,
   MonthRent,
-  MonthsHeld
+  MonthsHeld,
+  OperatingExpense
 ) => {
   // Calculate down payment
   let DownPayPerc
@@ -32,13 +32,18 @@ export const expenses = (
   }
 
   // Calculate monthly mortgage payment
-  const monthlyRate = IntRate / 12 / 100;
+  const monthlyRate = Number(IntRate.value) / 12 / 100;
   const numberOfPayments = LoanTerm * 12;
-  let MortgageCost = (
-    (LoanAmount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
-    (Math.pow(1 + monthlyRate, numberOfPayments) - 1)
-  ).toFixed(2);
-
+  let MortgageCost;
+  if (IntRate.isInterestOnly) {
+    MortgageCost = LoanAmount * monthlyRate;
+  } else {
+    MortgageCost = (
+      (LoanAmount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
+      (Math.pow(1 + monthlyRate, numberOfPayments) - 1)
+    ).toFixed(2);
+  }
+  
   // Calculate Principal left
   let PrincipalAmt = LoanAmount;
   let adjMonths = MonthsHeld;
@@ -71,7 +76,22 @@ export const expenses = (
   }
 
   // Sum up all monthly expenses
-  const totalMonthlyExpenses = ExpenseArray.reduce((sum, expense) => sum + expense, 0);
+  let totalMonthlyExpenses = 0;
+  let totalFixedExpenses = 0;
+  
+  if (OperatingExpense.isActive && OperatingExpense.expenses) {
+    OperatingExpense.expenses.forEach(expense => {
+      const cost = Number(expense.cost);
+      
+      if (expense.frequency === 'Annually') {
+        totalMonthlyExpenses += cost / 12;
+      } else if (expense.frequency === 'Monthly') {
+        totalMonthlyExpenses += cost;
+      } else if (expense.frequency === 'Non-recurring') {
+        totalFixedExpenses += cost;
+      }
+    });
+  }
 
   // Calculate total monthly cost
   const MonthEx = monthlyPropTax + monthlyPropInsurance + monthlyCapEx + totalMonthlyExpenses;
@@ -89,7 +109,8 @@ export const expenses = (
   } else {
     closingCostTotal = PurchPrice * (Number(ClosingCost.value) / 100);
   }
-  const CashDown = (DownPayment + RehabCost + closingCostTotal).toFixed(2);
+  const CashDown = (DownPayment + RehabCost + closingCostTotal+totalFixedExpenses).toFixed(2);
 
-  return [MortgageCost, MonthlyCost, CashDown, MonthEx.toFixed(2), PrincipalAmt.toFixed(2), DSCR];
+  return [MortgageCost, MonthlyCost, CashDown, MonthEx.toFixed(2), PrincipalAmt.toFixed(2), 
+    DSCR, monthlyPropTax.toFixed(2), monthlyCapEx.toFixed(2), totalMonthlyExpenses.toFixed(2)];
 };

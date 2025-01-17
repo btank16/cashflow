@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, Text, TouchableOpacity } from "react-native";
 import { useNavigation, useRoute } from '@react-navigation/native';
-import colors from '../Colors/colors.Js';
-import ResultDisplay from '../Components/ResultDisplay.Js';
-import DoubleResultDisplay from '../Components/DoubleResultDisplay.Js';
-import BackButton from '../Components/BackButton.Js';
+import colors from '../../Colors/colors.Js';
+import ResultDisplay from '../../Components/ResultDisplay.Js';
+import DoubleResultDisplay from '../../Components/DoubleResultDisplay.Js';
+import BackButton from '../../Components/BackButton.Js';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import PriceBar from '../Components/PriceBar.Js';
-import DarkTextLogo from '../../assets/icons/DarkTextLogo';
-import ExpensePieChart from '../Components/ExpensePieChart.Js';
+import PriceBar from '../../Components/PriceBar.Js';
+import DarkTextLogo from '../../../assets/icons/DarkTextLogo';
+import ExpensePieChart from '../../Components/ExpensePieChart.Js';
 
 const getListingPriceColor = (purchasePrice, targetPrice, netZeroPrice) => {
     if (purchasePrice < targetPrice) return colors.tertiaryOrange;

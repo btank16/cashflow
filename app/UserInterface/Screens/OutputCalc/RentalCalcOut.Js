@@ -2,12 +2,12 @@ import React from 'react';
 import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, Text, TouchableOpacity } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
-import colors from '../Colors/colors.Js';
-import ResultDisplay from '../Components/ResultDisplay.Js';
-import BackButton from '../Components/BackButton.Js';
+import colors from '../../Colors/colors.Js';
+import ResultDisplay from '../../Components/ResultDisplay.Js';
+import BackButton from '../../Components/BackButton.Js';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import ExpensePieChart from '../Components/ExpensePieChart.Js';
-import DarkTextLogo from '../../assets/icons/DarkTextLogo.jsx';
+import ExpensePieChart from '../../Components/ExpensePieChart.Js';
+import DarkTextLogo from '../../../assets/icons/DarkTextLogo.jsx';
 
 function RentalCalcOut(props) {
     const navigation = useNavigation();

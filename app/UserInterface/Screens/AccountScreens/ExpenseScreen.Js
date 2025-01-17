@@ -14,12 +14,12 @@ import {
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { ChevronLeftIcon } from 'react-native-heroicons/outline';
-import ExpenseLogo from '../../assets/icons/ExpenseLogo.jsx';
-import colors from '../Colors/colors.Js';
-import CalcButton from '../Components/CalcButton.Js';
-import NumericInput from '../Components/NumericInputBox.Js';
-import ExpenseItem from '../Components/ExpenseItem.Js';
-import { useDatabase } from '../../../database/cashflowDatabase.Js';
+import ExpenseLogo from '../../../assets/icons/ExpenseLogo.jsx';
+import colors from '../../Colors/colors.Js';
+import CalcButton from '../../Components/CalcButton.Js';
+import NumericInput from '../../Components/NumericInputBox.Js';
+import ExpenseItem from '../../Components/ExpenseItem.Js';
+import { useDatabase } from '../../../../database/cashflowDatabase.Js';
 
 const ExpenseScreen = () => {
   const navigation = useNavigation();

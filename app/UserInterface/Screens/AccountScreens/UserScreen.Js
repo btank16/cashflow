@@ -2,14 +2,14 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Platform, StatusBar } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronLeftIcon, ChevronRightIcon } from "react-native-heroicons/outline";
-import colors from '../Colors/colors.Js';
+import colors from '../../Colors/colors.Js';
 
 // Import icons
-import UserIcon from '../../assets/icons/UserIcon.jsx';
-import LockIcon from '../../assets/icons/LockIcon.jsx';
-import CalculatorIcon from '../../assets/icons/CalculatorIcon.jsx';
-import FeedbackIcon from '../../assets/icons/FeedbackIcon.jsx';
-import ExitIcon from '../../assets/icons/ExitIcon.jsx';
+import UserIcon from '../../../assets/icons/UserIcon.jsx';
+import LockIcon from '../../../assets/icons/LockIcon.jsx';
+import CalculatorIcon from '../../../assets/icons/CalculatorIcon.jsx';
+import FeedbackIcon from '../../../assets/icons/FeedbackIcon.jsx';
+import ExitIcon from '../../../assets/icons/ExitIcon.jsx';
 
 const UserScreen = () => {
   const navigation = useNavigation();

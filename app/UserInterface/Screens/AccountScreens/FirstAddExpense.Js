@@ -14,8 +14,8 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { XMarkIcon } from 'react-native-heroicons/outline';
 import { Ionicons } from '@expo/vector-icons';
-import ExpenseLogo from '../../assets/icons/ExpenseLogo.jsx';
-import colors from '../Colors/colors.Js';
+import ExpenseLogo from '../../../assets/icons/ExpenseLogo.jsx';
+import colors from '../../Colors/colors.Js';
 
 const FirstAddExpense = () => {
   const navigation = useNavigation();

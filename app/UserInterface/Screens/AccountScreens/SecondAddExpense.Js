@@ -11,15 +11,15 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { XMarkIcon, CheckIcon } from 'react-native-heroicons/outline';
-import ExpenseLogo from '../../assets/icons/ExpenseLogo.jsx';
-import RentalIcon from '../../assets/icons/RentalIcon.jsx';
-import FlipIcon from '../../assets/icons/FlipIcon.jsx';
-import BRRRRIcon from '../../assets/icons/BRRRIcon.jsx';
-import WholesaleIcon from '../../assets/icons/WholesaleIcon.jsx';
-import TargetIcon from '../../assets/icons/TargetIcon.jsx';
-import CommercialIcon from '../../assets/icons/CommercialIcon.jsx';
-import colors from '../Colors/colors.Js';
-import { useDatabase } from '../../../database/cashflowDatabase.Js';
+import ExpenseLogo from '../../../assets/icons/ExpenseLogo.jsx';
+import RentalIcon from '../../../assets/icons/RentalIcon.jsx';
+import FlipIcon from '../../../assets/icons/FlipIcon.jsx';
+import BRRRRIcon from '../../../assets/icons/BRRRIcon.jsx';
+import WholesaleIcon from '../../../assets/icons/WholesaleIcon.jsx';
+import TargetIcon from '../../../assets/icons/TargetIcon.jsx';
+import CommercialIcon from '../../../assets/icons/CommercialIcon.jsx';
+import colors from '../../Colors/colors.Js';
+import { useDatabase } from '../../../../database/cashflowDatabase.Js';
 
 const calculatorData = [
   {

@@ -1,16 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Text, Animated } from "react-native";
 import { useNavigation, useRoute } from '@react-navigation/native';
-import colors from '../Colors/colors.Js';
-import NumericInput from '../Components/NumericInputBox.Js';
-import CalcButton from '../Components/CalcButton.Js';
-import HomeButton from '../Components/HomeButton.Js';
-import SwitchableNumericInput from '../Components/SwitchableNumericInput.Js';
-import LoanTerm from '../Components/LoanTerm.Js';
-import { useDatabase } from '../../../database/cashflowDatabase.Js';
-import Checkbox from '../Components/InterestCheckbox.Js';
-import { CommercialCalc } from '../../Calculations/CommercialCalc.Js';
-import OperatingExpenses from '../Components/OperatingExpenses.Js';
+import colors from '../../Colors/colors.Js';
+import NumericInput from '../../Components/NumericInputBox.Js';
+import CalcButton from '../../Components/CalcButton.Js';
+import HomeButton from '../../Components/HomeButton.Js';
+import SwitchableNumericInput from '../../Components/SwitchableNumericInput.Js';
+import LoanTerm from '../../Components/LoanTerm.Js';
+import { useDatabase } from '../../../../database/cashflowDatabase.Js';
+import Checkbox from '../../Components/InterestCheckbox.Js';
+import { CommercialCalc } from '../../../Calculations/CommercialCalc.Js';
+import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 
 function CommercialCalcIn(props) {
     const navigation = useNavigation();

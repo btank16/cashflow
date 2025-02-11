@@ -16,7 +16,10 @@ import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 function BRRCalcIn(props) {
     const navigation = useNavigation();
     const route = useRoute();
-    const [purchasePrice, setPurchasePrice] = useState('');
+    const [purchasePrice, setPurchasePrice] = useState({
+        value: '',
+        isCashPurchase: false
+    });
     const [rehabCost, setRehabCost] = useState('');
     const [loanTerm, setLoanTerm] = useState(30);
     const [newloanTerm, setnewLoanTerm] = useState(30);
@@ -46,7 +49,7 @@ function BRRCalcIn(props) {
     const [operatingExpensesActive, setOperatingExpensesActive] = useState(true);
     const [operatingExpenses, setOperatingExpenses] = useState([]);
     const [saveNewExpenses, setSaveNewExpenses] = useState(false);
-
+    const [vacancyRate, setVacancyRate] = useState();
 
     const uid = () => {
         return Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -93,10 +96,15 @@ function BRRCalcIn(props) {
                 refinanceCost,
                 newInterest,
                 operatingExpenseArray,
+                vacancyRate,
             } = route.params.inputValues;
 
             setCalculationId(id);
-            setPurchasePrice(purchasePrice?.toString() || '');
+            setPurchasePrice({
+                value: purchasePrice?.value?.toString() || '',
+                isCashPurchase: purchasePrice?.isCashPurchase || false
+            });
+            setVacancyRate(vacancyRate?.toString() || '');
             setInterestRateInput(prevInputs => ({
                 ...prevInputs,
                 initialInterest : interestRate || { value: '', isInterestOnly: false },
@@ -127,9 +135,11 @@ function BRRCalcIn(props) {
 
     const checkFormValidity = () => {
         setIsFormValid(
-            purchasePrice !== '' &&
-            switchableInputs.downPayment.value !== '' &&
-            interestRateInput.initialInterest.value !== '' &&
+            purchasePrice.value !== '' &&
+            (purchasePrice.isCashPurchase || (
+                switchableInputs.downPayment.value !== '' &&
+                interestRateInput.initialInterest.value !== ''
+            )) &&
             switchableInputs.propertyTax.value !== '' &&
             BRRmonthRent !== '' &&
             afterRev !== '' &&
@@ -188,9 +198,15 @@ function BRRCalcIn(props) {
         }
 
         const inputValues = {
-            purchasePrice: toNumber(purchasePrice),
-            downPayment: switchableInputs.downPayment,
-            interestRate: interestRateInput.initialInterest,
+            purchasePrice: purchasePrice,
+            downPayment: {
+                value: switchableInputs.downPayment.value || '0',
+                isDollar: switchableInputs.downPayment.isDollar
+            },
+            interestRate: {
+                value: interestRateInput.initialInterest.value || '0',
+                isInterestOnly: interestRateInput.initialInterest.isInterestOnly
+            },
             loanTerm: toNumber(loanTerm),
             propertyTax: switchableInputs.propertyTax,
             BRRcapexEst: switchableInputs.BRRcapexEst,
@@ -206,7 +222,8 @@ function BRRCalcIn(props) {
                 isActive: operatingExpensesActive,
                 expenses: operatingExpenses,
                 saveNewExpenses: saveNewExpenses
-            }
+            },
+            vacancyRate: toNumber(vacancyRate)
         };
 
         const id = calculationId || uid();
@@ -241,7 +258,8 @@ function BRRCalcIn(props) {
             inputValues.newloanTerm,
             initialExpenseResults[4],
             inputValues.propertyTax,
-            initialExpenseResults[8]
+            initialExpenseResults[8],
+            inputValues.vacancyRate
         );
 
         const results = {
@@ -279,8 +297,8 @@ function BRRCalcIn(props) {
     const numericInputsArray = [
         {
             label: "Purchase Price",
-            value: purchasePrice,
-            onChangeText: setPurchasePrice,
+            value: purchasePrice.value,
+            onChangeText: (value) => setPurchasePrice(prev => ({ ...prev, value })),
             placeholder: "ex. 225,000",
             isRequired: true,
             type: "$",
@@ -322,6 +340,13 @@ function BRRCalcIn(props) {
             onChangeText: setRefinanceCost,
             placeholder: "ex. $1000",
             type: "$"
+        },
+        {
+            label: "Vacancy Rate",
+            value: vacancyRate,
+            onChangeText: setVacancyRate,
+            placeholder: "ex. 5%",
+            type: "%"
         }
     ];
 
@@ -410,33 +435,52 @@ function BRRCalcIn(props) {
                    <Text style={styles.title}>BRRRR Calculator</Text>
                    <Text style={styles.secondaryTitle}>Loan Details</Text>                    
                    <NumericInput {...numericInputsArray[0]} />
-                   <SwitchableNumericInput {...switchableInputsArray[0]} />
-                   <NumericInput 
-                        label="Interest Rate"
-                        value={interestRateInput.initialInterest.value}
-                        onChangeText={(value) => setInterestRateInput(prev => ({ ...prev, initialInterest: { ...prev.initialInterest, value } }))}
-                        placeholder="ex. 5%"
-                        isRequired={true}
-                        type="%"
-                   />
                    <Checkbox
-                        label="Interest Only?"
-                        value={interestRateInput.initialInterest.isInterestOnly}
-                        onValueChange={(newValue) => setInterestRateInput(prev => ({ ...prev, initialInterest: { ...prev.initialInterest, isInterestOnly: newValue } }))}
+                        label="Initial Cash Purchase?"
+                        value={purchasePrice.isCashPurchase}
+                        onValueChange={(newValue) => {
+                            setPurchasePrice(prev => ({ ...prev, isCashPurchase: newValue }));
+                            if (newValue) {
+                                setInterestRateInput(prev => ({ ...prev, initialInterest: { ...prev.initialInterest, value: '' } }));
+                                setSwitchableInputs(prev => ({
+                                    ...prev,
+                                    downPayment: { ...prev.downPayment, value: '' }
+                                }));
+                            }
+                        }}
                     />
+                    {!purchasePrice.isCashPurchase && (
+                        <>
+                            <SwitchableNumericInput {...switchableInputsArray[0]} />
+                            <NumericInput 
+                                label="Interest Rate"
+                                value={interestRateInput.initialInterest.value}
+                                onChangeText={(value) => setInterestRateInput(prev => ({ ...prev, initialInterest: { ...prev.initialInterest, value } }))}
+                                placeholder="ex. 5%"
+                                isRequired={true}
+                                type="%"
+                            />
+                            <Checkbox
+                                label="Interest Only?"
+                                value={interestRateInput.initialInterest.isInterestOnly}
+                                onValueChange={(newValue) => setInterestRateInput(prev => ({ ...prev, initialInterest: { ...prev.initialInterest, isInterestOnly: newValue } }))}
+                            />
+                            <LoanTerm
+                                label="Loan Term"
+                                value={loanTerm}
+                                onValueChange={(itemValue) => setLoanTerm(itemValue)}
+                            />
+                        </>
+                    )}
                    <SwitchableNumericInput {...switchableInputsArray[1]} />
                    <SwitchableNumericInput {...switchableInputsArray[2]} />
-                   <LoanTerm
-                        label="Loan Term"
-                        value={loanTerm}
-                        onValueChange={(itemValue) => setLoanTerm(itemValue)}
-                    />
                    <Text style={styles.secondaryTitle}>Rehab Details</Text>                    
                    <NumericInput {...numericInputsArray[1]} />
                    <NumericInput {...numericInputsArray[4]} />
                    <Text style={styles.secondaryTitle}>Rent Details</Text>
                    <NumericInput {...numericInputsArray[2]} />
                    <SwitchableNumericInput {...switchableInputsArray[3]} />
+                   <NumericInput {...numericInputsArray[6]} />
                    <Text style={styles.secondaryTitle}>Refinance Details</Text>
                    <NumericInput {...numericInputsArray[3]} />
                    <NumericInput {...numericInputsArray[5]} />

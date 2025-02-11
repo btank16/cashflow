@@ -27,8 +27,10 @@ const ResultDisplay = ({ label, value, type, additionalText, infoPress, fullWidt
   };
 
   const formatValue = () => {
+    if (value === 'N/A') return 'N/A';
+    
     const number = parseFloat(value);
-    // if (isNaN(number)) return '0';
+    if (isNaN(number)) return '0';
 
     switch (type) {
       case 'dollar':

@@ -84,9 +84,11 @@ function RentalCalcOut(props) {
     const fullWidthDisplays = [
         {
             label: "Debt Service Coverage Ratio (DSCR)",
-            value: results.DSCR,
+            value: results.DSCR === 'N/A' ? 'N/A' : results.DSCR,
             type: "float",
-            additionalText: getDSCRText(results.DSCR),
+            additionalText: results.DSCR === 'N/A' ? 
+                'Not applicable for Cash Purchases' : 
+                getDSCRText(results.DSCR),
             infoPress: () => handleInfoPress("Information about DSCR"),
             fullWidth: true
         },

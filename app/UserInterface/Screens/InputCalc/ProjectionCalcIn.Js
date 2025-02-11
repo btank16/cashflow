@@ -1,32 +1,43 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Text, Animated } from "react-native";
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Text, Animated } from "react-native";
 import { useNavigation, useRoute } from '@react-navigation/native';
-import colors from '../Colors/colors.Js';
-import NumericInput from '../Components/NumericInputBox.Js';
-import CalcButton from '../Components/CalcButton.Js';
-import HomeButton from '../Components/HomeButton.Js';
-import { useDatabase } from '../../../database/cashflowDatabase.Js';
-import { wholesalefunction } from '../../Calculations/WholesalingFunction.Js';
-import OperatingExpenses from '../Components/OperatingExpenses.Js';
+import colors from '../../Colors/colors.Js';
+import NumericInput from '../../Components/NumericInputBox.Js';
+import LoanTerm from '../../Components/LoanTerm.Js';
+import CalcButton from '../../Components/CalcButton.Js';
+import HomeButton from '../../Components/HomeButton.Js';
+import SwitchableNumericInput from '../../Components/SwitchableNumericInput.Js';
+import { useDatabase } from '../../../../database/cashflowDatabase.Js';
+import { PriceSuggestion } from '../../../Calculations/SuggestPrice.Js';
+import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 
-function WholesaleCalcIn(props) {
+function ProjectionCalcIn(props) {
     const navigation = useNavigation();
     const route = useRoute();
     const [purchasePrice, setPurchasePrice] = useState('');
+    const [monthCashflow, setMonthCashflow] = useState('');
+    const [downPayment, setDownPayment] = useState('');
+    const [interestRate, setInterestRate] = useState('');
+    const [propertyTax, setPropertyTax] = useState('');
+    const [monthRent, setMonthRent] = useState('');
+    const [loanTerm, setLoanTerm] = useState(30);
     const [rehabCost, setRehabCost] = useState('');
-    const [afterRev, setAfterRev] = useState('');
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
-    const [resultScreen, setResultScreen] = useState('WholesaleCalcOut');
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-    const { saveCalculation } = useDatabase();
+    const [resultScreen, setResultScreen] = useState('ProjectionCalcOut');
+    const [switchableInputs, setSwitchableInputs] = useState({
+        closingCost: { value: '', isDollar: false },
+        capexEst: { value: '', isDollar: false }
+    });
+    const { saveCalculation, saveExpense } = useDatabase();
     const [calculationId, setCalculationId] = useState(null);
     const [showHeaderTitle, setShowHeaderTitle] = useState(false);
     const scrollY = useRef(new Animated.Value(0)).current;
     const [operatingExpensesActive, setOperatingExpensesActive] = useState(true);
     const [operatingExpenses, setOperatingExpenses] = useState([]);
     const [saveNewExpenses, setSaveNewExpenses] = useState(false);
-    const [monthsHeld, setMonthsHeld] = useState('');
+
     const uid = () => {
         return Date.now().toString(36) + Math.random().toString(36).substr(2);
     }
@@ -51,24 +62,40 @@ function WholesaleCalcIn(props) {
             keyboardDidShowListener.remove();
             keyboardDidHideListener.remove();
         };
-    }, [purchasePrice, rehabCost, afterRev]);
+    }, [monthCashflow, interestRate, monthRent, downPayment, propertyTax]);
 
     useEffect(() => {
         if (route.params?.inputValues) {
             const {
                 id,
                 purchasePrice,
-                afterRev,
+                monthCashflow,
+                downPayment,
+                interestRate,
+                propertyTax,
+                loanTerm,
+                monthRent,
+                closingCost,
+                capexEst,
                 rehabCost,
-                monthsHeld,
                 operatingExpenseArray
             } = route.params.inputValues;
 
-            setPurchasePrice(purchasePrice?.toString() || '');
-            setAfterRev(afterRev?.toString() || '');
-            setRehabCost(rehabCost?.toString() || '');
-            setMonthsHeld(monthsHeld?.toString() || '');
             setCalculationId(id);
+            setPurchasePrice(purchasePrice?.toString() || '');
+            setMonthCashflow(monthCashflow?.toString() || '');
+            setDownPayment(downPayment?.toString() || '');
+            setInterestRate(interestRate?.toString() || '');
+            setPropertyTax(propertyTax?.toString() || '');
+            setLoanTerm(loanTerm?.toString() || '30');
+            setMonthRent(monthRent?.toString() || '');
+            setRehabCost(rehabCost?.toString() || '');
+           
+            setSwitchableInputs(prevInputs => ({
+                ...prevInputs,
+                closingCost: closingCost || { value: '', isDollar: false },
+                capexEst: capexEst || { value: '', isDollar: false }
+            }));
 
             if (operatingExpenseArray) {
                 setOperatingExpensesActive(operatingExpenseArray.isActive);
@@ -80,15 +107,36 @@ function WholesaleCalcIn(props) {
 
     const checkFormValidity = () => {
         setIsFormValid(
-            purchasePrice !== '' &&
-            rehabCost !== '' &&
-            afterRev !== ''
+            monthCashflow !== '' &&
+            downPayment !== '' &&
+            interestRate !== '' &&
+            propertyTax !== '' &&
+            monthRent !== ''
         );
     };
 
+
+    const handleSwitchableInputChange = (inputName, newValue) => {
+        setSwitchableInputs(prevInputs => ({
+            ...prevInputs,
+            [inputName]: {
+                ...prevInputs[inputName],
+                value: newValue
+            }
+        }));
+    };
+
+    const handleSwitchableInputToggle = (inputName, newIsDollar) => {
+        setSwitchableInputs(prevInputs => ({
+            ...prevInputs,
+            [inputName]: { 
+                ...prevInputs[inputName],
+                isDollar: newIsDollar 
+            }
+        }));
+    };
+
     const handleInfoPress = (infoText) => {
-        // Implement the logic to show the overlay with infoText
-        // This could be setting a state variable to show a modal, for example
         console.log(infoText);
     };
 
@@ -109,7 +157,7 @@ function WholesaleCalcIn(props) {
                             formattedCategory,
                             expense.cost,
                             expense.frequency,
-                            ['wholesale']
+                            ['target']
                         );
                     }
                 }
@@ -120,9 +168,15 @@ function WholesaleCalcIn(props) {
 
         const inputValues = {
             purchasePrice: toNumber(purchasePrice),
+            monthCashflow: toNumber(monthCashflow),
+            downPayment: toNumber(downPayment),
+            interestRate: toNumber(interestRate),
+            loanTerm: toNumber(loanTerm),
+            propertyTax: toNumber(propertyTax),
+            capexEst: switchableInputs.capexEst,
+            monthRent: toNumber(monthRent),
+            closingCost: switchableInputs.closingCost,
             rehabCost: toNumber(rehabCost),
-            afterRev: toNumber(afterRev),
-            monthsHeld: toNumber(monthsHeld),
             operatingExpenseArray: {
                 isActive: operatingExpensesActive,
                 expenses: operatingExpenses,
@@ -130,35 +184,42 @@ function WholesaleCalcIn(props) {
             }
         };
 
-        // Calculate a new uid if calculationId is null
         const id = calculationId || uid();
 
-        // Call wholesalefunction directly
-        const wholesaleResults = wholesalefunction(
-            inputValues.purchasePrice,
+        const cashflowResults = PriceSuggestion(
+            inputValues.monthCashflow,
+            inputValues.downPayment,
+            inputValues.interestRate,
+            inputValues.loanTerm,
+            inputValues.propertyTax,
+            inputValues.capexEst,
+            inputValues.monthRent,
+            inputValues.closingCost,
             inputValues.rehabCost,
-            inputValues.afterRev,
-            inputValues.monthsHeld,
             inputValues.operatingExpenseArray
         );
 
         const results = {
-            maximumAllowableOffer: wholesaleResults[0],
-            totalExpenses: wholesaleResults[1],
-            fee5Perc: wholesaleResults[2],
-            fee15Perc: wholesaleResults[3],
-            sale5Perc: wholesaleResults[4],
-            sale15Perc: wholesaleResults[5],
+            TargetPrice: cashflowResults[0],
+            NetZeroPrice: cashflowResults[1],
+            netZeroCash: cashflowResults[2],
+            targetPriceCash: cashflowResults[3],
+            netZeroExp: cashflowResults[4],
+            targetExp: cashflowResults[5],
+            netZeroTax: cashflowResults[6],
+            targetTax: cashflowResults[7],
+            monthlyCapEx: cashflowResults[8],
+            totalMonthlyExpenses: cashflowResults[9],
+            MaxZeroMortgage: cashflowResults[10],
+            MaxCashflowMortgage: cashflowResults[11],
         };
 
-        // Save the calculation to the database using expo-sqlite/next notation
         try {
-            await saveCalculation('wholesale', inputValues, results, id);
+            await saveCalculation('projection', inputValues, results, id);
         } catch (error) {
             console.error('Error saving calculation to database:', error);
         }
 
-        // Navigate to the result screen
         navigation.navigate(resultScreen, {
             inputValues: {...inputValues, id},
             ...results
@@ -167,35 +228,71 @@ function WholesaleCalcIn(props) {
 
     const numericInputsArray = [
         {
-            label: "Contract Price",
+            label: "Listing Price",
             value: purchasePrice,
             onChangeText: setPurchasePrice,
             placeholder: "ex. 225,000",
-            isRequired: true,
             type: "$",
             infoPress: () => handleInfoPress("Information about Purchase Price")
         },
         {
-            label: "Estimated Rehab Cost",
-            value: rehabCost,
-            onChangeText: setRehabCost,
-            placeholder: "ex. $10,000",
-            type: "$"
-        },
-        {
-            label: "After Repair Value",
-            value: afterRev,
-            onChangeText: setAfterRev,
-            placeholder: "ex. $250,000",
+            label: "Monthly Cashflow Target",
+            value: monthCashflow,
+            onChangeText: setMonthCashflow,
+            placeholder: "ex. $1000",
             isRequired: true,
             type: "$"
         },
         {
-            label: "Months Held",
-            value: monthsHeld,
-            onChangeText: setMonthsHeld,
-            placeholder: "ex. 2 months",
-            type: "Months"
+            label: "Down Payment",
+            value: downPayment,
+            onChangeText: setDownPayment,
+            placeholder: "ex. 20%",
+            isRequired: true,
+            type: "%"
+        },
+        {
+            label: "Interest Rate",
+            value: interestRate,
+            onChangeText: setInterestRate,
+            placeholder: "ex. 5%",
+            isRequired: true,
+            type: "%"
+        },
+        {
+            label: "Gross Monthly Rent",
+            value: monthRent,
+            onChangeText: setMonthRent,
+            placeholder: "ex. $1000",
+            isRequired: true,
+            type: "$"
+        },
+        {
+            label: "Annual Property Tax",
+            value: propertyTax,
+            onChangeText: setPropertyTax,
+            placeholder: "ex. 2%",
+            isRequired: true,
+            type: "%"
+        }
+    ];
+
+    const switchableInputsArray = [
+        {
+            label: "Closing Cost",
+            value: switchableInputs.closingCost.value,
+            isDollar: switchableInputs.closingCost.isDollar,
+            onChangeValue: (value) => handleSwitchableInputChange('closingCost', value),
+            onToggleMode: (newIsDollar) => handleSwitchableInputToggle('closingCost', newIsDollar),
+            placeholder: switchableInputs.closingCost.isDollar ? "ex. $5,000" : "ex. 2%"
+        },
+        {
+            label: "Annual CapEx Estimate",
+            value: switchableInputs.capexEst.value,
+            isDollar: switchableInputs.capexEst.isDollar,
+            onChangeValue: (value) => handleSwitchableInputChange('capexEst', value),
+            onToggleMode: (newIsDollar) => handleSwitchableInputToggle('capexEst', newIsDollar),
+            placeholder: switchableInputs.capexEst.isDollar ? "ex. $3,000" : "ex. 5%"
         }
     ];
 
@@ -228,7 +325,7 @@ function WholesaleCalcIn(props) {
             <View style={styles.logoContainer}>
                 <HomeButton/>
                 {showHeaderTitle && (
-                    <Text style={styles.headerTitle}>Wholesaling Calculator</Text>
+                    <Text style={styles.headerTitle}>Price Target Calculator</Text>
                 )}
             </View>
             <KeyboardAvoidingView 
@@ -243,19 +340,28 @@ function WholesaleCalcIn(props) {
                     scrollEventThrottle={16}
                     nestedScrollEnabled={true}
                 >                
-                    <Text style={styles.title}>Wholesaling Calculator</Text>
+                    <Text style={styles.title}>Price Target Calculator</Text>
+                    <Text style={styles.secondaryTitle}>Loan Details</Text>
                     <NumericInput {...numericInputsArray[0]} />
-                    <NumericInput {...numericInputsArray[1]} />
                     <NumericInput {...numericInputsArray[2]} />
                     <NumericInput {...numericInputsArray[3]} />
+                    <SwitchableNumericInput {...switchableInputsArray[0]}/>   
+                    <NumericInput {...numericInputsArray[5]} />                       
+                    <LoanTerm
+                        label="Loan Term"
+                        value={loanTerm}
+                        onValueChange={(itemValue) => setLoanTerm(itemValue)}
+                    />
+                    <Text style={styles.secondaryTitle}>Rent Details</Text>
+                    <NumericInput {...numericInputsArray[1]} />
+                    <NumericInput {...numericInputsArray[4]} />
+                    <SwitchableNumericInput {...switchableInputsArray[1]}/>
                     <OperatingExpenses
-                        calculatorType="wholesale"
+                        calculatorType="target"
                         onActiveChange={setOperatingExpensesActive}
                         onExpensesChange={handleOperatingExpensesChange}
                         onSaveNewExpensesChange={handleSaveNewExpensesChange}
                         initialExpenses={operatingExpenses}
-                        sectionTitle="Additional Expenses"
-                        viewAllButtonText="View all Saved Expenses"
                     />
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -305,8 +411,15 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         marginTop: 16,
         marginLeft: 16,
-      },
-      headerTitle: {
+    },
+    secondaryTitle: {
+        fontSize: 18,
+        fontWeight: 500,
+        color: colors.primaryBlack,
+        marginVertical: 16,
+        marginLeft: 16,
+    },
+    headerTitle: {
         fontSize: 14,
         fontWeight: '500',
         color: colors.primaryBlack,
@@ -317,4 +430,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default WholesaleCalcIn;
+export default ProjectionCalcIn;

@@ -1,15 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, Text, TouchableOpacity } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
-import colors from '../Colors/colors.Js';
-import ResultDisplay from '../Components/ResultDisplay.Js';
-import BackButton from '../Components/BackButton.Js';
+import colors from '../../Colors/colors.Js';
+import ResultDisplay from '../../Components/ResultDisplay.Js';
+import BackButton from '../../Components/BackButton.Js';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import ExpensePieChart from '../Components/ExpensePieChart.Js';
-import DarkTextLogo from '../../assets/icons/DarkTextLogo.jsx';
+import ExpensePieChart from '../../Components/ExpensePieChart.Js';
+import DarkTextLogo from '../../../assets/icons/DarkTextLogo.jsx';
 
-function FlipCalcOut(props) {
+
+function BRRCalcOut(props) {
     const navigation = useNavigation();
 
     const route = useRoute();
@@ -25,41 +26,32 @@ function FlipCalcOut(props) {
           maximumFractionDigits: 2
         })}`;
     };
-    
 
-    const resultDisplayArray = [
+      const resultDisplayArray = [
         {
-            label: "ROI",
-            value: results.returnPerc,
-            type: "percentage",
+            label: "Monthly Cashflow (post-refinance)",
+            value: results.BRRCashflow,
+            type: "dollar",
             infoPress: () => handleInfoPress("Information about Monthly Cashflow")
         },
-        {
-            label: "Cash on Cash ROI",
-            value: results.cashROI,
-            type: "percentage",
-            infoPress: () => handleInfoPress("Information about Cash Down")
-        }
-    ];
-
-    const fullWidthDisplays = [
         {
             label: "Cash Down",
             value: results.cashDown,
             type: "dollar",
             textColor: colors.primaryBlack,
-            additionalText: "Down Payment and Rehab Cost",
-            infoPress: () => handleInfoPress("Information about DSCR"),
-            fullWidth: true
+            infoPress: () => handleInfoPress("Information about Cash Down")
         },
         {
-            label: "Total Cash Costs",
-            value: results.totalCashCost,
-            type: "dollar",
-            textColor: colors.primaryBlack,
-            additionalText: "The sum of all Cash Costs, including Expenses during the Rehab Period",
-            infoPress: () => handleInfoPress("Information about Break Even"),
-            fullWidth: true
+            label: "Cash on Cash Return",
+            value: results.CashOnCash,
+            type: "percentage",
+            infoPress: () => handleInfoPress("Information about Cash on Cash Return")
+        },
+        {
+            label: "ROI from Equity",
+            value: results.EquityReturnPerc,
+            type: "percentage",
+            infoPress: () => handleInfoPress("Information about Maximum Equity Usage")
         }
     ];
 
@@ -83,14 +75,55 @@ function FlipCalcOut(props) {
             value: results.monthlyOpEx,
             color: colors.primaryOrange,
         },
+        {
+            name: 'Capital Expenditure',
+            value: results.monthlyCapEx,
+            color: colors.brightGreen,
+        },
     ];
+
+    const BRRexpenseChartData = [
+        {
+            name: 'Mortgage Cost',
+            value: results.BRRMortgageCost,
+            color: colors.primaryGreen,
+        },
+        {
+            name: 'Property Taxes',
+            value: results.BRRPropTax,
+            color: colors.primaryPurple,
+        },
+        {
+            name: 'Operating Expenses',
+            value: results.monthlyOpEx,
+            color: colors.primaryOrange,
+        },
+        {
+            name: 'Capital Expenditure',
+            value: results.BRRCapEx,
+            color: colors.brightGreen,
+        },
+    ];
+
+    const fullWidthDisplays = [
+        {
+            label: "Maximum Equity Usage",
+            value: results.MaxEquity,
+            type: "dollar",
+            additionalText: "Assumes an 80% Loan-to-Value refinance",
+            infoPress: () => handleInfoPress("Information about Maximum Equity Usage"),
+            fullWidth: true
+        },
+    ];
+
+    const [showRefinanced, setShowRefinanced] = useState(false);
 
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
                 <BackButton 
                     inputValues={inputValues}
-                    destinationScreen="FlipCalcIn"
+                    destinationScreen="BRRCalcIn"
                 />
                 <TouchableOpacity 
                     style={styles.logoWrapper}
@@ -102,16 +135,16 @@ function FlipCalcOut(props) {
             <ScrollView style={styles.contentContainer}>
                 <View style={styles.mainResultContainer}>
                     <View style={styles.mainLabelContainer}>
-                        <Text style={styles.mainLabel}>Net Profit</Text>
+                        <Text style={styles.mainLabel}>Annual Cashflow (post-refinance)</Text>
                         <TouchableOpacity onPress={() => handleInfoPress("Information about Annual Cashflow")}>
                             <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
                         </TouchableOpacity>
                     </View>
                     <Text style={[
                         styles.mainValue,
-                        { color: results.totalProfit >= 0 ? colors.primaryGreen : colors.quaternaryRed }
+                        { color: Number(results.BRRAnnualCashflow) >= 0 ? colors.primaryGreen : colors.quaternaryRed }
                     ]}>
-                        {formatDollar(results.totalProfit)}
+                        {formatDollar(results.BRRAnnualCashflow)}
                     </Text>
                 </View>
                 <View style={styles.resultsGrid}>
@@ -128,8 +161,38 @@ function FlipCalcOut(props) {
                         />
                     ))}
                 </View>
+                <View style={styles.toggleContainer}>
+                    <TouchableOpacity 
+                        style={[
+                            styles.toggleButton, 
+                            !showRefinanced && styles.toggleButtonActive
+                        ]}
+                        onPress={() => setShowRefinanced(false)}
+                    >
+                        <Text style={[
+                            styles.toggleText,
+                            !showRefinanced && styles.toggleTextActive
+                        ]}>Initial Monthly Costs</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={[
+                            styles.toggleButton, 
+                            showRefinanced && styles.toggleButtonActive
+                        ]}
+                        onPress={() => setShowRefinanced(true)}
+                    >
+                        <Text style={[
+                            styles.toggleText,
+                            showRefinanced && styles.toggleTextActive
+                        ]}>Post-Refinance Monthly Costs</Text>
+                    </TouchableOpacity>
+                </View>
                 <ExpensePieChart
-                    chartData={expenseChartData}
+                    chartData={showRefinanced ? BRRexpenseChartData : expenseChartData}
+                    chartTitle={showRefinanced ? 
+                        "Total Monthly Expenses\n(Post-Refinance)" : 
+                        "Total Monthly Expenses\n(Initial)"
+                    }
                 />
             </ScrollView>
         </SafeAreaView>
@@ -194,6 +257,35 @@ const styles = StyleSheet.create({
         gap: 12,
         justifyContent: 'space-between',
     },
+    toggleContainer: {
+        flexDirection: 'row',
+        marginHorizontal: 16,
+        // marginTop: 16,
+        borderRadius: 12,
+        backgroundColor: colors.secondaryGrey,
+        padding: 4,
+        borderWidth: 1,
+        borderColor: colors.tertiaryGrey,
+    },
+    toggleButton: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    toggleButtonActive: {
+        backgroundColor: colors.primaryGreen,
+    },
+    toggleText: {
+        fontSize: 14,
+        color: colors.primaryBlack,
+        textAlign: 'center',
+    },
+    toggleTextActive: {
+        color: colors.iconWhite,
+        fontWeight: '500',
+    },
 });
 
-export default FlipCalcOut;
+export default BRRCalcOut;

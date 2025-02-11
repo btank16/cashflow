@@ -167,14 +167,14 @@ function CalcHomeScreen() {
       Icon: TargetIcon, 
       color: colors.primaryPurple,
       article: articles[4],
-      fullWidth: true
     },
-    // { 
-    //   name: "Commercial Multi-Family", 
-    //   screen: "CommercialCalcIn", 
-    //   Icon: CommercialIcon, 
-    //   color: colors.primaryPink,
-    // },
+    { 
+      name: "Commercial Multi-Family", 
+      screen: "CommercialCalcIn", 
+      Icon: CommercialIcon, 
+      color: colors.primaryPink,
+      article: articles[5],
+    },
   ];
 
   const renderHistorySection = () => (

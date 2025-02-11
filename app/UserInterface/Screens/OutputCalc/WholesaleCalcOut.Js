@@ -1,12 +1,12 @@
 import React from 'react';
 import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, Text, TouchableOpacity } from "react-native";
 import { useNavigation, useRoute } from '@react-navigation/native';
-import colors from '../Colors/colors.Js';
-import BackButton from '../Components/BackButton.Js';
+import colors from '../../Colors/colors.Js';
+import BackButton from '../../Components/BackButton.Js';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import DarkTextLogo from '../../assets/icons/DarkTextLogo.jsx';
-import DoubleResultDisplay from '../Components/DoubleResultDisplay.Js';
-import ResultDisplay from '../Components/ResultDisplay.Js';
+import DarkTextLogo from '../../../assets/icons/DarkTextLogo.jsx';
+import DoubleResultDisplay from '../../Components/DoubleResultDisplay.Js';
+import ResultDisplay from '../../Components/ResultDisplay.Js';
 
 function WholesaleCalcOut(props) {
     const navigation = useNavigation();

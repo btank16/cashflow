@@ -1,44 +1,43 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Text, Animated } from "react-native";
+import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Text, Animated } from "react-native";
 import { useNavigation, useRoute } from '@react-navigation/native';
-import colors from '../Colors/colors.Js';
-import NumericInput from '../Components/NumericInputBox.Js';
-import CalcButton from '../Components/CalcButton.Js';
-import HomeButton from '../Components/HomeButton.Js';
-import SwitchableNumericInput from '../Components/SwitchableNumericInput.Js';
-import LoanTerm from '../Components/LoanTerm.Js';
-import { useDatabase } from '../../../database/cashflowDatabase.Js';
-import { expenses } from '../../Calculations/ExpenseFunction.Js';
-import { outputs } from '../../Calculations/CoreOutputs.Js';
-import Checkbox from '../Components/InterestCheckbox.Js';
-import OperatingExpenses from '../Components/OperatingExpenses.Js';
+import colors from '../../Colors/colors.Js';
+import NumericInput from '../../Components/NumericInputBox.Js';
+import CalcButton from '../../Components/CalcButton.Js';
+import { expenses } from '../../../Calculations/ExpenseFunction.Js';
+import { outputs } from '../../../Calculations/CoreOutputs.Js';
+import HomeButton from '../../Components/HomeButton.Js';
+import SwitchableNumericInput from '../../Components/SwitchableNumericInput.Js';
+import LoanTerm from '../../Components/LoanTerm.Js';
+import { useDatabase } from '../../../../database/cashflowDatabase.Js';
+import Checkbox from '../../Components/InterestCheckbox.Js';
+import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 
-function FlipCalcIn(props) {
+function RentalCalcIn(props) {
     const navigation = useNavigation();
     const route = useRoute();
     const [purchasePrice, setPurchasePrice] = useState('');
     const [rehabCost, setRehabCost] = useState('');
     const [loanTerm, setLoanTerm] = useState(30);
-    const [afterRev, setAfterRev] = useState('');
-    const [rehabTime, setRehabTime] = useState('');
+    const [monthRent, setMonthRent] = useState('');
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
-    const [resultScreen, setResultScreen] = useState('FlipCalcOut');
+    const [resultScreen, setResultScreen] = useState('RentalCalcOut');
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
     const [switchableInputs, setSwitchableInputs] = useState({
         downPayment: { value: '', isDollar: false },
         closingCost: { value: '', isDollar: false },
         propertyTax: { value: '', isDollar: false },
-        agentCommish: { value: '', isDollar: false }
-    });
-    const [interestRateInput, setInterestRateInput] = useState({
-        value: '',
-        isInterestOnly: false
+        capexEst: { value: '', isDollar: false }
     });
     const { saveCalculation, saveExpense } = useDatabase();
     const [calculationId, setCalculationId] = useState(null);
     const [showHeaderTitle, setShowHeaderTitle] = useState(false);
     const scrollY = useRef(new Animated.Value(0)).current;
+    const [interestRateInput, setInterestRateInput] = useState({
+        value: '',
+        isInterestOnly: false
+    });
     const [operatingExpensesActive, setOperatingExpensesActive] = useState(true);
     const [operatingExpenses, setOperatingExpenses] = useState([]);
     const [saveNewExpenses, setSaveNewExpenses] = useState(false);
@@ -67,7 +66,7 @@ function FlipCalcIn(props) {
             keyboardDidShowListener.remove();
             keyboardDidHideListener.remove();
         };
-    }, [purchasePrice, interestRateInput, afterRev, switchableInputs]);
+    }, [purchasePrice, interestRateInput, monthRent, switchableInputs]);
 
     useEffect(() => {
         if (route.params?.inputValues) {
@@ -80,10 +79,9 @@ function FlipCalcIn(props) {
                 propertyTax,
                 rehabCost,
                 loanTerm,
-                afterRev,
-                rehabTime,
-                agentCommish,
-                operatingExpenseArray
+                monthRent,
+                capexEst,
+                operatingExpenseArray,
             } = route.params.inputValues;
 
             setCalculationId(id);
@@ -94,15 +92,14 @@ function FlipCalcIn(props) {
             });
             setRehabCost(rehabCost?.toString() || '');
             setLoanTerm(loanTerm?.toString() || '30');
-            setAfterRev(afterRev?.toString() || '');
-            setRehabTime(rehabTime?.toString() || '');
-       
+            setMonthRent(monthRent?.toString() || '');
+            
             setSwitchableInputs(prevInputs => ({
                 ...prevInputs,
                 downPayment: downPayment || { value: '', isDollar: false },
                 closingCost: closingCost || { value: '', isDollar: false },
                 propertyTax: propertyTax || { value: '', isDollar: false },
-                agentCommish: agentCommish || { value: '', isDollar: false }
+                capexEst: capexEst || { value: '', isDollar: false }
             }));
 
             if (operatingExpenseArray) {
@@ -119,11 +116,11 @@ function FlipCalcIn(props) {
             switchableInputs.downPayment.value !== '' &&
             interestRateInput.value !== '' &&
             switchableInputs.propertyTax.value !== '' &&
-            afterRev !== ''
+            monthRent !== ''
         );
     };
 
-      const handleSwitchableInputChange = (inputName, newValue) => {
+    const handleSwitchableInputChange = (inputName, newValue) => {
         setSwitchableInputs(prevInputs => ({
             ...prevInputs,
             [inputName]: {
@@ -164,7 +161,7 @@ function FlipCalcIn(props) {
                             formattedCategory,
                             expense.cost,
                             expense.frequency,
-                            ['flip']
+                            ['rental']
                         );
                     }
                 }
@@ -172,7 +169,7 @@ function FlipCalcIn(props) {
                 console.error('Error saving operating expenses:', error);
             }
         }
-        
+
         const inputValues = {
             purchasePrice: toNumber(purchasePrice),
             downPayment: switchableInputs.downPayment,
@@ -180,13 +177,13 @@ function FlipCalcIn(props) {
             loanTerm: toNumber(loanTerm),
             propertyTax: switchableInputs.propertyTax,
             closingCost: switchableInputs.closingCost,
+            capexEst: switchableInputs.capexEst,
             rehabCost: toNumber(rehabCost),
-            afterRev: toNumber(afterRev),
-            rehabTime: toNumber(rehabTime),
-            agentCommish: switchableInputs.agentCommish,
+            monthRent: toNumber(monthRent),
             propertyInsurance: 0,
-            capexEst: { value: '0', isDollar: false },
-            monthRent: 0,
+            afterRev: 0,
+            rehabTime: 0,
+            agentCommish: { value: '0', isDollar: false },
             operatingExpenseArray: {
                 isActive: operatingExpensesActive,
                 expenses: operatingExpenses,
@@ -228,6 +225,7 @@ function FlipCalcIn(props) {
             monthEx: expenseResults[3],
             DSCR: expenseResults[5],
             monthlyPropTax: expenseResults[6],
+            monthlyCapEx: expenseResults[7],
             monthlyOpEx: expenseResults[8],
             totalProfit: outputResults[0],
             returnPerc: outputResults[1],
@@ -241,13 +239,13 @@ function FlipCalcIn(props) {
         };
 
         try {
-            await saveCalculation('flip', inputValues, results, id);
+            await saveCalculation('rental', inputValues, results, id);
         } catch (error) {
             console.error('Error saving calculation to database:', error);
         }
 
         navigation.navigate(resultScreen, {
-            inputValues: {...inputValues, id},
+            inputValues: { ...inputValues, id },
             ...results
         });
     };
@@ -278,20 +276,13 @@ function FlipCalcIn(props) {
             type: "$"
         },
         {
-            label: "After Repair Value",
-            value: afterRev,
-            onChangeText: setAfterRev,
-            placeholder: "ex. $300,000",
+            label: "Gross Monthly Rent",
+            value: monthRent,
+            onChangeText: setMonthRent,
+            placeholder: "ex. $1000",
             isRequired: true,
             type: "$"
-        },
-        {
-            label: "Rehab Time",
-            value: rehabTime,
-            onChangeText: setRehabTime,
-            placeholder: "ex. 10 months",
-            type: "Months"
-        },
+        }
     ];
 
     const switchableInputsArray = [
@@ -322,12 +313,12 @@ function FlipCalcIn(props) {
             isRequired: true
         },
         {
-            label: "Agent Commission",
-            value: switchableInputs.agentCommish.value,
-            isDollar: switchableInputs.agentCommish.isDollar,
-            onChangeValue: (value) => handleSwitchableInputChange('agentCommish', value),
-            onToggleMode: (newIsDollar) => handleSwitchableInputToggle('agentCommish', newIsDollar),
-            placeholder: switchableInputs.agentCommish.isDollar ? "ex. $5,000" : "ex. 6%"
+            label: "Annual CapEx Estimate",
+            value: switchableInputs.capexEst.value,
+            isDollar: switchableInputs.capexEst.isDollar,
+            onChangeValue: (value) => handleSwitchableInputChange('capexEst', value),
+            onToggleMode: (newIsDollar) => handleSwitchableInputToggle('capexEst', newIsDollar),
+            placeholder: switchableInputs.capexEst.isDollar ? "ex. $3,000" : "ex. 5%"
         }
     ];
 
@@ -358,48 +349,47 @@ function FlipCalcIn(props) {
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
-                <HomeButton/>
+                <HomeButton />
                 {showHeaderTitle && (
-                    <Text style={styles.headerTitle}>Fix & Flip Calculator</Text>
+                    <Text style={styles.headerTitle}>Rental Calculator</Text>
                 )}
             </View>
             <KeyboardAvoidingView 
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={styles.keyContainer}
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={styles.keyContainer}
             >
                 <ScrollView
-                ref={scrollViewRef}
-                contentContainerStyle={styles.contentContainer}
-                keyboardShouldPersistTaps="handled"
-                onScroll={handleScroll}
-                scrollEventThrottle={16}
-                nestedScrollEnabled={true}
-                >   
-                   <Text style={styles.title}>Fix & Flip Calculator</Text>
-                   <Text style={styles.secondaryTitle}>Loan Details</Text>                    
-                   <NumericInput {...numericInputsArray[0]} />
-                   <SwitchableNumericInput {...switchableInputsArray[0]} />
-                   <NumericInput {...numericInputsArray[1]} />
-                   <Checkbox
+                    ref={scrollViewRef}
+                    contentContainerStyle={styles.contentContainer}
+                    keyboardShouldPersistTaps="handled"
+                    onScroll={handleScroll}
+                    scrollEventThrottle={16}
+                    nestedScrollEnabled={true}
+                >                
+                    <Text style={styles.title}>Rental Calculator</Text>
+                    <Text style={styles.secondaryTitle}>Loan Details</Text>
+                    <NumericInput {...numericInputsArray[0]} />
+                    <SwitchableNumericInput {...switchableInputsArray[0]}/>
+                    <NumericInput {...numericInputsArray[1]} />
+                    <Checkbox
                         label="Interest Only?"
                         value={interestRateInput.isInterestOnly}
                         onValueChange={(newValue) => setInterestRateInput(prev => ({ ...prev, isInterestOnly: newValue }))}
                     />
-                   <SwitchableNumericInput {...switchableInputsArray[1]} />
-                   <SwitchableNumericInput {...switchableInputsArray[2]} />                           
-                   <LoanTerm
+                    <SwitchableNumericInput {...switchableInputsArray[1]}/>
+                    <LoanTerm
                         label="Loan Term"
                         value={loanTerm}
                         onValueChange={(itemValue) => setLoanTerm(itemValue)}
+                        infoPress={() => handleInfoPress("Information about Loan Term")}
                     />
-                    <Text style={styles.secondaryTitle}>Rehab Details</Text>
-                    <NumericInput {...numericInputsArray[2]} />
-                    <NumericInput {...numericInputsArray[4]} />
-                    <Text style={styles.secondaryTitle}>Sale Details</Text>
-                    <NumericInput {...numericInputsArray[3]} />
-                    <SwitchableNumericInput {...switchableInputsArray[3]} />
+                    <Text style={styles.secondaryTitle}>Property Expenses</Text>
+                    <SwitchableNumericInput {...switchableInputsArray[2]}/>
+                    <NumericInput {...numericInputsArray[2]}/>
+                    <NumericInput {...numericInputsArray[3]}/>
+                    <SwitchableNumericInput {...switchableInputsArray[3]}/>
                     <OperatingExpenses
-                        calculatorType="flip"
+                        calculatorType="rental"
                         onActiveChange={setOperatingExpensesActive}
                         onExpensesChange={handleOperatingExpensesChange}
                         onSaveNewExpensesChange={handleSaveNewExpensesChange}
@@ -453,15 +443,15 @@ const styles = StyleSheet.create({
         marginBottom: 8,
         marginTop: 16,
         marginLeft: 16,
-      },
-      secondaryTitle: {
+    },
+    secondaryTitle: {
         fontSize: 18,
         fontWeight: 500,
         color: colors.primaryBlack,
         marginVertical: 16,
         marginLeft: 16,
-      },
-      headerTitle: {
+    },
+    headerTitle: {
         fontSize: 14,
         fontWeight: '500',
         color: colors.primaryBlack,
@@ -472,4 +462,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default FlipCalcIn;
+export default RentalCalcIn;

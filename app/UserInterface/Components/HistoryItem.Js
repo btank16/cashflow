@@ -49,9 +49,9 @@ const getCalculatorDetails = (item) => {
       return {
         icon: <RentalIcon width={12} height={12} fill={colors.iconWhite} />,
         details: [
-          { title: 'Purchase Price', value: `$${formatNumber(inputValues.purchasePrice)}` },
+          { title: 'Purchase Price', value: `$${formatNumber(inputValues.purchasePrice.value)}` },
           { title: 'Monthly Rent', value: `$${formatNumber(inputValues.monthRent)}` },
-          { title: 'DSCR', value: `${formatNumber(results.DSCR)}` },
+          { title: 'DSCR', value: results.DSCR === 'N/A' ? 'N/A' : formatNumber(results.DSCR) },
         ],
         name: 'Rental Property',
         primColor: colors.secondaryGreen,
@@ -73,7 +73,7 @@ const getCalculatorDetails = (item) => {
       return {
         icon: <FlipIcon width={12} height={12} fill={colors.iconWhite} />,
         details: [
-          { title: 'Purchase Price', value: `$${formatNumber(inputValues.purchasePrice)}` },
+          { title: 'Purchase Price', value: `$${formatNumber(inputValues.purchasePrice.value)}` },
           { title: 'ARV', value: `$${formatNumber(inputValues.afterRev)}` },
           { title: 'ROI', value: `${formatNumber(results.returnPerc)}%` },
         ],

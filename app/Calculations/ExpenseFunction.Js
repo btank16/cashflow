@@ -1,5 +1,5 @@
 export const expenses = (
-  PurchPrice,
+  PurchasePrice,
   DownPay,
   IntRate,
   LoanTerm,
@@ -12,15 +12,24 @@ export const expenses = (
   MonthsHeld,
   OperatingExpense
 ) => {
+
+  // Purchase Price Handling
+  const PurchPrice = Number(PurchasePrice.value);
+
   // Calculate down payment
   let DownPayPerc
   let DownPayment
-  if (DownPay.isDollar) {
-    DownPayment = Number(DownPay.value);
-    DownPayPerc = ((Number(DownPay.value) / PurchPrice) * 100).toFixed(2);
+  if (PurchasePrice.isCashPurchase) {
+    DownPayPerc = 100;
+    DownPayment = PurchPrice;
   } else {
-    DownPayment = PurchPrice * (Number(DownPay.value) / 100);
-    DownPayPerc = Number(DownPay.value);
+    if (DownPay.isDollar) {
+      DownPayment = Number(DownPay.value);
+      DownPayPerc = ((Number(DownPay.value) / PurchPrice) * 100).toFixed(2);
+    } else {
+      DownPayment = PurchPrice * (Number(DownPay.value) / 100);
+      DownPayPerc = Number(DownPay.value);
+    }
   }
 
   // Calculate loan amount
@@ -32,16 +41,22 @@ export const expenses = (
   }
 
   // Calculate monthly mortgage payment
-  const monthlyRate = Number(IntRate.value) / 12 / 100;
-  const numberOfPayments = LoanTerm * 12;
   let MortgageCost;
-  if (IntRate.isInterestOnly) {
-    MortgageCost = LoanAmount * monthlyRate;
+  let monthlyRate;
+  if (PurchasePrice.isCashPurchase) {
+    MortgageCost = 0;
+    monthlyRate = 0;
   } else {
-    MortgageCost = (
-      (LoanAmount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
-      (Math.pow(1 + monthlyRate, numberOfPayments) - 1)
-    ).toFixed(2);
+    monthlyRate = Number(IntRate.value) / 12 / 100;
+    const numberOfPayments = LoanTerm * 12;
+    if (IntRate.isInterestOnly) {
+      MortgageCost = LoanAmount * monthlyRate;
+    } else {
+      MortgageCost = (
+        (LoanAmount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
+        (Math.pow(1 + monthlyRate, numberOfPayments) - 1)
+      ).toFixed(2);
+    }
   }
   
   // Calculate Principal left
@@ -100,7 +115,12 @@ export const expenses = (
   
   // Calculate DSCR
   const DSCRexpense = parseFloat(MortgageCost) + monthlyPropTax;
-  const DSCR = Number(MonthRent) / DSCRexpense;
+  let DSCR;
+  if (PurchasePrice.isCashPurchase) {
+    DSCR = 'N/A';
+  } else {
+    DSCR = Number(MonthRent) / DSCRexpense;
+  }
 
   // Calculate cash down (down payment + rehab cost + closing costs)
   let closingCostTotal;

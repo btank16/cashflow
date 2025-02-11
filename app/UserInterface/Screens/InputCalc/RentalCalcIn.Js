@@ -16,7 +16,10 @@ import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 function RentalCalcIn(props) {
     const navigation = useNavigation();
     const route = useRoute();
-    const [purchasePrice, setPurchasePrice] = useState('');
+    const [purchasePrice, setPurchasePrice] = useState({
+        value: '',
+        isCashPurchase: false
+    });
     const [rehabCost, setRehabCost] = useState('');
     const [loanTerm, setLoanTerm] = useState(30);
     const [monthRent, setMonthRent] = useState('');
@@ -41,6 +44,7 @@ function RentalCalcIn(props) {
     const [operatingExpensesActive, setOperatingExpensesActive] = useState(true);
     const [operatingExpenses, setOperatingExpenses] = useState([]);
     const [saveNewExpenses, setSaveNewExpenses] = useState(false);
+    const [vacancyRate, setVacancyRate] = useState();
 
     const uid = () => {
         return Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -82,10 +86,14 @@ function RentalCalcIn(props) {
                 monthRent,
                 capexEst,
                 operatingExpenseArray,
+                vacancyRate,
             } = route.params.inputValues;
 
             setCalculationId(id);
-            setPurchasePrice(purchasePrice?.toString() || '');
+            setPurchasePrice({
+                value: purchasePrice?.value?.toString() || '',
+                isCashPurchase: purchasePrice?.isCashPurchase || false
+            });
             setInterestRateInput({
                 value: interestRate?.value?.toString() || '',
                 isInterestOnly: interestRate?.isInterestOnly || false
@@ -93,7 +101,8 @@ function RentalCalcIn(props) {
             setRehabCost(rehabCost?.toString() || '');
             setLoanTerm(loanTerm?.toString() || '30');
             setMonthRent(monthRent?.toString() || '');
-            
+            setVacancyRate(vacancyRate?.toString() || '');
+
             setSwitchableInputs(prevInputs => ({
                 ...prevInputs,
                 downPayment: downPayment || { value: '', isDollar: false },
@@ -112,9 +121,11 @@ function RentalCalcIn(props) {
 
     const checkFormValidity = () => {
         setIsFormValid(
-            purchasePrice !== '' &&
-            switchableInputs.downPayment.value !== '' &&
-            interestRateInput.value !== '' &&
+            purchasePrice.value !== '' &&
+            (purchasePrice.isCashPurchase || (
+                switchableInputs.downPayment.value !== '' &&
+                interestRateInput.value !== ''
+            )) &&
             switchableInputs.propertyTax.value !== '' &&
             monthRent !== ''
         );
@@ -171,9 +182,15 @@ function RentalCalcIn(props) {
         }
 
         const inputValues = {
-            purchasePrice: toNumber(purchasePrice),
-            downPayment: switchableInputs.downPayment,
-            interestRate: interestRateInput,
+            purchasePrice: purchasePrice,
+            downPayment: {
+                value: switchableInputs.downPayment.value || '0',
+                isDollar: switchableInputs.downPayment.isDollar
+            },
+            interestRate: {
+                value: interestRateInput.value || '0',
+                isInterestOnly: interestRateInput.isInterestOnly
+            },
             loanTerm: toNumber(loanTerm),
             propertyTax: switchableInputs.propertyTax,
             closingCost: switchableInputs.closingCost,
@@ -188,7 +205,8 @@ function RentalCalcIn(props) {
                 isActive: operatingExpensesActive,
                 expenses: operatingExpenses,
                 saveNewExpenses: saveNewExpenses
-            }
+            },
+            vacancyRate: toNumber(vacancyRate)
         };
 
         const id = calculationId || uid();
@@ -215,7 +233,8 @@ function RentalCalcIn(props) {
             inputValues.monthRent,
             inputValues.purchasePrice,
             expenseResults[2],
-            expenseResults[1]
+            expenseResults[1],
+            inputValues.vacancyRate
         );
 
         const results = {
@@ -253,8 +272,8 @@ function RentalCalcIn(props) {
     const numericInputsArray = [
         {
             label: "Purchase Price",
-            value: purchasePrice,
-            onChangeText: setPurchasePrice,
+            value: purchasePrice.value,
+            onChangeText: (value) => setPurchasePrice(prev => ({ ...prev, value })),
             placeholder: "ex. 225,000",
             isRequired: true,
             type: "$",
@@ -282,6 +301,13 @@ function RentalCalcIn(props) {
             placeholder: "ex. $1000",
             isRequired: true,
             type: "$"
+        },
+        {
+            label: "Vacancy Rate",
+            value: vacancyRate,
+            onChangeText: setVacancyRate,
+            placeholder: "ex. 5%",
+            type: "%"
         }
     ];
 
@@ -369,25 +395,44 @@ function RentalCalcIn(props) {
                     <Text style={styles.title}>Rental Calculator</Text>
                     <Text style={styles.secondaryTitle}>Loan Details</Text>
                     <NumericInput {...numericInputsArray[0]} />
-                    <SwitchableNumericInput {...switchableInputsArray[0]}/>
-                    <NumericInput {...numericInputsArray[1]} />
                     <Checkbox
-                        label="Interest Only?"
-                        value={interestRateInput.isInterestOnly}
-                        onValueChange={(newValue) => setInterestRateInput(prev => ({ ...prev, isInterestOnly: newValue }))}
+                        label="Cash Purchase?"
+                        value={purchasePrice.isCashPurchase}
+                        onValueChange={(newValue) => {
+                            setPurchasePrice(prev => ({ ...prev, isCashPurchase: newValue }));
+                            if (newValue) {
+                                setInterestRateInput(prev => ({ ...prev, value: '' }));
+                                setSwitchableInputs(prev => ({
+                                    ...prev,
+                                    downPayment: { ...prev.downPayment, value: '' }
+                                }));
+                            }
+                        }}
                     />
+                    {!purchasePrice.isCashPurchase && (
+                        <>
+                            <SwitchableNumericInput {...switchableInputsArray[0]}/>
+                            <NumericInput {...numericInputsArray[1]} />
+                            <Checkbox
+                                label="Interest Only?"
+                                value={interestRateInput.isInterestOnly}
+                                onValueChange={(newValue) => setInterestRateInput(prev => ({ ...prev, isInterestOnly: newValue }))}
+                            />
+                            <LoanTerm
+                                label="Loan Term"
+                                value={loanTerm}
+                                onValueChange={(itemValue) => setLoanTerm(itemValue)}
+                                infoPress={() => handleInfoPress("Information about Loan Term")}
+                            />
+                        </>
+                    )}
                     <SwitchableNumericInput {...switchableInputsArray[1]}/>
-                    <LoanTerm
-                        label="Loan Term"
-                        value={loanTerm}
-                        onValueChange={(itemValue) => setLoanTerm(itemValue)}
-                        infoPress={() => handleInfoPress("Information about Loan Term")}
-                    />
                     <Text style={styles.secondaryTitle}>Property Expenses</Text>
                     <SwitchableNumericInput {...switchableInputsArray[2]}/>
                     <NumericInput {...numericInputsArray[2]}/>
                     <NumericInput {...numericInputsArray[3]}/>
                     <SwitchableNumericInput {...switchableInputsArray[3]}/>
+                    <NumericInput {...numericInputsArray[4]}/>
                     <OperatingExpenses
                         calculatorType="rental"
                         onActiveChange={setOperatingExpensesActive}

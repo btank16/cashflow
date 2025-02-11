@@ -16,10 +16,11 @@ export const BuyRefi = (
     LoanTerm,
     PrincipalAmt,
     propTax,
-    OperatingExpense
+    OperatingExpense,
+    VacancyRate
   ) => {
     // Convert inputs to numbers
-    PurchPrice = Number(PurchPrice);
+    const purchaseAmount = Number(PurchPrice.value);
     // DownPayPerc = Number(DownPayPerc);
     RefinanceCost = Number(RefinanceCost);
     // NewInterest = Number(NewInterest);
@@ -33,6 +34,7 @@ export const BuyRefi = (
     LoanTerm = Number(LoanTerm);  
     MonthEx = Number(MonthEx)
     OperatingExpense = Number(OperatingExpense)
+    VacancyRate = Number(VacancyRate)
     // Calculate new loan amount after refinance
     const NewLoanAmount = AfterRep * 0.80; // Assuming 80% LTV refinance
   
@@ -64,19 +66,24 @@ export const BuyRefi = (
     } else {
       monthlyCapEx = (BRRMonthRent * (Number(BRRCapex.value) / 100));
     }
-
+    const VacancyLoss = BRRMonthRent * (VacancyRate / 100);
 
     const BRRMonthlyCost = (
       parseFloat(BRRMortgageCost) + BRRPropTax + OperatingExpense + monthlyCapEx).toFixed(2);
   
     // Calculate new cashflow
-    const BRRCashflow = (BRRMonthRent - BRRMonthlyCost).toFixed(2);
+    const BRRCashflow = (BRRMonthRent - (BRRMonthlyCost + VacancyLoss)).toFixed(2);
   
     // Calculate new annual cashflow
     const BRRAnnualCashflow = (BRRCashflow * 12).toFixed(2);
   
     // Calculate maximum equity
-    const MaxEquity = (NewLoanAmount-PrincipalAmt).toFixed(2);
+    let MaxEquity
+    if (PurchPrice.isCashPurchase) {
+      MaxEquity = NewLoanAmount.toFixed(2);
+    } else {
+      MaxEquity = (NewLoanAmount-PrincipalAmt).toFixed(2);
+    }
   
     // Calculate equity return
     const totalInvestment = CashDown + (MonthsHeld * MonthlyCost) + RefinanceCost;

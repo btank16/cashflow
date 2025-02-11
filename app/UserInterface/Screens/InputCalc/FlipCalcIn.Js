@@ -16,7 +16,10 @@ import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 function FlipCalcIn(props) {
     const navigation = useNavigation();
     const route = useRoute();
-    const [purchasePrice, setPurchasePrice] = useState('');
+    const [purchasePrice, setPurchasePrice] = useState({
+        value: '',
+        isCashPurchase: false
+    });
     const [rehabCost, setRehabCost] = useState('');
     const [loanTerm, setLoanTerm] = useState(30);
     const [afterRev, setAfterRev] = useState('');
@@ -87,7 +90,10 @@ function FlipCalcIn(props) {
             } = route.params.inputValues;
 
             setCalculationId(id);
-            setPurchasePrice(purchasePrice?.toString() || '');
+            setPurchasePrice({
+                value: purchasePrice?.value?.toString() || '',
+                isCashPurchase: purchasePrice?.isCashPurchase || false
+            });
             setInterestRateInput({
                 value: interestRate?.value?.toString() || '',
                 isInterestOnly: interestRate?.isInterestOnly || false
@@ -115,9 +121,11 @@ function FlipCalcIn(props) {
 
     const checkFormValidity = () => {
         setIsFormValid(
-            purchasePrice !== '' &&
-            switchableInputs.downPayment.value !== '' &&
-            interestRateInput.value !== '' &&
+            purchasePrice.value !== '' &&
+            (purchasePrice.isCashPurchase || (
+                switchableInputs.downPayment.value !== '' &&
+                interestRateInput.value !== ''
+            )) &&
             switchableInputs.propertyTax.value !== '' &&
             afterRev !== ''
         );
@@ -174,9 +182,15 @@ function FlipCalcIn(props) {
         }
         
         const inputValues = {
-            purchasePrice: toNumber(purchasePrice),
-            downPayment: switchableInputs.downPayment,
-            interestRate: interestRateInput,
+            purchasePrice: purchasePrice,
+            downPayment: {
+                value: switchableInputs.downPayment.value || '0',
+                isDollar: switchableInputs.downPayment.isDollar
+            },
+            interestRate: {
+                value: interestRateInput.value || '0',
+                isInterestOnly: interestRateInput.isInterestOnly
+            },
             loanTerm: toNumber(loanTerm),
             propertyTax: switchableInputs.propertyTax,
             closingCost: switchableInputs.closingCost,
@@ -218,7 +232,8 @@ function FlipCalcIn(props) {
             inputValues.monthRent,
             inputValues.purchasePrice,
             expenseResults[2],
-            expenseResults[1]
+            expenseResults[1],
+            '0'
         );
 
         const results = {
@@ -255,8 +270,8 @@ function FlipCalcIn(props) {
     const numericInputsArray = [
         {
             label: "Purchase Price",
-            value: purchasePrice,
-            onChangeText: setPurchasePrice,
+            value: purchasePrice.value,
+            onChangeText: (value) => setPurchasePrice(prev => ({ ...prev, value })),
             placeholder: "ex. 225,000",
             isRequired: true,
             type: "$",
@@ -378,20 +393,39 @@ function FlipCalcIn(props) {
                    <Text style={styles.title}>Fix & Flip Calculator</Text>
                    <Text style={styles.secondaryTitle}>Loan Details</Text>                    
                    <NumericInput {...numericInputsArray[0]} />
-                   <SwitchableNumericInput {...switchableInputsArray[0]} />
-                   <NumericInput {...numericInputsArray[1]} />
                    <Checkbox
-                        label="Interest Only?"
-                        value={interestRateInput.isInterestOnly}
-                        onValueChange={(newValue) => setInterestRateInput(prev => ({ ...prev, isInterestOnly: newValue }))}
+                        label="Cash Purchase?"
+                        value={purchasePrice.isCashPurchase}
+                        onValueChange={(newValue) => {
+                            setPurchasePrice(prev => ({ ...prev, isCashPurchase: newValue }));
+                            if (newValue) {
+                                setInterestRateInput(prev => ({ ...prev, value: '' }));
+                                setSwitchableInputs(prev => ({
+                                    ...prev,
+                                    downPayment: { ...prev.downPayment, value: '' }
+                                }));
+                            }
+                        }}
                     />
-                   <SwitchableNumericInput {...switchableInputsArray[1]} />
-                   <SwitchableNumericInput {...switchableInputsArray[2]} />                           
-                   <LoanTerm
-                        label="Loan Term"
-                        value={loanTerm}
-                        onValueChange={(itemValue) => setLoanTerm(itemValue)}
-                    />
+                    {!purchasePrice.isCashPurchase && (
+                        <>
+                            <SwitchableNumericInput {...switchableInputsArray[0]}/>
+                            <NumericInput {...numericInputsArray[1]} />
+                            <Checkbox
+                                label="Interest Only?"
+                                value={interestRateInput.isInterestOnly}
+                                onValueChange={(newValue) => setInterestRateInput(prev => ({ ...prev, isInterestOnly: newValue }))}
+                            />
+                            <LoanTerm
+                                label="Loan Term"
+                                value={loanTerm}
+                                onValueChange={(itemValue) => setLoanTerm(itemValue)}
+                                infoPress={() => handleInfoPress("Information about Loan Term")}
+                            />
+                        </>
+                    )}
+                    <SwitchableNumericInput {...switchableInputsArray[1]}/>
+                    <SwitchableNumericInput {...switchableInputsArray[2]}/>
                     <Text style={styles.secondaryTitle}>Rehab Details</Text>
                     <NumericInput {...numericInputsArray[2]} />
                     <NumericInput {...numericInputsArray[4]} />

@@ -3,6 +3,10 @@ import { NavigationContainer } from '@react-navigation/native';
 import AppNavigator from './AppNavigator.Js';
 import { SQLiteProvider } from 'expo-sqlite';
 import { initHistoryDB } from './database/cashflowDatabase.Js';
+import { Amplify } from 'aws-amplify';
+import outputs from './amplify_outputs.json'; 
+
+Amplify.configure(outputs);  
 
 function App() {
   return (

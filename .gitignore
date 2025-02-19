@@ -90,3 +90,8 @@ Thumbs.db
 dist/
 web-build/
 node_modules
+
+# amplify
+.amplify
+amplify_outputs*
+amplifyconfiguration*

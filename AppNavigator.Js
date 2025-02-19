@@ -19,6 +19,10 @@ import UserScreen from './app/UserInterface/Screens/AccountScreens/UserScreen.Js
 import ExpenseScreen from './app/UserInterface/Screens/AccountScreens/ExpenseScreen.Js';
 import FirstAddExpense from './app/UserInterface/Screens/AccountScreens/FirstAddExpense.Js';
 import SecondAddExpense from './app/UserInterface/Screens/AccountScreens/SecondAddExpense.Js';
+import IntroScreen from './app/UserInterface/Screens/AuthScreens/IntroScreen.Js';
+import SignIn from './app/UserInterface/Screens/AuthScreens/SignIn.Js';
+import SignUpFirst from './app/UserInterface/Screens/AuthScreens/SignUpFirst.Js';
+import SignUpSec from './app/UserInterface/Screens/AuthScreens/SignUpSec.Js';
 
 const Stack = createStackNavigator();
 
@@ -29,6 +33,10 @@ function AppNavigator() {
         headerShown: false, // This hides the header for all screens
       }}
     >
+      <Stack.Screen name="IntroScreen" component={IntroScreen} />
+      <Stack.Screen name="SignIn" component={SignIn} />
+      <Stack.Screen name="SignUpFirst" component={SignUpFirst} />
+      <Stack.Screen name="SignUpSec" component={SignUpSec} />
       <Stack.Screen name="CalcHomeScreen" component={CalcHomeScreen} />
       <Stack.Screen name="FeedbackScreen" component={FeedbackScreen} />
       <Stack.Screen name="BRRCalcIn" component={BRRCalcIn} />
@@ -48,6 +56,7 @@ function AppNavigator() {
       <Stack.Screen name="ExpenseScreen" component={ExpenseScreen} />
       <Stack.Screen name="FirstAddExpense" component={FirstAddExpense} />
       <Stack.Screen name="SecondAddExpense" component={SecondAddExpense} />
+      {/* <Stack.Screen name="IntroScreen" component={IntroScreen} /> */}
     </Stack.Navigator>
   );
 }

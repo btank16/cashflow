@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, Platform, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform, StatusBar } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import colors from '../../Colors/colors.Js';
 import BackButton from '../../Components/BackButton.Js';
@@ -7,6 +7,7 @@ import MailIcon from '../../../assets/icons/MailIcon.jsx';
 import GoogleIcon from '../../../assets/icons/GoogleIcon.jsx';
 import AppleIcon from '../../../assets/icons/AppleIcon.jsx';
 import InterestCheckbox from '../../Components/InterestCheckbox.Js';
+import NormTextbox from '../../Components/NormTextbox.Js';
 
 const SignUpFirst = () => {
   const navigation = useNavigation();
@@ -60,25 +61,16 @@ const SignUpFirst = () => {
               </TouchableOpacity>
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Email</Text>
-              <View style={[
-                styles.inputWrapper,
-                emailFocused ? styles.inputWrapperFocused : styles.inputWrapperBlurred
-              ]}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="example@gmail.com"
-                  placeholderTextColor={colors.sixthGrey}
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  onFocus={() => setEmailFocused(true)}
-                  onBlur={() => setEmailFocused(false)}
-                />
-              </View>
-            </View>
+            <NormTextbox
+              label="Email"
+              value={email}
+              onChangeText={setEmail}
+              placeholder="example@gmail.com"
+              keyboardType="email-address"
+              isFocused={emailFocused}
+              onFocus={() => setEmailFocused(true)}
+              onBlur={() => setEmailFocused(false)}
+            />
 
             <View style={styles.dividerContainer}>
               <View style={styles.dividerLine} />
@@ -200,38 +192,6 @@ const styles = StyleSheet.create({
   signInText: {
     color: colors.primaryGreen,
     fontWeight: '500',
-  },
-  inputContainer: {
-    marginBottom: 16,
-  },
-  inputLabel: {
-    fontSize: 14,
-    color: colors.primaryGrey,
-    marginBottom: 8,
-    fontWeight: '500',
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 10,
-    height: 50,
-    overflow: 'hidden',
-  },
-  inputWrapperBlurred: {
-    backgroundColor: colors.tertiaryGrey,
-    borderColor: colors.quaternaryGrey,
-    borderWidth: 1,
-  },
-  inputWrapperFocused: {
-    backgroundColor: colors.iconWhite,
-    borderColor: colors.primaryGreen,
-    borderWidth: 1,
-  },
-  input: {
-    flex: 1,
-    height: '100%',
-    paddingHorizontal: 10,
-    fontSize: 16,
   },
   dividerContainer: {
     flexDirection: 'row',

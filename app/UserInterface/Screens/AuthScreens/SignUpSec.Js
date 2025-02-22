@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, Platform, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform, StatusBar } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../../Colors/colors.Js';
 import BackButton from '../../Components/BackButton.Js';
-import { EyeIcon, EyeSlashIcon } from "react-native-heroicons/outline";
 import LockIcon from '../../../assets/icons/LockIcon.jsx';
+import PasswordBox from '../../Components/PasswordBox.Js';
 
 const SignUpSec = () => {
   const navigation = useNavigation();
@@ -46,63 +46,27 @@ const SignUpSec = () => {
 
             <Text style={styles.title}>Create password</Text>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Password</Text>
-              <View style={[
-                styles.inputWrapper,
-                passwordFocused ? styles.inputWrapperFocused : styles.inputWrapperBlurred
-              ]}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter password"
-                  placeholderTextColor={colors.sixthGrey}
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry={!showPassword}
-                  onFocus={() => setPasswordFocused(true)}
-                  onBlur={() => setPasswordFocused(false)}
-                />
-                <TouchableOpacity 
-                  style={styles.eyeIcon}
-                  onPress={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? (
-                    <EyeIcon size={24} color={colors.primaryBlack} />
-                  ) : (
-                    <EyeSlashIcon size={24} color={colors.sixthGrey} />
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
+            <PasswordBox
+              label="Password"
+              value={password}
+              onChangeText={setPassword}
+              isFocused={passwordFocused}
+              onFocus={() => setPasswordFocused(true)}
+              onBlur={() => setPasswordFocused(false)}
+              showPassword={showPassword}
+              onTogglePassword={() => setShowPassword(!showPassword)}
+            />
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Confirm Password</Text>
-              <View style={[
-                styles.inputWrapper,
-                confirmPasswordFocused ? styles.inputWrapperFocused : styles.inputWrapperBlurred
-              ]}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter password"
-                  placeholderTextColor={colors.sixthGrey}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPassword}
-                  secureTextEntry={!showConfirmPassword}
-                  onFocus={() => setConfirmPasswordFocused(true)}
-                  onBlur={() => setConfirmPasswordFocused(false)}
-                />
-                <TouchableOpacity 
-                  style={styles.eyeIcon}
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  {showConfirmPassword ? (
-                    <EyeIcon size={24} color={colors.primaryBlack} />
-                  ) : (
-                    <EyeSlashIcon size={24} color={colors.sixthGrey} />
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
+            <PasswordBox
+              label="Confirm Password"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              isFocused={confirmPasswordFocused}
+              onFocus={() => setConfirmPasswordFocused(true)}
+              onBlur={() => setConfirmPasswordFocused(false)}
+              showPassword={showConfirmPassword}
+              onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
+            />
           </View>
 
           <TouchableOpacity 
@@ -112,7 +76,13 @@ const SignUpSec = () => {
             ]}
             onPress={() => {
               if (isButtonActive) {
-                // Handle sign up logic
+                navigation.navigate('SignUpThird', {
+                  email,
+                  optInEmail,
+                  acceptTerms,
+                  password,
+                  confirmPassword
+                });
               }
             }}
             disabled={!isButtonActive}
@@ -182,42 +152,6 @@ const styles = StyleSheet.create({
     color: colors.primaryBlack,
     textAlign: 'center',
     marginBottom: 32,
-  },
-  inputContainer: {
-    marginBottom: 16,
-  },
-  inputLabel: {
-    fontSize: 14,
-    color: colors.primaryGrey,
-    marginBottom: 8,
-    fontWeight: '500',
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 10,
-    height: 50,
-    overflow: 'hidden',
-  },
-  inputWrapperBlurred: {
-    backgroundColor: colors.tertiaryGrey,
-    borderColor: colors.quaternaryGrey,
-    borderWidth: 1,
-  },
-  inputWrapperFocused: {
-    backgroundColor: colors.iconWhite,
-    borderColor: colors.primaryGreen,
-    borderWidth: 1,
-  },
-  input: {
-    flex: 1,
-    height: '100%',
-    paddingHorizontal: 10,
-    fontSize: 16,
-  },
-  eyeIcon: {
-    padding: 10,
-    marginRight: 4,
   },
   continueButton: {
     height: 56,

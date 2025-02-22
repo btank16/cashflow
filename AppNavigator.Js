@@ -23,6 +23,7 @@ import IntroScreen from './app/UserInterface/Screens/AuthScreens/IntroScreen.Js'
 import SignIn from './app/UserInterface/Screens/AuthScreens/SignIn.Js';
 import SignUpFirst from './app/UserInterface/Screens/AuthScreens/SignUpFirst.Js';
 import SignUpSec from './app/UserInterface/Screens/AuthScreens/SignUpSec.Js';
+import SignUpThird from './app/UserInterface/Screens/AuthScreens/SignUpThird.Js';
 
 const Stack = createStackNavigator();
 
@@ -37,6 +38,7 @@ function AppNavigator() {
       <Stack.Screen name="SignIn" component={SignIn} />
       <Stack.Screen name="SignUpFirst" component={SignUpFirst} />
       <Stack.Screen name="SignUpSec" component={SignUpSec} />
+      <Stack.Screen name="SignUpThird" component={SignUpThird} />
       <Stack.Screen name="CalcHomeScreen" component={CalcHomeScreen} />
       <Stack.Screen name="FeedbackScreen" component={FeedbackScreen} />
       <Stack.Screen name="BRRCalcIn" component={BRRCalcIn} />

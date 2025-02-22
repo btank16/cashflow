@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, Platform, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform, StatusBar } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import colors from '../../Colors/colors.Js';
 import GreenLogo from '../../../assets/icons/GreenLogo.jsx';
 import GoogleIcon from '../../../assets/icons/GoogleIcon.jsx';
 import AppleIcon from '../../../assets/icons/AppleIcon.jsx';
-import { EyeIcon, EyeSlashIcon } from "react-native-heroicons/outline";
 import BackButton from '../../Components/BackButton.Js';
+import NormTextbox from '../../Components/NormTextbox.Js';
+import PasswordBox from '../../Components/PasswordBox.Js';
 
 const SignIn = () => {
   const navigation = useNavigation();
@@ -42,54 +43,27 @@ const SignIn = () => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Email</Text>
-          <View style={[
-            styles.inputWrapper,
-            emailFocused ? styles.inputWrapperFocused : styles.inputWrapperBlurred
-          ]}>
-            <TextInput
-              style={styles.input}
-              placeholder="example@gmail.com"
-              placeholderTextColor={colors.sixthGrey}
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              onFocus={() => setEmailFocused(true)}
-              onBlur={() => setEmailFocused(false)}
-            />
-          </View>
-        </View>
+        <NormTextbox
+          label="Email"
+          value={email}
+          onChangeText={setEmail}
+          placeholder="example@gmail.com"
+          keyboardType="email-address"
+          isFocused={emailFocused}
+          onFocus={() => setEmailFocused(true)}
+          onBlur={() => setEmailFocused(false)}
+        />
 
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Password</Text>
-          <View style={[
-            styles.inputWrapper,
-            passwordFocused ? styles.inputWrapperFocused : styles.inputWrapperBlurred
-          ]}>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter password"
-              placeholderTextColor={colors.sixthGrey}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-              onFocus={() => setPasswordFocused(true)}
-              onBlur={() => setPasswordFocused(false)}
-            />
-            <TouchableOpacity 
-              style={styles.eyeIcon}
-              onPress={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? (
-                <EyeIcon size={24} color={colors.primaryBlack} />
-              ) : (
-                <EyeSlashIcon size={24} color={colors.sixthGrey} />
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
+        <PasswordBox
+          label="Password"
+          value={password}
+          onChangeText={setPassword}
+          isFocused={passwordFocused}
+          onFocus={() => setPasswordFocused(true)}
+          onBlur={() => setPasswordFocused(false)}
+          showPassword={showPassword}
+          onTogglePassword={() => setShowPassword(!showPassword)}
+        />
 
         <TouchableOpacity 
           onPress={() => navigation.navigate('ForgotPassword')}
@@ -172,42 +146,6 @@ const styles = StyleSheet.create({
   signUpText: {
     color: colors.primaryGreen,
     fontWeight: '500',
-  },
-  inputContainer: {
-    marginBottom: 16,
-  },
-  inputLabel: {
-    fontSize: 14,
-    color: colors.primaryGrey,
-    marginBottom: 8,
-    fontWeight: '500',
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 10,
-    height: 50,
-    overflow: 'hidden',
-  },
-  inputWrapperBlurred: {
-    backgroundColor: colors.tertiaryGrey,
-    borderColor: colors.quaternaryGrey,
-    borderWidth: 1,
-  },
-  inputWrapperFocused: {
-    backgroundColor: colors.iconWhite,
-    borderColor: colors.primaryGreen,
-    borderWidth: 1,
-  },
-  input: {
-    flex: 1,
-    height: '100%',
-    paddingHorizontal: 10,
-    fontSize: 16,
-  },
-  eyeIcon: {
-    padding: 10,
-    marginRight: 4,
   },
   forgotPasswordContainer: {
     alignItems: 'flex-end',

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform, StatusBar, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { signUp } from '@aws-amplify/auth';
 import colors from '../../Colors/colors.Js';
 import NormTextbox from '../../Components/NormTextbox.Js';
 import StateDropdown from '../../Components/StateDropdown.Js';
@@ -18,6 +19,7 @@ const SignUpThird = () => {
   const [firstNameFocused, setFirstNameFocused] = useState(false);
   const [lastNameFocused, setLastNameFocused] = useState(false);
   const [isButtonActive, setIsButtonActive] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Check if all fields are filled
   React.useEffect(() => {
@@ -28,6 +30,59 @@ const SignUpThird = () => {
       targetStates.length > 0
     );
   }, [firstName, lastName, state, targetStates]);
+
+  const handleSignUp = async () => {
+    if (!isButtonActive || isLoading) return;
+
+    setIsLoading(true);
+    try {
+      // Use target states as is, just joined together
+      const targetStatesString = targetStates.join('');
+
+      console.log('Signing up with attributes:', {
+        email,
+        name: `${firstName} ${lastName}`,
+        given_name: firstName,
+        family_name: lastName,
+        'custom:email_updates': String(optInEmail),
+        'custom:terms': String(acceptTerms),
+        'custom:interest_state': state,
+        'custom:target_states': targetStatesString,
+      });
+
+      // Sign up with AWS Cognito using Gen 2 format
+      const signUpResult = await signUp({
+        username: email,
+        password,
+        options: {
+          userAttributes: {
+            email,
+            name: `${firstName} ${lastName}`,
+            given_name: firstName,
+            family_name: lastName,
+            'custom:email_updates': String(optInEmail),
+            'custom:terms': String(acceptTerms),
+            'custom:origin_state': state,
+            'custom:interest_state': targetStatesString,
+          },
+          autoSignIn: true
+        }
+      });
+
+      // Navigate to verification screen regardless of isSignUpComplete
+      navigation.navigate('VerificationScreen', { email });
+      
+    } catch (error) {
+      console.error('Sign up error:', error);
+      Alert.alert(
+        'Sign Up Failed',
+        error.message || 'Please check your information and try again.'
+      );
+      navigation.navigate('SignUpFirst');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -52,6 +107,7 @@ const SignUpThird = () => {
               isFocused={firstNameFocused}
               onFocus={() => setFirstNameFocused(true)}
               onBlur={() => setFirstNameFocused(false)}
+              autoCapitalize="words"
             />
 
             <NormTextbox
@@ -62,14 +118,13 @@ const SignUpThird = () => {
               isFocused={lastNameFocused}
               onFocus={() => setLastNameFocused(true)}
               onBlur={() => setLastNameFocused(false)}
+              autoCapitalize="words"
             />
 
             <StateDropdown
               label="Home State"
               value={state}
-              onValueChange={(itemValue) => {
-                setState(itemValue);
-              }}
+              onValueChange={setState}
               placeholder="Select your home state"
             />
 
@@ -84,16 +139,15 @@ const SignUpThird = () => {
           <TouchableOpacity 
             style={[
               styles.continueButton,
-              isButtonActive ? styles.activeButton : styles.inactiveButton
+              isButtonActive ? styles.activeButton : styles.inactiveButton,
+              isLoading && styles.loadingButton
             ]}
-            onPress={() => {
-              if (isButtonActive) {
-                // Handle sign up completion logic
-              }
-            }}
-            disabled={!isButtonActive}
+            onPress={handleSignUp}
+            disabled={!isButtonActive || isLoading}
           >
-            <Text style={styles.continueButtonText}>Continue</Text>
+            <Text style={styles.continueButtonText}>
+              {isLoading ? 'Creating Account...' : 'Continue'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -158,6 +212,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: colors.iconWhite,
+  },
+  loadingButton: {
+    opacity: 0.8,
   },
 });
 

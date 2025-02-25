@@ -21,3 +21,7 @@ This is a Mobile App developed in react native, which will function on both iOS 
 - Expense Database: This is a SQLite database that stores the expenses for each calculator. This is used to calculate the operating expenses for each calculator.
 
 ## Dependencies
+
+### AWS Amplify
+
+- Impacted files: SignIn.Js, SignUpThird.Js, VerificationScreen.Js, UserScreen.Js, AppNavigator.Js, App.Js

@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Platform, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Platform, StatusBar, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronLeftIcon, ChevronRightIcon } from "react-native-heroicons/outline";
+import { signOut } from '@aws-amplify/auth';
 import colors from '../../Colors/colors.Js';
 
 // Import icons
@@ -13,6 +14,23 @@ import ExitIcon from '../../../assets/icons/ExitIcon.jsx';
 
 const UserScreen = () => {
   const navigation = useNavigation();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      // Navigate to Auth stack after successful sign out
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Auth' }],
+      });
+    } catch (error) {
+      console.error('Error signing out:', error);
+      Alert.alert(
+        'Sign Out Failed',
+        'There was an error signing out. Please try again.'
+      );
+    }
+  };
 
   const MenuButton = ({ icon: Icon, title, color, onPress }) => (
     <TouchableOpacity style={styles.menuButton} onPress={onPress}>
@@ -77,7 +95,7 @@ const UserScreen = () => {
           icon={ExitIcon}
           title="Log out"
           color={colors.darkGreenTertiary}
-          onPress={() => navigation.navigate('Login')}
+          onPress={handleSignOut}
         />
       </View>
     </SafeAreaView>

@@ -33,10 +33,10 @@ const getTimeElapsed = (date) => {
     return `${days}d ago`;
   } else if (diffInHours < 24 * 365) {
     const months = Math.floor(diffInHours / (24 * 30));
-    return `${months}m ago`;
+    return `${months}mo ago`;
   } else {
     const years = Math.floor(diffInHours / (24 * 365));
-    return `${years}y ago`;
+    return `${years}yr ago`;
   }
 };
 

@@ -6,6 +6,7 @@ import colors from '../../Colors/colors.Js';
 import NormTextbox from '../../Components/NormTextbox.Js';
 import StateDropdown from '../../Components/StateDropdown.Js';
 import StateMultiselect from '../../Components/StateMultiselect.Js';
+import InvestmentStrategyMultiselect from '../../Components/InvestmentStrategyMultiselect.Js';
 
 const SignUpThird = () => {
   const navigation = useNavigation();
@@ -16,6 +17,7 @@ const SignUpThird = () => {
   const [lastName, setLastName] = useState('');
   const [state, setState] = useState('');
   const [targetStates, setTargetStates] = useState([]);
+  const [investmentStrategies, setInvestmentStrategies] = useState([]);
   const [firstNameFocused, setFirstNameFocused] = useState(false);
   const [lastNameFocused, setLastNameFocused] = useState(false);
   const [isButtonActive, setIsButtonActive] = useState(false);
@@ -27,9 +29,10 @@ const SignUpThird = () => {
       firstName.length > 0 && 
       lastName.length > 0 && 
       state.length > 0 && 
-      targetStates.length > 0
+      targetStates.length > 0 &&
+      investmentStrategies.length > 0
     );
-  }, [firstName, lastName, state, targetStates]);
+  }, [firstName, lastName, state, targetStates, investmentStrategies]);
 
   const handleSignUp = async () => {
     if (!isButtonActive || isLoading) return;
@@ -38,6 +41,7 @@ const SignUpThird = () => {
     try {
       // Use target states as is, just joined together
       const targetStatesString = targetStates.join('');
+      const investmentStrategiesString = investmentStrategies.join('');
 
       console.log('Signing up with attributes:', {
         email,
@@ -48,6 +52,7 @@ const SignUpThird = () => {
         'custom:terms': String(acceptTerms),
         'custom:interest_state': state,
         'custom:target_states': targetStatesString,
+        'custom:investment_strategies': investmentStrategiesString,
       });
 
       // Sign up with AWS Cognito using Gen 2 format
@@ -64,6 +69,7 @@ const SignUpThird = () => {
             'custom:terms': String(acceptTerms),
             'custom:origin_state': state,
             'custom:interest_state': targetStatesString,
+            'custom:invest_strategy': investmentStrategiesString,
           },
           autoSignIn: true
         }
@@ -133,6 +139,13 @@ const SignUpThird = () => {
               value={targetStates}
               onValueChange={setTargetStates}
               placeholder="Select your target market"
+            />
+
+            <InvestmentStrategyMultiselect
+              label="Investment Strategy"
+              value={investmentStrategies}
+              onValueChange={setInvestmentStrategies}
+              placeholder="Select your investment strategies"
             />
           </View>
 

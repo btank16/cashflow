@@ -35,9 +35,6 @@ const SignIn = () => {
       const signInResult = await signIn({
         username: email.toLowerCase().trim(),
         password,
-        options: {
-          authFlowType: "USER_PASSWORD_AUTH"
-        }
       });
 
       console.log('Sign in result:', signInResult);

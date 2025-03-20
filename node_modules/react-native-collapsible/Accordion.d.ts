@@ -118,7 +118,7 @@ export interface AccordionProps<T> {
    *
    * @default TouchableHighlight
    */
-  touchableComponent?: React.ComponentType;
+  touchableComponent?: React.ComponentClass;
 
   /**
    * Object of props to pass to the touchable component

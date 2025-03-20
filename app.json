@@ -35,11 +35,6 @@
     "updates": {
       "url": "https://u.expo.dev/13cedaf9-9498-4cab-ad7a-81166055290b"
     },
-    "plugins": [
-      "expo-asset"
-    ],
-    "experiments": {
-      "newArchEnabled": true
-    }
+    "plugins": ["expo-asset"]
   }
 }

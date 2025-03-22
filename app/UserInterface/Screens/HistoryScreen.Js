@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Platform, View, SafeAreaView, FlatList, StyleSheet, TouchableOpacity, Text, ScrollView } from 'react-native';
+import { Platform, View, SafeAreaView, FlatList, StyleSheet, TouchableOpacity, Text, ScrollView, StatusBar } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronLeftIcon } from 'react-native-heroicons/outline';
 import { useDatabase } from '../../../database/cashflowDatabase.Js';

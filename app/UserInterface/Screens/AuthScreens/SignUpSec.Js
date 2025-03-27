@@ -9,7 +9,7 @@ import PasswordBox from '../../Components/PasswordBox.Js';
 const SignUpSec = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { email, optInEmail, acceptTerms } = route.params;
+  const { email } = route.params;
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -78,8 +78,6 @@ const SignUpSec = () => {
               if (isButtonActive) {
                 navigation.navigate('SignUpThird', {
                   email,
-                  optInEmail,
-                  acceptTerms,
                   password,
                   confirmPassword
                 });

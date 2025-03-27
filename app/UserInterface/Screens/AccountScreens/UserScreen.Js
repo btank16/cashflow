@@ -24,7 +24,6 @@ const UserScreen = () => {
         routes: [{ name: 'Auth' }],
       });
     } catch (error) {
-      console.error('Error signing out:', error);
       Alert.alert(
         'Sign Out Failed',
         'There was an error signing out. Please try again.'

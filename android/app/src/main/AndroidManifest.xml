@@ -26,8 +26,15 @@
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:scheme="cashflow"/>
         <data android:scheme="com.btanski.cashflow"/>
         <data android:scheme="exp+cashflow"/>
+      </intent-filter>
+      <intent-filter android:autoVerify="true" data-generated="true">
+        <action android:name="android.intent.action.VIEW"/>
+        <data android:scheme="https" android:host="3f63ead00107678794a4.auth.us-east-1.amazoncognito.com" android:pathPrefix="/oauth2/idpresponse"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <category android:name="android.intent.category.DEFAULT"/>
       </intent-filter>
     </activity>
   </application>

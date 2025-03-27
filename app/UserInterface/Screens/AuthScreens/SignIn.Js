@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform, StatusBar, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { signIn } from '@aws-amplify/auth';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { signIn, fetchAuthSession } from '@aws-amplify/auth';
 import colors from '../../Colors/colors.Js';
 import GreenLogo from '../../../assets/icons/GreenLogo.jsx';
-import GoogleIcon from '../../../assets/icons/GoogleIcon.jsx';
-import AppleIcon from '../../../assets/icons/AppleIcon.jsx';
 import BackButton from '../../Components/BackButton.Js';
 import NormTextbox from '../../Components/NormTextbox.Js';
 import PasswordBox from '../../Components/PasswordBox.Js';
+import SocialSignInButton from '../../Components/SocialSignInButton.Js';
+import { handleOAuthRedirect, forceCheckAuthAndRedirect, hasActiveSession } from '../../Utils/AuthUtils.Js';
 
 const SignIn = () => {
   const navigation = useNavigation();
@@ -19,6 +19,57 @@ const SignIn = () => {
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSocialSignInLoading, setIsSocialSignInLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(false);
+
+  // Check for active auth session when the screen mounts, but only if we have a session
+  useEffect(() => {
+    const initialAuthCheck = async () => {
+      try {
+        // First check if there's actually a session before proceeding
+        const sessionActive = await hasActiveSession();
+        if (sessionActive) {
+          setCheckingAuth(true);
+          await forceCheckAuthAndRedirect(navigation);
+        }
+      } catch (error) {
+        // Silently handle errors
+      } finally {
+        setCheckingAuth(false);
+      }
+    };
+    
+    initialAuthCheck();
+  }, []);
+
+  // Check for OAuth redirects when screen focuses
+  useFocusEffect(
+    React.useCallback(() => {
+      const checkAuthStatus = async () => {
+        try {
+          // Check if there's an active session before attempting auth operations
+          const sessionActive = await hasActiveSession();
+          if (!sessionActive) {
+            setCheckingAuth(false);
+            setIsSocialSignInLoading(false);
+            return;
+          }
+          
+          setCheckingAuth(true);
+          // We have an active session, handle the OAuth redirect
+          await handleOAuthRedirect(navigation);
+        } catch (error) {
+          // Silently handle errors
+        } finally {
+          setCheckingAuth(false);
+          setIsSocialSignInLoading(false);
+        }
+      };
+
+      // Only run the check when the component mounts or screen focuses
+      checkAuthStatus();
+    }, [navigation])
+  );
 
   // Check if both email and password are filled
   React.useEffect(() => {
@@ -30,14 +81,10 @@ const SignIn = () => {
     
     setIsLoading(true);
     try {
-      console.log('Attempting to sign in with:', { username: email });
-      
       const signInResult = await signIn({
         username: email.toLowerCase().trim(),
         password,
       });
-
-      console.log('Sign in result:', signInResult);
 
       if (signInResult.isSignedIn) {
         navigation.reset({
@@ -46,11 +93,7 @@ const SignIn = () => {
         });
       }
     } catch (error) {
-      console.error('Sign in error details:', {
-        name: error.name,
-        message: error.message,
-        code: error.code
-      });
+      console.error('Sign in error:', error);
 
       let errorMessage = 'Please check your credentials and try again.';
       if (error.name === 'UserNotConfirmedException') {
@@ -126,7 +169,7 @@ const SignIn = () => {
             isLoading && styles.loadingButton
           ]}
           onPress={handleSignIn}
-          disabled={!isButtonActive || isLoading}
+          disabled={!isButtonActive || isLoading || checkingAuth}
         >
           <Text style={styles.signInButtonText}>
             {isLoading ? 'Signing In...' : 'Sign In'}
@@ -140,16 +183,16 @@ const SignIn = () => {
         </View>
 
         <View style={styles.socialButtonsContainer}>
-          <TouchableOpacity style={[styles.socialButton, styles.disabledButton]} disabled>
-            <View style={styles.socialIconContainer}>
-              <GoogleIcon />
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.socialButton, styles.disabledButton]} disabled>
-            <View style={styles.socialIconContainer}>
-              <AppleIcon />
-            </View>
-          </TouchableOpacity>
+          <SocialSignInButton 
+            provider="google" 
+            onSignInStart={(loading = true) => setIsSocialSignInLoading(loading)}
+            style={isSocialSignInLoading || checkingAuth ? styles.loadingButton : null}
+          />
+          <SocialSignInButton 
+            provider="apple" 
+            onSignInStart={(loading = true) => setIsSocialSignInLoading(loading)}
+            style={isSocialSignInLoading || checkingAuth ? styles.loadingButton : null}
+          />
         </View>
       </View>
     </SafeAreaView>
@@ -238,25 +281,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 16,
   },
-  socialButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.tertiaryGrey,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  socialIconContainer: {
-    width: 24,
-    height: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   loadingButton: {
     opacity: 0.8,
-  },
-  disabledButton: {
-    opacity: 0.5,
   },
 });
 

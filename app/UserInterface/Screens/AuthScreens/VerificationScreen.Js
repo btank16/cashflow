@@ -30,7 +30,6 @@ const VerificationScreen = () => {
         }],
       });
     } catch (error) {
-      console.error('Verification error:', error);
       Alert.alert(
         'Verification Failed',
         error.message || 'Please check your verification code and try again.'
@@ -51,7 +50,6 @@ const VerificationScreen = () => {
         'A new verification code has been sent to your email.'
       );
     } catch (error) {
-      console.error('Resend code error:', error);
       Alert.alert(
         'Failed to Resend Code',
         error.message || 'Please try again later.'

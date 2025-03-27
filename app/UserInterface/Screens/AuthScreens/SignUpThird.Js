@@ -1,27 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform, StatusBar, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { signUp } from '@aws-amplify/auth';
+import { signUp, updateUserAttributes, fetchUserAttributes } from '@aws-amplify/auth';
 import colors from '../../Colors/colors.Js';
 import NormTextbox from '../../Components/NormTextbox.Js';
 import StateDropdown from '../../Components/StateDropdown.Js';
 import StateMultiselect from '../../Components/StateMultiselect.Js';
 import InvestmentStrategyMultiselect from '../../Components/InvestmentStrategyMultiselect.Js';
+import InterestCheckbox from '../../Components/InterestCheckbox.Js';
 
 const SignUpThird = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { email, optInEmail, acceptTerms, password, confirmPassword } = route.params;
+  const { email, password, confirmPassword, isOAuthUser } = route.params || {};
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [userEmail, setUserEmail] = useState(email || '');
   const [state, setState] = useState('');
   const [targetStates, setTargetStates] = useState([]);
   const [investmentStrategies, setInvestmentStrategies] = useState([]);
+  const [optInEmail, setOptInEmail] = useState(true);
+  const [acceptTerms, setAcceptTerms] = useState(true);
   const [firstNameFocused, setFirstNameFocused] = useState(false);
   const [lastNameFocused, setLastNameFocused] = useState(false);
   const [isButtonActive, setIsButtonActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // If user is coming from OAuth, try to prefill values
+  useEffect(() => {
+    if (isOAuthUser) {
+      const getOAuthUserDetails = async () => {
+        try {
+          const userAttributes = await fetchUserAttributes();
+
+          // Prefill values if available
+          if (userAttributes.email) {
+            setUserEmail(userAttributes.email);
+          }
+          // Try to get first name from custom attribute first, then fall back to given_name if available
+          if (userAttributes['custom:firstName']) {
+            setFirstName(userAttributes['custom:firstName']);
+          } else if (userAttributes.given_name) {
+            setFirstName(userAttributes.given_name);
+          }
+          // Try to get last name from custom attribute first, then fall back to family_name if available
+          if (userAttributes['custom:lastName']) {
+            setLastName(userAttributes['custom:lastName']);
+          } else if (userAttributes.family_name) {
+            setLastName(userAttributes.family_name);
+          }
+        } catch (error) {
+          console.error('Auth error:', error);
+        }
+      };
+
+      getOAuthUserDetails();
+    }
+  }, [isOAuthUser]);
 
   // Check if all fields are filled
   React.useEffect(() => {
@@ -43,51 +79,65 @@ const SignUpThird = () => {
       const targetStatesString = targetStates.join('');
       const investmentStrategiesString = investmentStrategies.join('');
 
-      console.log('Signing up with attributes:', {
-        email,
+      const userAttributes = {
         name: `${firstName} ${lastName}`,
-        given_name: firstName,
-        family_name: lastName,
+        'custom:firstName': firstName,
+        'custom:lastName': lastName,
         'custom:email_updates': String(optInEmail),
         'custom:terms': String(acceptTerms),
-        'custom:interest_state': state,
-        'custom:target_states': targetStatesString,
-        'custom:investment_strategies': investmentStrategiesString,
-      });
+        'custom:origin_state': state,
+        'custom:interest_state': targetStatesString,
+        'custom:invest_strategy': investmentStrategiesString,
+      };
 
-      // Sign up with AWS Cognito using Gen 2 format
-      const signUpResult = await signUp({
-        username: email,
-        password,
-        options: {
-          userAttributes: {
-            email,
-            name: `${firstName} ${lastName}`,
-            given_name: firstName,
-            family_name: lastName,
-            'custom:email_updates': String(optInEmail),
-            'custom:terms': String(acceptTerms),
-            'custom:origin_state': state,
-            'custom:interest_state': targetStatesString,
-            'custom:invest_strategy': investmentStrategiesString,
-          },
-          autoSignIn: true
-        }
-      });
+      if (isOAuthUser) {
+        // For OAuth users, update their attributes instead of signing up
+        await updateUserAttributes({ userAttributes });
 
-      // Navigate to verification screen regardless of isSignUpComplete
-      navigation.navigate('VerificationScreen', { email });
-      
+        // Navigate directly to main app for OAuth users
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Main', params: { screen: 'CalcHomeScreen' } }],
+        });
+      } else {
+        // For regular email users, proceed with sign up
+        await signUp({
+          username: userEmail,
+          password,
+          options: {
+            userAttributes: {
+              email: userEmail,
+              ...userAttributes
+            },
+            autoSignIn: true
+          }
+        });
+
+        // Regular users need to go through verification
+        navigation.navigate('VerificationScreen', { email: userEmail });
+      }
     } catch (error) {
-      console.error('Sign up error:', error);
+      console.error('Auth error:', error);
       Alert.alert(
         'Sign Up Failed',
         error.message || 'Please check your information and try again.'
       );
-      navigation.navigate('SignUpFirst');
+      
+      if (!isOAuthUser) {
+        navigation.navigate('SignUpFirst');
+      }
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Helper function to render terms with colored parts
+  const renderTermsText = () => {
+    return (
+      <Text style={styles.termsText}>
+        By clicking Continue you accept our <Text style={styles.highlightedText}>Terms & Conditions</Text> and <Text style={styles.highlightedText}>Privacy Policy</Text>
+      </Text>
+    );
   };
 
   return (
@@ -149,19 +199,30 @@ const SignUpThird = () => {
             />
           </View>
 
-          <TouchableOpacity 
-            style={[
-              styles.continueButton,
-              isButtonActive ? styles.activeButton : styles.inactiveButton,
-              isLoading && styles.loadingButton
-            ]}
-            onPress={handleSignUp}
-            disabled={!isButtonActive || isLoading}
-          >
-            <Text style={styles.continueButtonText}>
-              {isLoading ? 'Creating Account...' : 'Continue'}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.bottomSection}>
+            <View style={styles.agreementSection}>
+              <InterestCheckbox
+                label="Do you want opt into our email?"
+                value={optInEmail}
+                onValueChange={setOptInEmail}
+              />
+              {renderTermsText()}
+            </View>
+
+            <TouchableOpacity 
+              style={[
+                styles.continueButton,
+                isButtonActive ? styles.activeButton : styles.inactiveButton,
+                isLoading && styles.loadingButton
+              ]}
+              onPress={handleSignUp}
+              disabled={!isButtonActive || isLoading}
+            >
+              <Text style={styles.continueButtonText}>
+                {isLoading ? (isOAuthUser ? 'Saving Profile...' : 'Creating Account...') : 'Continue'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </SafeAreaView>
@@ -207,6 +268,22 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     marginBottom: 24,
     marginTop: 8,
+  },
+  bottomSection: {
+    marginTop: 16, 
+  },
+  agreementSection: {
+    marginBottom: 16,
+  },
+  termsText: {
+    color: colors.primaryBlack,
+    textAlign: 'center',
+    fontSize: 14,
+    paddingHorizontal: 16,
+  },
+  highlightedText: {
+    color: colors.primaryGreen,
+    fontWeight: '500',
   },
   continueButton: {
     height: 56,

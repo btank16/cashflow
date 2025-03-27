@@ -1,33 +1,85 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform, StatusBar } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { fetchAuthSession } from '@aws-amplify/auth';
 import colors from '../../Colors/colors.Js';
 import BackButton from '../../Components/BackButton.Js';
 import MailIcon from '../../../assets/icons/MailIcon.jsx';
-import GoogleIcon from '../../../assets/icons/GoogleIcon.jsx';
-import AppleIcon from '../../../assets/icons/AppleIcon.jsx';
-import InterestCheckbox from '../../Components/InterestCheckbox.Js';
 import NormTextbox from '../../Components/NormTextbox.Js';
+import SocialSignInButton from '../../Components/SocialSignInButton.Js';
+import { handleOAuthRedirect, forceCheckAuthAndRedirect, hasActiveSession } from '../../Utils/AuthUtils.Js';
 
 const SignUpFirst = () => {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [emailFocused, setEmailFocused] = useState(false);
-  const [optInEmail, setOptInEmail] = useState(false);
-  const [acceptTerms, setAcceptTerms] = useState(false);
   const [isButtonActive, setIsButtonActive] = useState(false);
+  const [isSocialSignUpLoading, setIsSocialSignUpLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(false);
 
-  // Check if email is filled and terms are accepted
+  // Check for active auth session when the screen mounts, but only if we have a session
+  useEffect(() => {
+    const initialAuthCheck = async () => {
+      try {
+        // First check if there's actually a session before proceeding
+        const sessionActive = await hasActiveSession();
+        if (sessionActive) {
+          setCheckingAuth(true);
+          await forceCheckAuthAndRedirect(navigation);
+        }
+      } catch (error) {
+        // Silently handle errors
+      } finally {
+        setCheckingAuth(false);
+      }
+    };
+    
+    initialAuthCheck();
+  }, []);
+
+  // Check for OAuth redirects when screen focuses
+  useFocusEffect(
+    React.useCallback(() => {
+      const checkAuthStatus = async () => {
+        try {
+          // Check if there's an active session before attempting auth operations
+          const sessionActive = await hasActiveSession();
+          if (!sessionActive) {
+            setCheckingAuth(false);
+            setIsSocialSignUpLoading(false);
+            return;
+          }
+          
+          setCheckingAuth(true);
+          // We have an active session, handle the OAuth redirect
+          await handleOAuthRedirect(navigation);
+        } catch (error) {
+          // Silently handle errors
+        } finally {
+          setCheckingAuth(false);
+          setIsSocialSignUpLoading(false);
+        }
+      };
+
+      // Only run the check when the component mounts or screen focuses
+      checkAuthStatus();
+      
+      // Cleanup function
+      return () => {
+        // Any cleanup needed
+      };
+    }, [navigation])
+  );
+
+  // Check if email is filled
   React.useEffect(() => {
-    setIsButtonActive(email.length > 0 && acceptTerms);
-  }, [email, acceptTerms]);
+    setIsButtonActive(email.length > 0);
+  }, [email]);
 
   const handleContinue = () => {
-    if (isButtonActive) {
+    if (isButtonActive && !checkingAuth) {
       navigation.navigate('SignUpSec', {
         email,
-        optInEmail,
-        acceptTerms
       });
     }
   };
@@ -79,40 +131,28 @@ const SignUpFirst = () => {
             </View>
 
             <View style={styles.socialButtonsContainer}>
-              <TouchableOpacity style={styles.socialButton}>
-                <View style={styles.socialIconContainer}>
-                  <GoogleIcon />
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.socialButton}>
-                <View style={styles.socialIconContainer}>
-                  <AppleIcon />
-                </View>
-              </TouchableOpacity>
+              <SocialSignInButton 
+                provider="google" 
+                onSignInStart={(loading = true) => setIsSocialSignUpLoading(loading)}
+                style={isSocialSignUpLoading || checkingAuth ? styles.loadingButton : null}
+              />
+              <SocialSignInButton 
+                provider="apple" 
+                onSignInStart={(loading = true) => setIsSocialSignUpLoading(loading)}
+                style={isSocialSignUpLoading || checkingAuth ? styles.loadingButton : null}
+              />
             </View>
           </View>
 
           <View style={styles.bottomContent}>
-            <View style={styles.checkboxContainer}>
-              <InterestCheckbox
-                label="Do you want opt into our email?"
-                value={optInEmail}
-                onValueChange={setOptInEmail}
-              />
-              <InterestCheckbox
-                label="By clicking Continue you accept our Terms & Conditions and Privacy Policy"
-                value={acceptTerms}
-                onValueChange={setAcceptTerms}
-              />
-            </View>
-
             <TouchableOpacity 
               style={[
                 styles.continueButton,
-                isButtonActive ? styles.activeButton : styles.inactiveButton
+                isButtonActive ? styles.activeButton : styles.inactiveButton,
+                checkingAuth && styles.loadingButton
               ]}
               onPress={handleContinue}
-              disabled={!isButtonActive}
+              disabled={!isButtonActive || checkingAuth}
             >
               <Text style={styles.continueButtonText}>Continue</Text>
             </TouchableOpacity>
@@ -213,23 +253,8 @@ const styles = StyleSheet.create({
     gap: 16,
     marginBottom: 24,
   },
-  socialButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.tertiaryGrey,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  socialIconContainer: {
-    width: 24,
-    height: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  checkboxContainer: {
-    marginLeft: -16,
-    marginBottom: 8,
+  loadingButton: {
+    opacity: 0.8,
   },
   continueButton: {
     height: 56,

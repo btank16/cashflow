@@ -1,11 +1,13 @@
-import { getCurrentUser, fetchUserAttributes, fetchAuthSession } from '@aws-amplify/auth';
+import { getCurrentUser, fetchUserAttributes, fetchAuthSession } from 'aws-amplify/auth';
+import { useNavigation } from '@react-navigation/native';
 
 // Function to check if a session exists before running authentication checks
 export const hasActiveSession = async () => {
   try {
     const session = await fetchAuthSession();
-    return !!session?.tokens;
+    return !!session?.tokens?.idToken;
   } catch (error) {
+    console.log('No active session found:', error);
     return false;
   }
 };
@@ -132,6 +134,52 @@ export const forceCheckAuthAndRedirect = async (navigation) => {
     }
     return false;
   } catch (error) {
+    return false;
+  }
+};
+
+/**
+ * Retrieves the current authenticated user if available
+ * @returns {Promise<AuthUser|null>} The current authenticated user or null
+ */
+export const getAuthenticatedUser = async () => {
+  try {
+    const user = await getCurrentUser();
+    return user;
+  } catch (error) {
+    console.log('No authenticated user found:', error);
+    return null;
+  }
+};
+
+/**
+ * Handles automatic login when app is launched or resumed
+ * @param {function} navigationCallback - Optional callback for custom navigation
+ * @returns {Promise<boolean>} True if auto login was successful
+ */
+export const handleAutoLogin = async (navigationCallback = null) => {
+  try {
+    // Check if we have an active session
+    const isSessionActive = await hasActiveSession();
+    
+    if (isSessionActive) {
+      // Get the current user information
+      const user = await getAuthenticatedUser();
+      
+      // If we have both an active session and user information, we're properly authenticated
+      if (user) {
+        console.log('Auto login successful for user:', user.username);
+        
+        // Navigate the user if a navigation callback is provided
+        if (navigationCallback) {
+          navigationCallback(user);
+        }
+        return true;
+      }
+    }
+    return false;
+  } catch (error) {
+    console.error('Error during auto login:', error);
     return false;
   }
 }; 

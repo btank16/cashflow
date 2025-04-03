@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { Linking } from 'react-native';
 import AppNavigator from './AppNavigator.Js';
@@ -7,7 +7,7 @@ import { initHistoryDB } from './database/cashflowDatabase.Js';
 import { Amplify } from 'aws-amplify';
 import * as WebBrowser from 'expo-web-browser';
 import awsconfig from './amplify_outputs.json';
-import { forceCheckAuthAndRedirect, hasActiveSession } from './app/UserInterface/Utils/AuthUtils.Js';
+import { forceCheckAuthAndRedirect, hasActiveSession, checkIsFirstTimeUser } from './app/UserInterface/Utils/AuthUtils.Js';
 import { initWebBrowserConfig } from './app/UserInterface/Utils/WebBrowserConfig.Js';
 
 // Initialize WebBrowser configuration for OAuth
@@ -64,36 +64,63 @@ const handleDeepLink = (event) => {
 Linking.addEventListener('url', handleDeepLink);
 
 function App() {
+  const navigationRef = useRef(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [initialRoute, setInitialRoute] = useState('Auth');
+  const [isFirstTimeUser, setIsFirstTimeUser] = useState(false);
+
   // Check for any deep links or handle authentication at startup
   useEffect(() => {
-    const handleInitialURL = async () => {
+    const checkAuthStatus = async () => {
       try {
-        // Get any URL that may have launched the app
-        const initialUrl = await Linking.getInitialURL();
-        
-        // Only check auth if there's an active session
+        setIsLoading(true);
+        // Check if we have an active session
         const sessionActive = await hasActiveSession();
+        
         if (sessionActive) {
-          await forceCheckAuthAndRedirect(null);
+          // If session is active, get user status
+          const userStatus = await checkIsFirstTimeUser();
+          
+          if (userStatus.isAuthenticated) {
+            setIsAuthenticated(true);
+            setIsFirstTimeUser(userStatus.isFirstTimeUser);
+            
+            // Determine initial route based on user status
+            if (userStatus.isFirstTimeUser) {
+              setInitialRoute('Auth');
+              // We'll navigate to the SignUpThird screen after mounting
+            } else {
+              setInitialRoute('Main');
+            }
+          } else {
+            setIsAuthenticated(false);
+            setInitialRoute('Auth');
+          }
+        } else {
+          setIsAuthenticated(false);
+          setInitialRoute('Auth');
         }
       } catch (error) {
-        // Silently handle errors
+        console.log('Error checking authentication status:', error);
+        setIsAuthenticated(false);
+        setInitialRoute('Auth');
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    handleInitialURL();
+    // Check auth status when app starts
+    checkAuthStatus();
     
     // Set up a listener to handle when the app returns from background
     const subscription = Linking.addEventListener('url', ({ url }) => {
-      // After a short delay, safely check auth status
+      // After a short delay, check auth status again
       setTimeout(async () => {
         try {
-          const sessionActive = await hasActiveSession();
-          if (sessionActive) {
-            await forceCheckAuthAndRedirect(null);
-          }
+          await checkAuthStatus();
         } catch (error) {
-          // Silently handle errors
+          console.log('Error handling URL event:', error);
         }
       }, 300);
     });
@@ -101,9 +128,32 @@ function App() {
     return () => subscription.remove();
   }, []);
 
+  // Effect to handle navigation after authentication is determined
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      if (isFirstTimeUser) {
+        // Navigate to complete profile for first time users
+        if (navigationRef.current) {
+          navigationRef.current.navigate('SignUpThird', { isOAuthUser: true });
+        }
+      } else if (initialRoute === 'Main') {
+        // Navigate to home screen for returning users
+        if (navigationRef.current) {
+          navigationRef.current.navigate('Main', { screen: 'CalcHomeScreen' });
+        }
+      }
+    }
+  }, [isLoading, isAuthenticated, isFirstTimeUser, initialRoute]);
+
+  // Don't render anything while checking authentication
+  if (isLoading) {
+    return null; // Or a loading spinner if you prefer
+  }
+
   return (
     <SQLiteProvider databaseName="cashflow.db" onInit={initHistoryDB}>
       <NavigationContainer
+        ref={navigationRef}
         linking={{
           prefixes: ['cashflow://', 'https://3f63ead00107678794a4.auth.us-east-1.amazoncognito.com'],
           config: {
@@ -122,7 +172,7 @@ function App() {
           }
         }}
       >
-        <AppNavigator />
+        <AppNavigator initialRouteName={initialRoute} />
       </NavigationContainer>
     </SQLiteProvider>
   );

@@ -64,9 +64,10 @@ const MainStack = () => (
   </Stack.Navigator>
 );
 
-function AppNavigator() {
+function AppNavigator({ initialRouteName = 'Auth' }) {
   return (
     <Stack.Navigator
+      initialRouteName={initialRouteName}
       screenOptions={{
         headerShown: false,
       }}

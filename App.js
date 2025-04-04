@@ -11,6 +11,7 @@ import { forceCheckAuthAndRedirect, hasActiveSession, checkIsFirstTimeUser } fro
 import { initWebBrowserConfig } from './app/UserInterface/Utils/WebBrowserConfig.Js';
 import LottieView from 'lottie-react-native';
 import colors from './app/UserInterface/Colors/colors.Js';
+import AnimationLoader from './app/UserInterface/Components/AnimationLoader.Js';
 
 // Initialize WebBrowser configuration for OAuth
 initWebBrowserConfig();
@@ -136,7 +137,7 @@ function App() {
   }, []);
 
   // Hard-coded animation duration - 4000ms (4 seconds)
-  const ANIMATION_DURATION = 800;
+  const ANIMATION_DURATION = 1500;
 
   // Handle animation timing - with improved initialization
   useEffect(() => {
@@ -196,41 +197,17 @@ function App() {
   // Show animation while loading or if animation needs to complete
   if (showAnimation) {
     return (
-      <View style={[
-        styles.loadingContainer,
-        // Apply fade-out animation if needed
-        fadeOutAnimation && { opacity: 0, transition: 'opacity 300ms' }
-      ]}>
-        <View style={styles.animationBackground}>
-          <LottieView
-            ref={animationRef}
-            source={require('./app/assets/animations/LogoAnimation.json')}
-            autoPlay={false}
-            loop={!authCheckComplete}
-            style={styles.animation}
-            resizeMode="contain"
-            speed={1.5}
-            renderMode="AUTOMATIC"
-            onLayout={() => {
-              setIsAnimationReady(true);
-            }}
-            onAnimationFinish={() => {
-              if (authCheckComplete && animationDurationElapsed) {
-                // Start fade-out instead of immediately hiding
-                setFadeOutAnimation(true);
-                
-                // After a short fade, hide the animation screen
-                setTimeout(() => {
-                  setShowAnimation(false);
-                  setIsLoading(false);
-                }, 300);
-              } else if (!authCheckComplete && animationRef.current) {
-                animationRef.current.play();
-              }
-            }}
-          />
-        </View>
-      </View>
+      <AnimationLoader 
+        animationRef={animationRef}
+        authCheckComplete={authCheckComplete}
+        fadeOutAnimation={fadeOutAnimation}
+        isAnimationReady={isAnimationReady}
+        animationDurationElapsed={animationDurationElapsed}
+        setIsAnimationReady={setIsAnimationReady}
+        setFadeOutAnimation={setFadeOutAnimation}
+        setShowAnimation={setShowAnimation}
+        setIsLoading={setIsLoading}
+      />
     );
   }
 
@@ -270,32 +247,7 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: colors.darkGreenPrimary, // Match animation background
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.darkGreenPrimary,
-    // Add this to ensure it covers the entire screen
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 10, // Ensure it's on top
-  },
-  animationBackground: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '100%',
-    height: '100%',
-    backgroundColor: colors.darkGreenPrimary,
-  },
-  animation: {
-    width: 300,
-    height: 300,
-  },
+  }
 });
 
 //   <SQLiteProvider databaseName="cashflow.db" onInit={async (db) => {await initHistoryDB(db); await logDatabasePath();}}>

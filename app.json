@@ -12,16 +12,34 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "scheme": "cashflow",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.btanski.cashflow"
+      "bundleIdentifier": "com.btanski.cashflow",
+      "associatedDomains": [
+        "applinks:3f63ead00107678794a4.auth.us-east-1.amazoncognito.com"
+      ]
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./app/assets/images/CashflowAppIcon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.btanski.cashflow"
+      "package": "com.btanski.cashflow",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "3f63ead00107678794a4.auth.us-east-1.amazoncognito.com",
+              "pathPrefix": "/oauth2/idpresponse"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "favicon": "./app/assets/images/CashflowAppIcon.png"
@@ -31,15 +49,10 @@
         "projectId": "13cedaf9-9498-4cab-ad7a-81166055290b"
       }
     },
+    "plugins": ["expo-asset"],
     "runtimeVersion": "1.2.0",
     "updates": {
       "url": "https://u.expo.dev/13cedaf9-9498-4cab-ad7a-81166055290b"
-    },
-    "plugins": [
-      "expo-asset"
-    ],
-    "experiments": {
-      "newArchEnabled": true
     }
   }
 }

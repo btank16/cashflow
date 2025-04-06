@@ -19,6 +19,7 @@ import UserScreen from './app/UserInterface/Screens/AccountScreens/UserScreen.Js
 import ExpenseScreen from './app/UserInterface/Screens/AccountScreens/ExpenseScreen.Js';
 import FirstAddExpense from './app/UserInterface/Screens/AccountScreens/FirstAddExpense.Js';
 import SecondAddExpense from './app/UserInterface/Screens/AccountScreens/SecondAddExpense.Js';
+import AttributeScreen from './app/UserInterface/Screens/AccountScreens/AttributeScreen.Js';
 import IntroScreen from './app/UserInterface/Screens/AuthScreens/IntroScreen.Js';
 import SignIn from './app/UserInterface/Screens/AuthScreens/SignIn.Js';
 import SignUpFirst from './app/UserInterface/Screens/AuthScreens/SignUpFirst.Js';
@@ -58,6 +59,7 @@ const MainStack = () => (
     <Stack.Screen name="WholesaleCalcOut" component={WholesaleCalcOut} />
     <Stack.Screen name="HistoryScreen" component={HistoryScreen} />
     <Stack.Screen name="UserScreen" component={UserScreen} />
+    <Stack.Screen name="AttributeScreen" component={AttributeScreen} />
     <Stack.Screen name="ExpenseScreen" component={ExpenseScreen} />
     <Stack.Screen name="FirstAddExpense" component={FirstAddExpense} />
     <Stack.Screen name="SecondAddExpense" component={SecondAddExpense} />

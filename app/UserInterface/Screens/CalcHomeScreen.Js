@@ -1,7 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, StyleSheet, SafeAreaView, StatusBar, Text, TouchableOpacity, Image, ScrollView, Modal, Platform } from "react-native";
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { InformationCircleIcon, ChevronRightIcon, XMarkIcon } from 'react-native-heroicons/outline';
+import { getUserAttribute } from '../Utils/UserAttributesCache.Js';
 import colors from '../Colors/colors.Js';
 import { useDatabase } from '../../../database/cashflowDatabase.Js';
 import RentalIcon from '../../assets/icons/RentalIcon.jsx';
@@ -82,11 +83,34 @@ function CalcHomeScreen() {
   const { getAllCalculations, deleteCalculation } = useDatabase();
   const [history, setHistory] = useState([]);
   const [selectedArticle, setSelectedArticle] = useState(null);
+  const [firstName, setFirstName] = useState('');
 
   const loadHistory = useCallback(async () => {
     const allCalculations = await getAllCalculations();
     setHistory(allCalculations.slice(0, 3)); // Get only the 3 most recent calculations
   }, [getAllCalculations]);
+
+  // Fetch user attributes when component mounts
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        // Use the cached user attributes instead of making a direct API call
+        const firstNameValue = await getUserAttribute('custom:firstName');
+        if (firstNameValue) {
+          setFirstName(firstNameValue);
+        } else {
+          // Fallback to get given_name if custom:firstName is not available
+          const givenName = await getUserAttribute('given_name');
+          setFirstName(givenName || 'User');
+        }
+      } catch (error) {
+        console.error('Error fetching user attributes:', error);
+        setFirstName('User');
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -224,7 +248,7 @@ function CalcHomeScreen() {
         </View>
       </View>
       <ScrollView style={styles.contentContainer}>
-        <Text style={styles.welcomeText}>Welcome, User!</Text>
+        <Text style={styles.welcomeText}>Welcome, {firstName || 'User'}!</Text>
         <View style={styles.calculatorsGrid}>
           {calculators.map((calc, index) => (
             <CalculatorButton 

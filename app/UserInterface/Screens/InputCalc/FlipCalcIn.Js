@@ -46,10 +46,6 @@ function FlipCalcIn(props) {
     const [operatingExpenses, setOperatingExpenses] = useState([]);
     const [saveNewExpenses, setSaveNewExpenses] = useState(false);
 
-    const uid = () => {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2);
-    }
-
     useEffect(() => {
         checkFormValidity();
 
@@ -208,8 +204,6 @@ function FlipCalcIn(props) {
             }
         };
 
-        const id = calculationId || uid();
-
         const expenseResults = expenses(
             inputValues.purchasePrice,
             inputValues.downPayment,
@@ -256,15 +250,15 @@ function FlipCalcIn(props) {
         };
 
         try {
-            await saveCalculation('flip', inputValues, results, id);
+            const savedId = await saveCalculation('flip', inputValues, results, calculationId);
+            
+            navigation.navigate(resultScreen, {
+                inputValues: {...inputValues, id: savedId},
+                ...results
+            });
         } catch (error) {
             console.error('Error saving calculation to database:', error);
         }
-
-        navigation.navigate(resultScreen, {
-            inputValues: {...inputValues, id},
-            ...results
-        });
     };
 
     const numericInputsArray = [

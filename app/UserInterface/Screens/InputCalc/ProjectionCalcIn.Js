@@ -38,10 +38,6 @@ function ProjectionCalcIn(props) {
     const [operatingExpenses, setOperatingExpenses] = useState([]);
     const [saveNewExpenses, setSaveNewExpenses] = useState(false);
 
-    const uid = () => {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2);
-    }
-
     useEffect(() => {
         checkFormValidity();
 
@@ -184,8 +180,6 @@ function ProjectionCalcIn(props) {
             }
         };
 
-        const id = calculationId || uid();
-
         const cashflowResults = PriceSuggestion(
             inputValues.monthCashflow,
             inputValues.downPayment,
@@ -215,15 +209,15 @@ function ProjectionCalcIn(props) {
         };
 
         try {
-            await saveCalculation('projection', inputValues, results, id);
+            const savedId = await saveCalculation('projection', inputValues, results, calculationId);
+            
+            navigation.navigate(resultScreen, {
+                inputValues: {...inputValues, id: savedId},
+                ...results
+            });
         } catch (error) {
             console.error('Error saving calculation to database:', error);
         }
-
-        navigation.navigate(resultScreen, {
-            inputValues: {...inputValues, id},
-            ...results
-        });
     };
 
     const numericInputsArray = [

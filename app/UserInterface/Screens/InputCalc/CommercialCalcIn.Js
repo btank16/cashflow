@@ -44,10 +44,6 @@ function CommercialCalcIn(props) {
     const [operatingExpenses, setOperatingExpenses] = useState([]);
     const [saveNewExpenses, setSaveNewExpenses] = useState(false);
 
-    const uid = () => {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2);
-    }
-
     useEffect(() => {
         checkFormValidity();
 
@@ -198,8 +194,6 @@ function CommercialCalcIn(props) {
             }
         };
 
-        const id = calculationId || uid();
-
         try {
             const funcResults = CommercialCalc(
                 toNumber(purchasePrice),
@@ -232,14 +226,10 @@ function CommercialCalcIn(props) {
                 annualCashflow: funcResults[12]
             };
 
-        try {
-            await saveCalculation('commercial', inputValues, results, id);
-        } catch (error) {
-            console.error('Error saving calculation to database:', error);
-        }
-
+            const savedId = await saveCalculation('commercial', inputValues, results, calculationId);
+            
             navigation.navigate(resultScreen, {
-                inputValues: { ...inputValues, id },
+                inputValues: { ...inputValues, id: savedId },
                 ...results
             });
         } catch (error) {

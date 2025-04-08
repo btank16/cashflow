@@ -27,9 +27,6 @@ function WholesaleCalcIn(props) {
     const [operatingExpenses, setOperatingExpenses] = useState([]);
     const [saveNewExpenses, setSaveNewExpenses] = useState(false);
     const [monthsHeld, setMonthsHeld] = useState('');
-    const uid = () => {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2);
-    }
 
     useEffect(() => {
         checkFormValidity();
@@ -130,9 +127,6 @@ function WholesaleCalcIn(props) {
             }
         };
 
-        // Calculate a new uid if calculationId is null
-        const id = calculationId || uid();
-
         // Call wholesalefunction directly
         const wholesaleResults = wholesalefunction(
             inputValues.purchasePrice,
@@ -153,16 +147,16 @@ function WholesaleCalcIn(props) {
 
         // Save the calculation to the database using expo-sqlite/next notation
         try {
-            await saveCalculation('wholesale', inputValues, results, id);
+            const savedId = await saveCalculation('wholesale', inputValues, results, calculationId);
+            
+            // Navigate to the result screen
+            navigation.navigate(resultScreen, {
+                inputValues: {...inputValues, id: savedId},
+                ...results
+            });
         } catch (error) {
             console.error('Error saving calculation to database:', error);
         }
-
-        // Navigate to the result screen
-        navigation.navigate(resultScreen, {
-            inputValues: {...inputValues, id},
-            ...results
-        });
     };
 
     const numericInputsArray = [

@@ -46,10 +46,6 @@ function RentalCalcIn(props) {
     const [saveNewExpenses, setSaveNewExpenses] = useState(false);
     const [vacancyRate, setVacancyRate] = useState();
 
-    const uid = () => {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2);
-    }
-
     useEffect(() => {
         checkFormValidity();
 
@@ -209,8 +205,6 @@ function RentalCalcIn(props) {
             vacancyRate: toNumber(vacancyRate)
         };
 
-        const id = calculationId || uid();
-
         const expenseResults = expenses(
             inputValues.purchasePrice,
             inputValues.downPayment,
@@ -258,15 +252,15 @@ function RentalCalcIn(props) {
         };
 
         try {
-            await saveCalculation('rental', inputValues, results, id);
+            const savedId = await saveCalculation('rental', inputValues, results, calculationId);
+            
+            navigation.navigate(resultScreen, {
+                inputValues: { ...inputValues, id: savedId },
+                ...results
+            });
         } catch (error) {
             console.error('Error saving calculation to database:', error);
         }
-
-        navigation.navigate(resultScreen, {
-            inputValues: { ...inputValues, id },
-            ...results
-        });
     };
 
     const numericInputsArray = [

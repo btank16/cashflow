@@ -7,7 +7,6 @@ export const initHistoryDB = async (db) => {
   return db.execAsync(`
     CREATE TABLE IF NOT EXISTS calculations_history (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      unique_id TEXT,
       date TEXT,
       calculator_type TEXT,
       input_values TEXT,
@@ -32,41 +31,45 @@ export const initHistoryDB = async (db) => {
 export function useDatabase() {
   const db = useSQLiteContext();
 
-  const saveCalculation = async (calculatorType, inputValues, results, uniqueId) => {
-    // Check if the specific ID exists in the database
-    const existingCalculation = await db.getFirstAsync(
-      'SELECT id FROM calculations_history WHERE unique_id = ? AND calculator_type = ?',
-      [uniqueId, calculatorType]
-    );
+  const saveCalculation = async (calculatorType, inputValues, results, id = null) => {
+    // If id is provided, check if the calculation exists for update
+    if (id) {
+      const existingCalculation = await db.getFirstAsync(
+        'SELECT id FROM calculations_history WHERE id = ? AND calculator_type = ?',
+        [id, calculatorType]
+      );
 
-    if (existingCalculation) {
-      // If the ID exists, update the existing calculation
-      await db.runAsync(
-        `UPDATE calculations_history 
-         SET input_values = ?, results = ?, date = ? 
-         WHERE unique_id = ? AND calculator_type = ?`,
-        [
-          JSON.stringify(inputValues),
-          JSON.stringify(results),
-          new Date().toISOString(),
-          uniqueId,
-          calculatorType
-        ]
-      );
-    } else {
-      // If the ID doesn't exist, insert a new calculation
-      await db.runAsync(
-        `INSERT INTO calculations_history (unique_id, calculator_type, input_values, results, date) 
-         VALUES (?, ?, ?, ?, ?)`,
-        [
-          uniqueId,
-          calculatorType,
-          JSON.stringify(inputValues),
-          JSON.stringify(results),
-          new Date().toISOString()
-        ]
-      );
+      if (existingCalculation) {
+        // If the ID exists, update the existing calculation
+        await db.runAsync(
+          `UPDATE calculations_history 
+           SET input_values = ?, results = ?, date = ? 
+           WHERE id = ? AND calculator_type = ?`,
+          [
+            JSON.stringify(inputValues),
+            JSON.stringify(results),
+            new Date().toISOString(),
+            id,
+            calculatorType
+          ]
+        );
+        return id;
+      }
     }
+    
+    // If no id provided or no existing calculation found, insert a new one
+    const result = await db.runAsync(
+      `INSERT INTO calculations_history (calculator_type, input_values, results, date) 
+       VALUES (?, ?, ?, ?)`,
+      [
+        calculatorType,
+        JSON.stringify(inputValues),
+        JSON.stringify(results),
+        new Date().toISOString()
+      ]
+    );
+    
+    return result.lastInsertRowId;
   };
 
   const saveExpense = async (category, cost, frequency, applicableCalculators) => {

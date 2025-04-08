@@ -18,6 +18,7 @@ This is a Mobile App developed in react native, which will function on both iOS 
 ### Database
 
 - Calculation Database: This is a SQLite database that stores the calculations for each calculator. The most recent calculations will show up on the Home Screen, but there is also a History Screen to view all previous calculations.
+  - Files where used: cashflowDatabase.Js, CalcHomeScreen.Js, HistoryScreen.Js,
 - Expense Database: This is a SQLite database that stores the expenses for each calculator. This is used to calculate the operating expenses for each calculator.
 
 ## Dependencies

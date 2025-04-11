@@ -229,7 +229,7 @@ function App() {
         <NavigationContainer
           ref={navigationRef}
           linking={{
-            prefixes: ['cashflow://', 'https://3f63ead00107678794a4.auth.us-east-1.amazoncognito.com'],
+            prefixes: ['cashflow://', `https://${awsconfig.auth.oauth.domain}`],
             config: {
               screens: {
                 SignIn: 'signin',

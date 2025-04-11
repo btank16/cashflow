@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, TextInput, Keyboard, TouchableWithoutFeedback } from 'react-native';
-import { PlusIcon, CheckIcon, TrashIcon, ArrowLongRightIcon } from 'react-native-heroicons/outline';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, TextInput, Keyboard, TouchableWithoutFeedback, Modal } from 'react-native';
+import { PlusIcon, CheckIcon, TrashIcon, ArrowLongRightIcon, ChevronDownIcon } from 'react-native-heroicons/outline';
 import ExpenseLogo from '../../assets/icons/ExpenseLogo.jsx';
 import colors from '../Colors/colors.Js';
 import { useDatabase } from '../../../database/cashflowDatabase.Js';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { Picker } from '@react-native-picker/picker';
 
 const frequencies = [
   { label: 'Monthly', value: 'Monthly' },
@@ -35,6 +36,9 @@ const OperatingExpenses = ({
   const [focusedInputs, setFocusedInputs] = useState({});
   const [removedSavedExpenses, setRemovedSavedExpenses] = useState([]);
   const navigation = useNavigation();
+  const [isPickerVisible, setIsPickerVisible] = useState(false);
+  const [activePickerIndex, setActivePickerIndex] = useState(null);
+  const [tempFrequency, setTempFrequency] = useState('');
 
   useEffect(() => {
     if (initialExpenses && initialExpenses.length > 0) {
@@ -165,13 +169,24 @@ const OperatingExpenses = ({
     setSavedExpenses(savedExpenses.filter(expense => expense.id !== savedExpense.id));
   };
 
-  const handleFrequencyPress = (index) => {
+  const openFrequencyPicker = (index) => {
     Keyboard.dismiss();
-    const updatedExpenses = activeExpenses.map((exp, i) => ({
-      ...exp,
-      showFrequency: i === index ? !exp.showFrequency : false
-    }));
-    setActiveExpenses(updatedExpenses);
+    setActivePickerIndex(index);
+    setTempFrequency(activeExpenses[index].frequency);
+    setIsPickerVisible(true);
+  };
+
+  const handleFrequencyDone = () => {
+    if (activePickerIndex !== null && tempFrequency !== activeExpenses[activePickerIndex].frequency) {
+      updateActiveExpense(activePickerIndex, 'frequency', tempFrequency);
+    }
+    setIsPickerVisible(false);
+    setActivePickerIndex(null);
+  };
+
+  const handleFrequencyCancel = () => {
+    setIsPickerVisible(false);
+    setActivePickerIndex(null);
   };
 
   const renderExpenseInput = (expense, index) => (
@@ -216,39 +231,15 @@ const OperatingExpenses = ({
           <View style={styles.frequencyInput}>
             <Text style={styles.inputLabel}>Frequency</Text>
             <TouchableOpacity 
-              style={styles.frequencyButton}
-              onPress={() => handleFrequencyPress(index)}
+              activeOpacity={0.7}
+              onPress={() => openFrequencyPicker(index)}
+              style={styles.touchableWrapper}
             >
-              <Text style={styles.frequencyButtonText}>{expense.frequency}</Text>
-              <Ionicons 
-                name={expense.showFrequency ? "chevron-up" : "chevron-down"} 
-                size={16} 
-                color={colors.fifthGrey} 
-              />
-            </TouchableOpacity>
-            {expense.showFrequency && (
-              <View style={styles.frequencyOptions}>
-                {frequencies.map((option) => (
-                  <TouchableOpacity
-                    key={option.value}
-                    style={[
-                      styles.frequencyOption,
-                      option.value === frequencies[frequencies.length - 1].value && styles.lastFrequencyOption
-                    ]}
-                    onPress={() => {
-                      const updatedExpenses = activeExpenses.map((exp, i) => 
-                        i === index 
-                          ? { ...exp, frequency: option.value, showFrequency: false }
-                          : exp
-                      );
-                      setActiveExpenses(updatedExpenses);
-                    }}
-                  >
-                    <Text style={styles.frequencyOptionText}>{option.label}</Text>
-                  </TouchableOpacity>
-                ))}
+              <View style={styles.frequencyButton}>
+                <Text style={styles.frequencyButtonText}>{expense.frequency}</Text>
+                <ChevronDownIcon size={20} color={colors.primaryBlack} style={styles.icon} />
               </View>
-            )}
+            </TouchableOpacity>
           </View>
 
           <View style={styles.costInput}>
@@ -391,6 +382,39 @@ const OperatingExpenses = ({
               <ArrowLongRightIcon size={18} color={colors.primaryGreen} style={{ marginBottom: -2 }}/>
             </TouchableOpacity>
           </View>
+          
+          <Modal
+            visible={isPickerVisible}
+            transparent={true}
+            animationType="slide"
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <View style={styles.pickerHeader}>
+                  <TouchableOpacity onPress={handleFrequencyCancel} style={styles.headerButton}>
+                    <Text style={styles.cancelButton}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleFrequencyDone} style={styles.headerButton}>
+                    <Text style={styles.doneButton}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+                <Picker
+                  selectedValue={tempFrequency}
+                  onValueChange={setTempFrequency}
+                  style={styles.picker}
+                >
+                  {frequencies.map((option) => (
+                    <Picker.Item 
+                      key={option.value} 
+                      label={option.label} 
+                      value={option.value}
+                      color={colors.primaryBlack}
+                    />
+                  ))}
+                </Picker>
+              </View>
+            </View>
+          </Modal>
         </View>
       )}
     </View>
@@ -445,8 +469,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-
   inputContainer: {
+    flex: 1,
     marginBottom: 16,
   },
   inputLabel: {
@@ -455,7 +479,6 @@ const styles = StyleSheet.create({
     color: colors.primaryGrey,
     marginBottom: 8,
   },
-
   frequencyAndCost: {
     flexDirection: 'row',
     gap: 16,
@@ -466,11 +489,12 @@ const styles = StyleSheet.create({
   costInput: {
     flex: 1,
   },
-
   costInputField: {
     flex: 1,
     height: '100%',
-    borderWidth: 0,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: colors.primaryBlack,
     backgroundColor: 'transparent',
   },
   frequencyButton: {
@@ -485,34 +509,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   frequencyButtonText: {
-    fontSize: 16,
-    color: colors.primaryBlack,
-  },
-  frequencyOptions: {
-    position: 'absolute',
-    top: 75,
-    left: 0,
-    right: 0,
-    backgroundColor: colors.iconWhite,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.quaternaryGrey,
-    zIndex: 1000,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  frequencyOption: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.quaternaryGrey,
-  },
-  lastFrequencyOption: {
-    borderBottomWidth: 0,
-  },
-  frequencyOptionText: {
     fontSize: 16,
     color: colors.primaryBlack,
   },
@@ -571,16 +567,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.primaryBlack,
   },
-
-  costInputField: {
-    flex: 1,
-    height: '100%',
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: colors.primaryBlack,
-    backgroundColor: 'transparent',
-  },
-
   expenseDivider: {
     height: 1,
     backgroundColor: colors.quaternaryGrey,
@@ -593,10 +579,6 @@ const styles = StyleSheet.create({
   },
   expenseHeaderSingle: {
     paddingRight: 0,
-  },
-  inputContainer: {
-    flex: 1,
-    marginBottom: 16,
   },
   inputContainerWithDelete: {
     flex: 1,
@@ -709,6 +691,45 @@ const styles = StyleSheet.create({
   typeText: {
     color: colors.fifthGrey,
     fontSize: 16,
+  },
+  touchableWrapper: {
+    width: '100%',
+  },
+  icon: {
+    marginLeft: 10,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  modalContent: {
+    backgroundColor: colors.iconWhite,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 20,
+  },
+  pickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.quaternaryGrey,
+    padding: 16,
+  },
+  headerButton: {
+    paddingHorizontal: 8,
+  },
+  doneButton: {
+    color: colors.primaryGreen,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  cancelButton: {
+    color: colors.primaryGrey,
+    fontSize: 16,
+  },
+  picker: {
+    backgroundColor: colors.iconWhite,
   },
 });
 

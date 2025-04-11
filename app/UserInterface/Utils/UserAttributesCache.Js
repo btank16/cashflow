@@ -135,6 +135,42 @@ export const getLastUpdatedTime = () => {
   return lastUpdated;
 };
 
+/**
+ * Get the userId from the user attributes
+ * @param {boolean} forceRefresh - Whether to force a refresh from AWS
+ * @returns {Promise<string|null>} The userId or null if not found
+ */
+export const getUserId = async (forceRefresh = false) => {
+  const attributes = await getUserAttributes(forceRefresh);
+  if (!attributes) return null;
+  
+  // First try to get userId from identities (for federated users)
+  if (attributes.identities) {
+    try {
+      // The identities attribute is stored as a JSON string that needs to be parsed
+      const identities = JSON.parse(attributes.identities);
+      
+      // The identities attribute typically contains an array of identity providers
+      if (Array.isArray(identities) && identities.length > 0 && identities[0].userId) {
+        // Ensure userId is returned as a string
+        const userId = String(identities[0].userId);
+        return userId;
+      }
+    } catch (error) {
+      console.error('Error parsing identities attribute:', error);
+      // Continue to try the sub attribute
+    }
+  }
+  
+  // If no userId found in identities or if it's not a federated user,
+  // use the 'sub' attribute which is available for email users
+  if (attributes.sub) {
+    return String(attributes.sub);
+  }
+  
+  return null;
+};
+
 export default {
   initUserAttributesCache,
   refreshUserAttributes,
@@ -143,5 +179,6 @@ export default {
   updateUserAttributesWithCache,
   clearUserAttributesCache,
   isUserAttributesCacheInitialized,
-  getLastUpdatedTime
+  getLastUpdatedTime,
+  getUserId
 }; 

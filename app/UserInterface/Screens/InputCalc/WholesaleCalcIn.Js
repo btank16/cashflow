@@ -19,7 +19,7 @@ function WholesaleCalcIn(props) {
     const scrollViewRef = useRef();
     const [resultScreen, setResultScreen] = useState('WholesaleCalcOut');
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-    const { saveCalculation } = useDatabase();
+    const { saveCalculation, saveExpense } = useDatabase();
     const [calculationId, setCalculationId] = useState(null);
     const [showHeaderTitle, setShowHeaderTitle] = useState(false);
     const scrollY = useRef(new Animated.Value(0)).current;
@@ -174,6 +174,7 @@ function WholesaleCalcIn(props) {
             value: rehabCost,
             onChangeText: setRehabCost,
             placeholder: "ex. $10,000",
+            isRequired: true,
             type: "$"
         },
         {

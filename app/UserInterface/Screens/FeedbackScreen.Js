@@ -1,185 +1,306 @@
-import React from 'react';
-import { Platform, View, StyleSheet, SafeAreaView, StatusBar, Text, TextInput, ScrollView, Alert, Image } from "react-native";
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, StatusBar, Platform, TextInput, ScrollView, TouchableOpacity, Modal } from "react-native";
 import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
-import Communications from 'react-native-communications';
+import { Picker } from '@react-native-picker/picker';
+import { ChevronDownIcon } from "react-native-heroicons/outline";
 import colors from '../Colors/colors.Js';
-import NavBar from '../Components/NavBar.Js';
-import HomeButton from '../Components/HomeButton.Js';
-import CalcButton from '../Components/CalcButton.Js';
-import CommonStyles from '../Colors/CommonStyles.Js';
-import CustomTitle from '../Components/CustomTitle.Js';
+import BackButton from '../Components/BackButton.Js';
+import GreenLogo from '../../assets/icons/GreenLogo.jsx';
+import PrimaryButton from '../Components/PrimaryButton.Js';
 
-const TextInputBox = ({ label, value, onChangeText, placeholder, multiline, style }) => {
+const SUBJECT_OPTIONS = [
+  "Bug Report", 
+  "Feature Request",
+  "Usability Issue",
+  "Data Accuracy",
+  "New Calculator Suggestion",  
+  "General Feedback",
+  "Question",
+  "Other"
+];
+
+const SubjectDropdown = ({ 
+  label, 
+  value, 
+  onValueChange,
+  placeholder = "Select"
+}) => {
+  const [isPickerVisible, setIsPickerVisible] = useState(false);
+  const [tempValue, setTempValue] = useState(value);
+  const displayValue = value || placeholder;
+
+  const handleDone = () => {
+    if (tempValue !== value) {
+      onValueChange(tempValue);
+    }
+    setIsPickerVisible(false);
+  };
+
+  const handleCancel = () => {
+    setTempValue(value);
+    setIsPickerVisible(false);
+  };
+
   return (
     <View style={styles.inputContainer}>
-      <Text style={styles.label}>{label}</Text>
-      <LinearGradient
-        colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0)']}
-        style={styles.gradientContainer}
+      <Text style={styles.inputLabel}>{label}</Text>
+      <TouchableOpacity 
+        activeOpacity={0.7}
+        onPress={() => {
+          setTempValue(value);
+          setIsPickerVisible(true);
+        }}
+        style={styles.touchableWrapper}
       >
-        <View style={[styles.textInputContainer, style]}>
-          <TextInput
-            style={[styles.input, multiline && styles.multilineInput]}
-            onChangeText={onChangeText}
-            value={value}
-            placeholder={placeholder}
-            multiline={multiline}
-          />
+        <View style={styles.inputWrapper}>
+          <Text style={[
+            styles.displayText,
+            !value && styles.placeholderText
+          ]}>
+            {displayValue}
+          </Text>
+          <ChevronDownIcon size={20} color={colors.primaryBlack} style={styles.icon} />
         </View>
-      </LinearGradient>
+      </TouchableOpacity>
+
+      <Modal
+        visible={isPickerVisible}
+        transparent={true}
+        animationType="slide"
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.pickerHeader}>
+              <TouchableOpacity onPress={handleCancel} style={styles.headerButton}>
+                <Text style={styles.cancelButton}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleDone} style={styles.headerButton}>
+                <Text style={styles.doneButton}>Done</Text>
+              </TouchableOpacity>
+            </View>
+            <Picker
+              selectedValue={tempValue}
+              onValueChange={setTempValue}
+              style={styles.picker}
+            >
+              <Picker.Item label={placeholder} value="" color={colors.sixthGrey} />
+              {SUBJECT_OPTIONS.map((option) => (
+                <Picker.Item 
+                  key={option} 
+                  label={option} 
+                  value={option}
+                  color={colors.primaryBlack}
+                />
+              ))}
+            </Picker>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
 
-function FeedbackScreen(props) {
-    const navigation = useNavigation();
-    const [subject, setSubject] = React.useState('');
-    const [feedback, setFeedback] = React.useState('');
+const MAX_FEEDBACK_CHARS = 500;
 
-    const handleSendFeedback = () => {
-        if (subject.trim() === '' || feedback.trim() === '') {
-            Alert.alert('Error', 'Please fill in both subject and feedback fields.');
-            return;
-        }
+function FeedbackScreen() {
+  const navigation = useNavigation();
+  const [subject, setSubject] = useState('');
+  const [feedback, setFeedback] = useState('');
+  const [feedbackFocused, setFeedbackFocused] = useState(false);
 
-        const phoneNumber = '2164081883';
-        const message = `Subject: ${subject}\n\nFeedback: ${feedback}`;
+  const handleFeedbackChange = (text) => {
+    if (text.length <= MAX_FEEDBACK_CHARS) {
+      setFeedback(text);
+    }
+  };
 
-        Communications.text(phoneNumber, message);
-        
-        // Clear the input fields after sending
-        setSubject('');
-        setFeedback('');
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <BackButton destinationScreen="CalcHomeScreen" />
+        </View>
 
-        Alert.alert('Success', 'Your feedback has been sent!');
-    };
+        <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+          <View style={styles.logoContainer}>
+            <GreenLogo />
+          </View>
 
-    return (
-        <SafeAreaView style={styles.masterBackground}>
-            <View style={styles.logoContainer}>
-                <HomeButton/>
-                <Image source={require('../../assets/images/WhiteTextLogo.png')} style={CommonStyles.logo} />
+          <Text style={styles.title}>Please share your experience with us</Text>
+          
+          <SubjectDropdown
+            label="Subject"
+            value={subject}
+            onValueChange={setSubject}
+            placeholder="Select"
+          />
+          
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Feedback</Text>
+            <View style={[
+              styles.feedbackWrapper,
+              feedbackFocused ? styles.feedbackWrapperFocused : styles.feedbackWrapperBlurred
+            ]}>
+              <TextInput
+                style={styles.feedbackInput}
+                placeholder="Feedback"
+                placeholderTextColor={colors.sixthGrey}
+                value={feedback}
+                onChangeText={handleFeedbackChange}
+                multiline={true}
+                textAlignVertical="top"
+                onFocus={() => setFeedbackFocused(true)}
+                onBlur={() => setFeedbackFocused(false)}
+              />
             </View>
-            <ScrollView style={styles.contentContainer}>
-                <CustomTitle title="How can we improve?" />            
-                <TextInputBox
-                    label="Subject"
-                    value={subject}
-                    onChangeText={setSubject}
-                    placeholder="Enter subject"
-                />
-                <TextInputBox
-                    label="Feedback"
-                    value={feedback}
-                    onChangeText={setFeedback}
-                    placeholder="Enter your feedback here"
-                    multiline={true}
-                    style={styles.feedbackInput}
-                />
-                <View style={styles.buttonContainer}>
-                    <CalcButton
-                        title="Send Feedback"
-                        onPress={handleSendFeedback}
-                    />
-                </View>
-            </ScrollView>
-            <View style={styles.menuContainer}>
-                <NavBar 
-                    activeTab="Feedback"
-                    onTabPress={(tabName) => {
-                        if (tabName === 'Analyze') {
-                            navigation.navigate('CalcHomeScreen');
-                        }
-                    }}
-                />            
-            </View>
-        </SafeAreaView>
-    );
+            <Text style={styles.characterCount}>
+              {feedback.length}/{MAX_FEEDBACK_CHARS}
+            </Text>
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <PrimaryButton
+              label="Send feedback"
+              isActive={subject.length > 0 && feedback.length > 0}
+              onPress={() => {}}
+              style={{ marginTop: 16 }}
+            />
+          </View>
+        </ScrollView>
+      </View>
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
-    masterBackground: {
-        flex: 1,
-        backgroundColor: colors.background,
-        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-    },
-    logoContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        height: 56,
-        backgroundColor: colors.background,
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(0, 0, 0, 0.1)',
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 5,
-    },
-    contentContainer: {
-        flex: 8,
-        backgroundColor: colors.background,
-        padding: 15,
-    },
-    menuContainer: {
-        height: 56,
-        backgroundColor: colors.background,
-        borderTopWidth: 1,
-        borderTopColor: 'rgba(0, 0, 0, 0.1)',
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: -2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-        elevation: 5,
-    },
-    inputContainer: {
-        marginBottom: 20,
-    },
-    label: {
-        fontSize: 16,
-        marginBottom: 5,
-        fontWeight: 'bold',
-        color: colors.basicText,
-    },
-    gradientContainer: {
-        borderRadius: 10,
-        padding: 2,
-    },
-    textInputContainer: {
-        borderRadius: 8,
-        overflow: 'hidden',
-        backgroundColor: colors.fieldColor,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 6,
-        elevation: 5,
-    },
-    input: {
-        height: 50,
-        paddingHorizontal: 15,
-        fontSize: 16,
-        backgroundColor: colors.fieldColor,
-    },
-    multilineInput: {
-        height: 150,
-        textAlignVertical: 'top',
-        paddingTop: 10,
-    },
-    feedbackInput: {
-        height: 150,
-    },
-    buttonContainer: {
-        alignItems: 'center',
-        marginTop: 20,
-    },
+  safeArea: {
+    flex: 1,
+    backgroundColor: colors.iconWhite,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+  },
+  container: {
+    flex: 1,
+  },
+  header: {
+    height: 56,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginVertical: 24,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: colors.primaryBlack,
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 14,
+    color: colors.primaryGrey,
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  touchableWrapper: {
+    width: '100%',
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 10,
+    height: 50,
+    backgroundColor: colors.tertiaryGrey,
+    borderColor: colors.quaternaryGrey,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+  },
+  feedbackWrapper: {
+    borderRadius: 10,
+    height: 200,
+    overflow: 'hidden',
+  },
+  feedbackWrapperBlurred: {
+    backgroundColor: colors.tertiaryGrey,
+    borderColor: colors.quaternaryGrey,
+    borderWidth: 1,
+  },
+  feedbackWrapperFocused: {
+    backgroundColor: colors.iconWhite,
+    borderColor: colors.primaryGreen,
+    borderWidth: 1,
+  },
+  feedbackInput: {
+    height: '100%',
+    paddingHorizontal: 10,
+    paddingTop: 10,
+    fontSize: 16,
+  },
+  characterCount: {
+    fontSize: 12,
+    color: colors.primaryGrey,
+    alignSelf: 'flex-end',
+    marginTop: 4,
+  },
+  displayText: {
+    flex: 1,
+    fontSize: 16,
+    color: colors.primaryBlack,
+  },
+  placeholderText: {
+    color: colors.sixthGrey,
+  },
+  icon: {
+    marginLeft: 10,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  modalContent: {
+    backgroundColor: colors.iconWhite,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 20,
+  },
+  pickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.quaternaryGrey,
+    padding: 16,
+  },
+  headerButton: {
+    paddingHorizontal: 8,
+  },
+  doneButton: {
+    color: colors.primaryGreen,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  cancelButton: {
+    color: colors.primaryGrey,
+    fontSize: 16,
+  },
+  picker: {
+    backgroundColor: colors.iconWhite,
+  },
+  buttonContainer: {
+    marginTop: 'auto',
+    paddingTop: 16,
+  },
 });
 
 export default FeedbackScreen;

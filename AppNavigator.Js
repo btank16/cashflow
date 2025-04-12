@@ -26,6 +26,8 @@ import SignUpFirst from './app/UserInterface/Screens/AuthScreens/SignUpFirst.Js'
 import SignUpSec from './app/UserInterface/Screens/AuthScreens/SignUpSec.Js';
 import SignUpThird from './app/UserInterface/Screens/AuthScreens/SignUpThird.Js';
 import VerificationScreen from './app/UserInterface/Screens/AuthScreens/VerificationScreen.Js';
+import ForgetPassFirst from './app/UserInterface/Screens/AuthScreens/ForgetPassFirst.Js';
+import ForgetPassSec from './app/UserInterface/Screens/AuthScreens/ForgetPassSec.Js';
 
 const Stack = createStackNavigator();
 
@@ -38,6 +40,8 @@ const AuthStack = () => (
     <Stack.Screen name="SignUpSec" component={SignUpSec} />
     <Stack.Screen name="SignUpThird" component={SignUpThird} />
     <Stack.Screen name="VerificationScreen" component={VerificationScreen} />
+    <Stack.Screen name="ForgetPassFirst" component={ForgetPassFirst} />
+    <Stack.Screen name="ForgetPassSec" component={ForgetPassSec} />
   </Stack.Navigator>
 );
 

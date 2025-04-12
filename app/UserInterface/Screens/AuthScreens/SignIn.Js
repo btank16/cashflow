@@ -9,6 +9,7 @@ import NormTextbox from '../../Components/NormTextbox.Js';
 import PasswordBox from '../../Components/PasswordBox.Js';
 import SocialSignInButton from '../../Components/SocialSignInButton.Js';
 import { handleOAuthRedirect, forceCheckAuthAndRedirect, hasActiveSession } from '../../Utils/AuthUtils.Js';
+import PrimaryButton from '../../Components/PrimaryButton.Js';
 
 const SignIn = () => {
   const navigation = useNavigation();
@@ -156,25 +157,21 @@ const SignIn = () => {
         />
 
         <TouchableOpacity 
-          onPress={() => navigation.navigate('ForgotPassword')}
+          onPress={() => navigation.navigate('ForgetPassFirst')}
           style={styles.forgotPasswordContainer}
         >
           <Text style={styles.forgotPasswordText}>Forgot password?</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={[
-            styles.signInButton,
-            isButtonActive ? styles.activeButton : styles.inactiveButton,
-            isLoading && styles.loadingButton
-          ]}
+        <PrimaryButton
+          label="Sign In"
+          loadingLabel="Signing In..."
+          isActive={isButtonActive}
+          isLoading={isLoading}
           onPress={handleSignIn}
-          disabled={!isButtonActive || isLoading || checkingAuth}
-        >
-          <Text style={styles.signInButtonText}>
-            {isLoading ? 'Signing In...' : 'Sign In'}
-          </Text>
-        </TouchableOpacity>
+          disabled={checkingAuth}
+          style={{ marginBottom: 24 }}
+        />
 
         <View style={styles.dividerContainer}>
           <View style={styles.dividerLine} />
@@ -243,24 +240,6 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     color: colors.primaryGreen,
     fontWeight: '500',
-  },
-  signInButton: {
-    height: 56,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-  },
-  activeButton: {
-    backgroundColor: colors.primaryGreen,
-  },
-  inactiveButton: {
-    backgroundColor: colors.tertiaryGreen,
-  },
-  signInButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.iconWhite,
   },
   dividerContainer: {
     flexDirection: 'row',

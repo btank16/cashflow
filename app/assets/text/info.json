@@ -1,0 +1,204 @@
+{
+  "calculator_type": {
+    "rental_calc": {
+      "title": "Rental Calculator",
+      "description": "Calculate your rental income and expenses to determine your potential rental yield."
+    },
+    "flip_calc": {
+      "title": "Fix & Flip Calculator",
+      "description": ""
+    },
+    "brrrr_calc": {
+      "title": "BRRRR Calculator",
+      "description": ""
+    },
+    "wholesale_calc": {
+      "title": "Wholesale Calculator",
+      "description": ""
+    },
+    "target_calc": {
+      "title": "Price Target Calculator",
+      "description": ""
+    },
+    "commercial_calc": {
+      "title": "Commercial Multi-Family Calculator",
+      "description": ""
+    }
+  },
+  "calculator_input": {
+    "purchase_price": {
+      "title": "Purchase Price",
+      "description": ""
+    },
+    "down_payment": {
+      "title": "Down Payment",
+      "description": ""
+    },
+    "interest_rate": {
+      "title": "Interest Rate",
+      "description": ""
+    },
+    "closing_costs": {
+      "title": "Closing Costs",
+      "description": ""
+    },
+    "loan_term": {
+      "title": "Loan Term",
+      "description": ""
+    },
+    "property_tax": {
+      "title": "Property Taxes",
+      "description": ""
+    },
+    "rehab_cost": {
+      "title": "Rehab Cost",
+      "description": ""
+    },
+    "monthly_rent": {
+      "title": "Monthly Rent",
+      "description": ""
+    },
+    "capex": {
+      "title": "Capital Expenditures",
+      "description": ""
+    },
+    "vacancy_rate": {
+      "title": "Vacancy Rate",
+      "description": ""
+    },
+    "rehab_time": {
+      "title": "Rehab Time",
+      "description": ""
+    },
+    "arv": {
+      "title": "After Repair Value (ARV)",
+      "description": ""
+    },
+    "agent_commission": {
+      "title": "Agent Commission",
+      "description": ""
+    },
+    "refinance_cost": {
+      "title": "Refinance Cost",
+      "description": ""
+    },
+    "contract_price": {
+      "title": "Contract Price",
+      "description": ""
+    },
+    "listing_price": {
+      "title": "Listing Price",
+      "description": ""
+    },
+    "month_cashflow": {
+      "title": "Monthly Cashflow Target",
+      "description": ""
+    },
+    "cap_reserve": {
+      "title": "Capital Reserve",
+      "description": ""
+    },
+    "acquisition_cost": {
+      "title": "Additional Acquisition Costs",
+      "description": ""
+    },
+    "gross_fees": {
+      "title": "Gross Fees and Other Income",
+      "description": ""
+    }
+  },
+  "calculator_output": {
+    "annual_cashflow": {
+      "title": "Annual Cashflow",
+      "description": ""
+    },
+    "monthly_cashflow": {
+      "title": "Monthly Cashflow",
+      "description": ""
+    },
+    "cash_on_cash": {
+      "title": "Cash on Cash Return",
+      "description": ""
+    },
+    "cash_down": {
+      "title": "Cash Down",
+      "description": ""
+    },
+    "cap_rate": {
+      "title": "Cap Rate",
+      "description": ""
+    },
+    "dscr": {
+      "title": "Debt Service Coverage Ratio (DSCR)",
+      "description": ""
+    },
+    "break_even": {
+      "title": "Months to Break Even",
+      "description": ""
+    },
+    "roi": {
+      "title": "Return on Investment (ROI)",
+      "description": ""
+    },
+    "cash_roi": {
+      "title": "Cash on Cash ROI",
+      "description": ""
+    },
+    "total_cash_cost": {
+      "title": "Total Cash Costs",
+      "description": ""
+    },
+    "annual_cashflow_refi": {
+      "title": "Annual Cashflow After Refinance",
+      "description": ""
+    },
+    "monthly_cashflow_refi": {
+      "title": "Monthly Cashflow After Refinance",
+      "description": ""
+    },
+    "equity_roi": {
+      "title": "Return on Equity (ROE)",
+      "description": ""
+    },
+    "equity_usage": {
+      "title": "MaximumEquity Usage",
+      "description": ""
+    },
+    "mao": {
+      "title": "Maximum Allowable Offer (MAO)",
+      "description": ""
+    },
+    "min_sale_price": {
+      "title": "Minimum Sale Price",
+      "description": ""
+    },
+    "min_fee": {
+      "title": "Minimum Fee",
+      "description": ""
+    },
+    "max_sale_price": {
+      "title": "Maximum Sale Price",
+      "description": ""
+    },
+    "max_fee": {
+      "title": "Maximum Fee",
+      "description": ""
+    },
+    "wholesale_expense": {
+      "title": "Total Holding Expenses",
+      "description": ""
+    },
+    "target_price": {
+      "title": "Target Price",
+      "description": ""
+    },
+    "breakeven_price": {
+      "title": "Break Even Price",
+      "description": ""
+    },
+    "acquisition_cost": {
+      "title": "Total Acquisition Costs",
+      "description": ""
+    }
+  }
+}

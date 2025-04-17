@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, StatusBar, Text, TouchableOpacity, Image, ScrollView, Modal, Platform } from "react-native";
+import { View, StyleSheet, SafeAreaView, StatusBar, Text, TouchableOpacity, Image, ScrollView, Platform } from "react-native";
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { InformationCircleIcon, ChevronRightIcon, XMarkIcon } from 'react-native-heroicons/outline';
+import { InformationCircleIcon, ChevronRightIcon } from 'react-native-heroicons/outline';
 import { getUserAttribute } from '../Utils/UserAttributesCache.Js';
 import colors from '../Colors/colors.Js';
 import { useDatabase } from '../../../database/cashflowDatabase.Js';
@@ -16,8 +16,10 @@ import FeedbackIcon from '../../assets/icons/FeedbackIcon.jsx';
 import HistoryIcon from '../../assets/icons/HistoryIcon.jsx';
 import UserIcon from '../../assets/icons/UserIcon.jsx';
 import CommercialIcon from '../../assets/icons/CommercialIcon.jsx';
+import InfoComponent from '../Components/InfoComponent.Js';
+import calculatorInfo from '../../assets/text/info.json';
 
-const CalculatorButton = ({ name, screen, Icon, color, article, onInfoPress, fullWidth }) => {
+const CalculatorButton = ({ name, screen, Icon, color, calcType, onInfoPress, fullWidth }) => {
   const navigation = useNavigation();
   return (
     <TouchableOpacity 
@@ -26,7 +28,7 @@ const CalculatorButton = ({ name, screen, Icon, color, article, onInfoPress, ful
     >
       <TouchableOpacity 
         style={styles.infoIconContainer}
-        onPress={() => onInfoPress(article)}
+        onPress={() => onInfoPress(calcType)}
       >
         <View style={styles.infoIconCircle}>
           <InformationCircleIcon color={colors.iconWhite} size={16} />
@@ -46,28 +48,6 @@ const CalculatorButton = ({ name, screen, Icon, color, article, onInfoPress, ful
   );
 };
 
-const ArticleModal = ({ isVisible, onClose, article }) => (
-  <Modal
-    animationType="slide"
-    transparent={true}
-    visible={isVisible}
-    onRequestClose={onClose}
-  >
-    <View style={styles.modalOverlay}>
-      <View style={styles.modalContent}>
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <XMarkIcon color={colors.darkGreenPrimary} size={24} />
-        </TouchableOpacity>
-        <ScrollView style={styles.modalScrollView}>
-          <Image source={article?.image} style={styles.modalImage} />
-          <Text style={styles.modalTitle}>{article?.title}</Text>
-          <Text style={styles.modalDescription}>{article?.fullContent}</Text>
-        </ScrollView>
-      </View>
-    </View>
-  </Modal>
-);
-
 const ArticleItem = ({ item, onPress }) => (
   <TouchableOpacity style={styles.articleItem} onPress={onPress}>
     <Image source={item.image} style={styles.articleImage} />
@@ -82,7 +62,8 @@ function CalcHomeScreen() {
   const navigation = useNavigation();
   const { getAllCalculations, deleteCalculation } = useDatabase();
   const [history, setHistory] = useState([]);
-  const [selectedArticle, setSelectedArticle] = useState(null);
+  const [selectedCalcType, setSelectedCalcType] = useState(null);
+  const [infoModalVisible, setInfoModalVisible] = useState(false);
   const [firstName, setFirstName] = useState('');
 
   const loadHistory = useCallback(async () => {
@@ -162,42 +143,42 @@ function CalcHomeScreen() {
       screen: "RentalCalcIn", 
       Icon: RentalIcon, 
       color: colors.primaryGreen,
-      article: articles[0]
+      calcType: "rental_calc"
     },
     { 
       name: "Fix & Flip Calculator", 
       screen: "FlipCalcIn", 
       Icon: FlipIcon, 
       color: colors.primaryOrange,
-      article: articles[1]
+      calcType: "flip_calc"
     },
     { 
       name: "BRRRR Calculator", 
       screen: "BRRCalcIn", 
       Icon: BRRRRIcon, 
       color: colors.primaryBlue,
-      article: articles[2]
+      calcType: "brrrr_calc"
     },
     { 
       name: "Wholesale Calculator", 
       screen: "WholesaleCalcIn", 
       Icon: WholesaleIcon, 
       color: colors.brightGreen,
-      article: articles[3]
+      calcType: "wholesale_calc"
     },
     { 
       name: "Price Target Calculator", 
       screen: "ProjectionCalcIn", 
       Icon: TargetIcon, 
       color: colors.primaryPurple,
-      article: articles[4],
+      calcType: "target_calc"
     },
     { 
       name: "Commercial Multi-Family", 
       screen: "CommercialCalcIn", 
       Icon: CommercialIcon, 
       color: colors.primaryPink,
-      article: articles[5],
+      calcType: "commercial_calc"
     },
   ];
 
@@ -225,8 +206,24 @@ function CalcHomeScreen() {
     </View>
   );
 
+  const handleCalcTypePress = (calcType) => {
+    setSelectedCalcType(calcType);
+    setInfoModalVisible(true);
+  };
+
+  const getInfoContent = () => {
+    if (!selectedCalcType || !calculatorInfo.calculator_type[selectedCalcType]) {
+      return { title: "", description: "Information not available." };
+    }
+    return {
+      title: calculatorInfo.calculator_type[selectedCalcType].title || "Calculator Information",
+      description: calculatorInfo.calculator_type[selectedCalcType].description || "Description not available."
+    };
+  };
+
   const handleArticlePress = (article) => {
-    setSelectedArticle(article);
+    // This is now just a placeholder for the article press action
+    // You can implement this differently if needed
   };
 
   return (
@@ -254,7 +251,7 @@ function CalcHomeScreen() {
             <CalculatorButton 
               key={index} 
               {...calc} 
-              onInfoPress={handleArticlePress}
+              onInfoPress={handleCalcTypePress}
             />
           ))}
         </View>
@@ -266,10 +263,12 @@ function CalcHomeScreen() {
           ))}
         </View>
       </ScrollView>
-      <ArticleModal
-        isVisible={selectedArticle !== null}
-        onClose={() => setSelectedArticle(null)}
-        article={selectedArticle}
+      
+      <InfoComponent
+        visible={infoModalVisible}
+        onClose={() => setInfoModalVisible(false)}
+        title={getInfoContent().title}
+        description={getInfoContent().description}
       />
     </SafeAreaView>
   );
@@ -434,47 +433,6 @@ const styles = StyleSheet.create({
   },
   headerIcon: {
     marginLeft: 16,
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    backgroundColor: colors.iconWhite,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 12,
-    height: '80%',
-    width: '100%',
-    paddingTop: 0, 
-  },
-  closeButton: {
-    position: 'absolute', 
-    top: 10, 
-    right: 10, 
-    zIndex: 1, 
-  },
-  modalScrollView: {
-    width: '100%',
-    marginTop: 40, 
-  },
-  modalImage: {
-    width: '100%',
-    height: 200,
-    borderRadius: 10,
-    marginBottom: 15,
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.darkGreenPrimary,
-    marginBottom: 16,
-  },
-  modalDescription: {
-    fontSize: 16,
-    color: colors.darkGreenPrimary,
-    lineHeight: 24,
   },
 });
 

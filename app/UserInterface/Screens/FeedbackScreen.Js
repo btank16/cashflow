@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, StatusBar, Platform, TextInput, ScrollView, TouchableOpacity, Modal } from "react-native";
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, StatusBar, Platform, TextInput, ScrollView, TouchableOpacity, Modal, Alert } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import { ChevronDownIcon } from "react-native-heroicons/outline";
+import { send, EmailJSResponseStatus } from '@emailjs/react-native';
 import colors from '../Colors/colors.Js';
 import BackButton from '../Components/BackButton.Js';
 import GreenLogo from '../../assets/icons/GreenLogo.jsx';
 import PrimaryButton from '../Components/PrimaryButton.Js';
+import { getUserAttribute } from '../Utils/UserAttributesCache.Js';
+import secretKeys from '../../../secretkeys.json';
 
 const SUBJECT_OPTIONS = [
   "Bug Report", 
@@ -107,10 +110,75 @@ function FeedbackScreen() {
   const [subject, setSubject] = useState('');
   const [feedback, setFeedback] = useState('');
   const [feedbackFocused, setFeedbackFocused] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+
+  useEffect(() => {
+    // Fetch user attributes when component mounts
+    const fetchUserData = async () => {
+      try {
+        const email = await getUserAttribute('email') || '';
+        
+        setUserEmail(email);
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleFeedbackChange = (text) => {
     if (text.length <= MAX_FEEDBACK_CHARS) {
       setFeedback(text);
+    }
+  };
+
+  const sendFeedback = async () => {
+    if (!subject || !feedback) {
+      Alert.alert('Error', 'Please fill in both subject and feedback fields.');
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    try {
+      const templateParams = {
+        email: userEmail || 'No Email Provided',
+        title: subject,
+        feedback: feedback
+      };
+      
+      await send(
+        secretKeys.emailjs.service_id,
+        secretKeys.emailjs.template_id,
+        templateParams,
+        {
+          publicKey: secretKeys.emailjs.user_id,
+        }
+      );
+      
+      // Clear form on success
+      setSubject('');
+      setFeedback('');
+      
+      Alert.alert(
+        'Success',
+        'Your feedback has been sent successfully. Thank you!'
+      );
+    } catch (error) {
+      console.error('Failed to send feedback:', error);
+      
+      let errorMessage = 'Failed to send feedback. Please try again later.';
+      
+      if (error instanceof EmailJSResponseStatus) {
+        console.log('EmailJS Request Failed...', error.text);
+        errorMessage = `EmailJS Error: ${error.text}`;
+      }
+      
+      Alert.alert('Error', errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -160,9 +228,11 @@ function FeedbackScreen() {
 
           <View style={styles.buttonContainer}>
             <PrimaryButton
-              label="Send feedback"
+              label="Send Feedback"
+              loadingLabel="Sending..."
               isActive={subject.length > 0 && feedback.length > 0}
-              onPress={() => {}}
+              isLoading={isLoading}
+              onPress={sendFeedback}
               style={{ marginTop: 16 }}
             />
           </View>

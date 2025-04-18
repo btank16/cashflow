@@ -27,7 +27,6 @@ function WholesaleCalcOut(props) {
             label: "Total Expenses",
             value: results.totalExpenses,
             type: "dollar",
-            infoPress: () => handleInfoPress("Information about Total Expenses"),
             fullWidth: true,
             textColor: colors.primaryBlack,
             additionalText: "Total expenses incurred during the holding period",
@@ -52,7 +51,7 @@ function WholesaleCalcOut(props) {
                 <View style={styles.mainResultContainer}>
                     <View style={styles.mainLabelContainer}>
                         <Text style={styles.mainLabel}>Maximum Allowable Offer</Text>
-                        <TouchableOpacity onPress={() => handleInfoPress("Information about Maximum Allowable Offer")}>
+                        <TouchableOpacity>
                             <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
                         </TouchableOpacity>
                     </View>
@@ -78,16 +77,12 @@ function WholesaleCalcOut(props) {
                         topValue={formatDollar(results.sale5Perc)}
                         bottomLabel="Minimum Fee"
                         bottomValue={formatDollar(results.fee5Perc)}
-                        topInfoPress={() => handleInfoPress("Information about 5% Sale Price")}
-                        bottomInfoPress={() => handleInfoPress("Information about 5% Fee")}
                     />
                     <DoubleResultDisplay
                         topLabel="Maximum Sale Price"
                         topValue={formatDollar(results.sale15Perc)}
                         bottomLabel="Maximum Fee"
                         bottomValue={formatDollar(results.fee15Perc)}
-                        topInfoPress={() => handleInfoPress("Information about 15% Sale Price")}
-                        bottomInfoPress={() => handleInfoPress("Information about 15% Fee")}
                     />
                     {fullWidthDisplays.map((item, index) => (
                         <ResultDisplay 

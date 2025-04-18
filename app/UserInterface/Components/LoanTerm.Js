@@ -5,9 +5,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../Colors/colors.Js';
 import SliderIcon from '../../assets/icons/SliderIcon';
+import InfoComponent from './InfoComponent.Js';
 
-const LoanTerm = ({ label, value, onValueChange, infoPress }) => {
+const LoanTerm = ({ label, value, onValueChange, infoTitle, infoDescription }) => {
   const [localValue, setLocalValue] = useState(value);
+  const [infoModalVisible, setInfoModalVisible] = useState(false);
 
   useEffect(() => {
     setLocalValue(value);
@@ -17,6 +19,12 @@ const LoanTerm = ({ label, value, onValueChange, infoPress }) => {
     const roundedValue = Math.round(newValue);
     setLocalValue(roundedValue);
     onValueChange(roundedValue);
+  };
+
+  const handleInfoPress = () => {
+    if (infoTitle || infoDescription) {
+      setInfoModalVisible(true);
+    }
   };
 
   const renderSlicedTrack = () => {
@@ -83,7 +91,7 @@ const LoanTerm = ({ label, value, onValueChange, infoPress }) => {
   return (
     <View style={styles.container}>
       <View style={styles.labelContainer}>
-        <TouchableOpacity onPress={infoPress} style={styles.infoButton}>
+        <TouchableOpacity onPress={handleInfoPress} style={styles.infoButton}>
           <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
         </TouchableOpacity>
         <Text style={styles.label}>{label}</Text>
@@ -113,6 +121,13 @@ const LoanTerm = ({ label, value, onValueChange, infoPress }) => {
         <Text style={styles.rangeText}>1 year</Text>
         <Text style={styles.rangeText}>50 years</Text>
       </View>
+
+      <InfoComponent
+        visible={infoModalVisible}
+        onClose={() => setInfoModalVisible(false)}
+        title={infoTitle || label}
+        description={infoDescription || "No additional information available."}
+      />
     </View>
   );
 };

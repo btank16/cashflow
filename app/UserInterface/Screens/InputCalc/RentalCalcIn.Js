@@ -12,6 +12,8 @@ import LoanTerm from '../../Components/LoanTerm.Js';
 import { useDatabase } from '../../../../database/cashflowDatabase.Js';
 import Checkbox from '../../Components/InterestCheckbox.Js';
 import OperatingExpenses from '../../Components/OperatingExpenses.Js';
+import calculatorInfo from '../../../assets/text/info.json';
+
 
 function RentalCalcIn(props) {
     const navigation = useNavigation();
@@ -147,10 +149,6 @@ function RentalCalcIn(props) {
         }));
     };
 
-    const handleInfoPress = (infoText) => {
-        console.log(infoText);
-    };
-
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
@@ -271,7 +269,8 @@ function RentalCalcIn(props) {
             placeholder: "ex. 225,000",
             isRequired: true,
             type: "$",
-            infoPress: () => handleInfoPress("Information about Purchase Price")
+            infoTitle: calculatorInfo.calculator_input.purchase_price.title,
+            infoDescription: calculatorInfo.calculator_input.purchase_price.description
         },
         {
             label: "Interest Rate",
@@ -416,7 +415,6 @@ function RentalCalcIn(props) {
                                 label="Loan Term"
                                 value={loanTerm}
                                 onValueChange={(itemValue) => setLoanTerm(itemValue)}
-                                infoPress={() => handleInfoPress("Information about Loan Term")}
                             />
                         </>
                     )}

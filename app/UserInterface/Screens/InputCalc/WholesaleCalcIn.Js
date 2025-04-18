@@ -83,12 +83,6 @@ function WholesaleCalcIn(props) {
         );
     };
 
-    const handleInfoPress = (infoText) => {
-        // Implement the logic to show the overlay with infoText
-        // This could be setting a state variable to show a modal, for example
-        console.log(infoText);
-    };
-
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
@@ -166,8 +160,7 @@ function WholesaleCalcIn(props) {
             onChangeText: setPurchasePrice,
             placeholder: "ex. 225,000",
             isRequired: true,
-            type: "$",
-            infoPress: () => handleInfoPress("Information about Purchase Price")
+            type: "$"
         },
         {
             label: "Estimated Rehab Cost",

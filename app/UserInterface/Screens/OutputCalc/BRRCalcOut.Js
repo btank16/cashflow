@@ -31,33 +31,25 @@ function BRRCalcOut(props) {
         {
             label: "Monthly Cashflow (post-refinance)",
             value: results.BRRCashflow,
-            type: "dollar",
-            infoPress: () => handleInfoPress("Information about Monthly Cashflow")
+            type: "dollar"
         },
         {
             label: "Cash Down",
             value: results.cashDown,
             type: "dollar",
-            textColor: colors.primaryBlack,
-            infoPress: () => handleInfoPress("Information about Cash Down")
+            textColor: colors.primaryBlack
         },
         {
             label: "Cash on Cash Return",
             value: results.CashOnCash,
-            type: "percentage",
-            infoPress: () => handleInfoPress("Information about Cash on Cash Return")
+            type: "percentage"
         },
         {
             label: "ROI from Equity",
             value: results.EquityReturnPerc,
-            type: "percentage",
-            infoPress: () => handleInfoPress("Information about Maximum Equity Usage")
+            type: "percentage"
         }
     ];
-
-    const handleInfoPress = (infoText) => {
-        console.log(infoText);
-    };
 
     const expenseChartData = [
         {
@@ -111,7 +103,6 @@ function BRRCalcOut(props) {
             value: results.MaxEquity,
             type: "dollar",
             additionalText: "Assumes an 80% Loan-to-Value refinance",
-            infoPress: () => handleInfoPress("Information about Maximum Equity Usage"),
             fullWidth: true
         },
     ];
@@ -136,7 +127,7 @@ function BRRCalcOut(props) {
                 <View style={styles.mainResultContainer}>
                     <View style={styles.mainLabelContainer}>
                         <Text style={styles.mainLabel}>Annual Cashflow (post-refinance)</Text>
-                        <TouchableOpacity onPress={() => handleInfoPress("Information about Annual Cashflow")}>
+                        <TouchableOpacity>
                             <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
                         </TouchableOpacity>
                     </View>

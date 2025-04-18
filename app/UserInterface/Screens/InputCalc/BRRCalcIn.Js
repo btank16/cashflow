@@ -163,10 +163,6 @@ function BRRCalcIn(props) {
         }));
     };
 
-    const handleInfoPress = (infoText) => {
-        console.log(infoText);
-    };
-
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
@@ -295,8 +291,7 @@ function BRRCalcIn(props) {
             onChangeText: (value) => setPurchasePrice(prev => ({ ...prev, value })),
             placeholder: "ex. 225,000",
             isRequired: true,
-            type: "$",
-            infoPress: () => handleInfoPress("Information about Purchase Price")
+            type: "$"
         },
         {
             label: "Rehab Cost",

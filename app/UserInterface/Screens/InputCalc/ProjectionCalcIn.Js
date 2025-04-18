@@ -132,10 +132,6 @@ function ProjectionCalcIn(props) {
         }));
     };
 
-    const handleInfoPress = (infoText) => {
-        console.log(infoText);
-    };
-
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
@@ -226,8 +222,7 @@ function ProjectionCalcIn(props) {
             value: purchasePrice,
             onChangeText: setPurchasePrice,
             placeholder: "ex. 225,000",
-            type: "$",
-            infoPress: () => handleInfoPress("Information about Purchase Price")
+            type: "$"
         },
         {
             label: "Monthly Cashflow Target",

@@ -57,27 +57,23 @@ function CommercialCalcOut(props) {
         {
             label: "Total Acquisition Costs",
             value: results.totalAcquisitionCosts,
-            type: "dollar",
-            infoPress: () => handleInfoPress("Information about Total Acquisition Costs")
+            type: "dollar"
         },
         {
             label: "Capital Reserve",
             value: inputValues.capitalReserve,
             type: "dollar",
-            textColor: colors.primaryBlack,
-            infoPress: () => handleInfoPress("Information about Capital Reserve")
+            textColor: colors.primaryBlack
         },
         {
             label: "Cash on Cash Return",
             value: results.cashOnCash,
-            type: "percentage",
-            infoPress: () => handleInfoPress("Information about Cash on Cash Return")
+            type: "percentage"
         },
         {
             label: "Cap Rate",
             value: results.capRate,
-            type: "percentage",
-            infoPress: () => handleInfoPress("Information about Cap Rate")
+            type: "percentage"
         }
     ];
 
@@ -87,7 +83,6 @@ function CommercialCalcOut(props) {
             value: results.DSCR,
             type: "float",
             additionalText: getDSCRText(results.DSCR),
-            infoPress: () => handleInfoPress("Information about DSCR"),
             fullWidth: true
         },
         {
@@ -96,14 +91,10 @@ function CommercialCalcOut(props) {
             type: "integer",
             additionalText: breakEvenText(results.monthsTillEven),
             textColor: colors.primaryBlack,
-            infoPress: () => handleInfoPress("Information about Break Even"),
             fullWidth: true
         }
     ];
 
-    const handleInfoPress = (infoText) => {
-        console.log(infoText);
-    };
 
     const expenseChartData = [
         {
@@ -151,7 +142,7 @@ function CommercialCalcOut(props) {
                 <View style={styles.mainResultContainer}>
                     <View style={styles.mainLabelContainer}>
                         <Text style={styles.mainLabel}>Annual Cashflow</Text>
-                        <TouchableOpacity onPress={() => handleInfoPress("Information about Annual Cashflow")}>
+                        <TouchableOpacity>
                             <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
                         </TouchableOpacity>
                     </View>

@@ -147,10 +147,6 @@ function FlipCalcIn(props) {
         }));
     };
 
-    const handleInfoPress = (infoText) => {
-        console.log(infoText);
-    };
-
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
@@ -268,8 +264,7 @@ function FlipCalcIn(props) {
             onChangeText: (value) => setPurchasePrice(prev => ({ ...prev, value })),
             placeholder: "ex. 225,000",
             isRequired: true,
-            type: "$",
-            infoPress: () => handleInfoPress("Information about Purchase Price")
+            type: "$"
         },
         {
             label: "Interest Rate",
@@ -414,7 +409,6 @@ function FlipCalcIn(props) {
                                 label="Loan Term"
                                 value={loanTerm}
                                 onValueChange={(itemValue) => setLoanTerm(itemValue)}
-                                infoPress={() => handleInfoPress("Information about Loan Term")}
                             />
                         </>
                     )}

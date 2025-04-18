@@ -31,14 +31,12 @@ function FlipCalcOut(props) {
         {
             label: "ROI",
             value: results.returnPerc,
-            type: "percentage",
-            infoPress: () => handleInfoPress("Information about Monthly Cashflow")
+            type: "percentage"
         },
         {
             label: "Cash on Cash ROI",
             value: results.cashROI,
-            type: "percentage",
-            infoPress: () => handleInfoPress("Information about Cash Down")
+            type: "percentage"
         }
     ];
 
@@ -49,7 +47,6 @@ function FlipCalcOut(props) {
             type: "dollar",
             textColor: colors.primaryBlack,
             additionalText: "Down Payment and Rehab Cost",
-            infoPress: () => handleInfoPress("Information about DSCR"),
             fullWidth: true
         },
         {
@@ -58,14 +55,10 @@ function FlipCalcOut(props) {
             type: "dollar",
             textColor: colors.primaryBlack,
             additionalText: "The sum of all Cash Costs, including Expenses during the Rehab Period",
-            infoPress: () => handleInfoPress("Information about Break Even"),
             fullWidth: true
         }
     ];
 
-    const handleInfoPress = (infoText) => {
-        console.log(infoText);
-    };
 
     const expenseChartData = [
         {
@@ -103,7 +96,7 @@ function FlipCalcOut(props) {
                 <View style={styles.mainResultContainer}>
                     <View style={styles.mainLabelContainer}>
                         <Text style={styles.mainLabel}>Net Profit</Text>
-                        <TouchableOpacity onPress={() => handleInfoPress("Information about Annual Cashflow")}>
+                        <TouchableOpacity>
                             <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
                         </TouchableOpacity>
                     </View>

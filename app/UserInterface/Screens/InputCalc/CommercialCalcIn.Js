@@ -144,10 +144,6 @@ function CommercialCalcIn(props) {
         }));
     };
 
-    const handleInfoPress = (infoText) => {
-        console.log(infoText);
-    };
-
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
@@ -244,8 +240,7 @@ function CommercialCalcIn(props) {
             onChangeText: setPurchasePrice,
             placeholder: "ex. 1,250,000",
             isRequired: true,
-            type: "$",
-            infoPress: () => handleInfoPress("Information about Purchase Price")
+            type: "$"
         },
         {
             label: "Interest Rate",

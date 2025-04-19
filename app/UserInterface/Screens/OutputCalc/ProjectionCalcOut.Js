@@ -9,6 +9,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import PriceBar from '../../Components/PriceBar.Js';
 import DarkTextLogo from '../../../assets/icons/DarkTextLogo';
 import ExpensePieChart from '../../Components/ExpensePieChart.Js';
+import InfoComponent from '../../Components/InfoComponent.Js';
+import calculatorInfo from '../../../assets/text/info.json';
 
 const getListingPriceColor = (purchasePrice, targetPrice, netZeroPrice) => {
     if (purchasePrice < targetPrice) return colors.tertiaryOrange;
@@ -31,6 +33,7 @@ function ProjectionCalcOut(props) {
     const route = useRoute();
     const { inputValues, ...results } = route.params;
     const [showTargetPrice, setShowTargetPrice] = useState(true);
+    const [infoModalVisible, setInfoModalVisible] = useState(false);
 
     const formatDollar = (value) => {
         const number = parseFloat(value);
@@ -122,7 +125,7 @@ function ProjectionCalcOut(props) {
                 <View style={styles.mainResultContainer}>
                     <View style={styles.mainLabelContainer}>
                         <Text style={styles.mainLabel}>Monthly Cashflow Target</Text>
-                        <TouchableOpacity>
+                        <TouchableOpacity onPress={() => setInfoModalVisible(true)}>
                             <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
                         </TouchableOpacity>
                     </View>
@@ -200,6 +203,13 @@ function ProjectionCalcOut(props) {
                     }
                 />
             </ScrollView>
+
+            <InfoComponent
+                visible={infoModalVisible}
+                onClose={() => setInfoModalVisible(false)}
+                title="Monthly Cashflow Target"
+                description="The monthly cashflow target for the property."
+            />
         </SafeAreaView>
     );
 }

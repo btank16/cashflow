@@ -8,13 +8,16 @@ import BackButton from '../../Components/BackButton.Js';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ExpensePieChart from '../../Components/ExpensePieChart.Js';
 import DarkTextLogo from '../../../assets/icons/DarkTextLogo.jsx';
+import InfoComponent from '../../Components/InfoComponent.Js';
+import calculatorInfo from '../../../assets/text/info.json';
 
 
 function BRRCalcOut(props) {
     const navigation = useNavigation();
-
     const route = useRoute();
     const { inputValues, ...results } = route.params;
+    const [infoModalVisible, setInfoModalVisible] = useState(false);
+    const [showRefinanced, setShowRefinanced] = useState(false);
 
     const formatDollar = (value) => {
         const number = parseFloat(value);
@@ -106,9 +109,6 @@ function BRRCalcOut(props) {
             fullWidth: true
         },
     ];
-
-    const [showRefinanced, setShowRefinanced] = useState(false);
-
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
@@ -127,7 +127,7 @@ function BRRCalcOut(props) {
                 <View style={styles.mainResultContainer}>
                     <View style={styles.mainLabelContainer}>
                         <Text style={styles.mainLabel}>Annual Cashflow (post-refinance)</Text>
-                        <TouchableOpacity>
+                        <TouchableOpacity onPress={() => setInfoModalVisible(true)}>
                             <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
                         </TouchableOpacity>
                     </View>
@@ -186,6 +186,13 @@ function BRRCalcOut(props) {
                     }
                 />
             </ScrollView>
+
+            <InfoComponent
+                visible={infoModalVisible}
+                onClose={() => setInfoModalVisible(false)}
+                title="Annual Cashflow (post-refinance)"
+                description="The annual cash flow after the property has been refinanced."
+            />
         </SafeAreaView>
     );
 }

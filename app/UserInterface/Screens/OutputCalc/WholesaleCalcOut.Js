@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, Text, TouchableOpacity } from "react-native";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../../Colors/colors.Js';
@@ -7,19 +7,25 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import DarkTextLogo from '../../../assets/icons/DarkTextLogo.jsx';
 import DoubleResultDisplay from '../../Components/DoubleResultDisplay.Js';
 import ResultDisplay from '../../Components/ResultDisplay.Js';
+import InfoComponent from '../../Components/InfoComponent.Js';
+import calculatorInfo from '../../../assets/text/info.json';
 
 function WholesaleCalcOut(props) {
     const navigation = useNavigation();
     const route = useRoute();
     const { inputValues, ...results } = route.params;
     const { purchasePrice } = inputValues;
+    const [infoModalVisible, setInfoModalVisible] = useState(false);
 
     const formatDollar = (value) => {
         const number = parseFloat(value);
-        return isNaN(number) ? '$0.00' : '$' + number.toLocaleString('en-US', {
+        if (isNaN(number)) return '$0.00';
+        
+        const absNumber = Math.abs(number);
+        return `${number < 0 ? '-' : ''}$${absNumber.toLocaleString('en-US', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
-        });
+        })}`;
     };
 
     const fullWidthDisplays = [
@@ -51,7 +57,7 @@ function WholesaleCalcOut(props) {
                 <View style={styles.mainResultContainer}>
                     <View style={styles.mainLabelContainer}>
                         <Text style={styles.mainLabel}>Maximum Allowable Offer</Text>
-                        <TouchableOpacity>
+                        <TouchableOpacity onPress={() => setInfoModalVisible(true)}>
                             <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
                         </TouchableOpacity>
                     </View>
@@ -92,6 +98,13 @@ function WholesaleCalcOut(props) {
                     ))}
                 </View>
             </ScrollView>
+
+            <InfoComponent
+                visible={infoModalVisible}
+                onClose={() => setInfoModalVisible(false)}
+                title="Maximum Allowable Offer"
+                description="The maximum amount you can offer for a property without incurring a loss."
+            />
         </SafeAreaView>
     );
 }

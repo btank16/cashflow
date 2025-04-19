@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, Text, TouchableOpacity } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
@@ -8,12 +8,14 @@ import BackButton from '../../Components/BackButton.Js';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ExpensePieChart from '../../Components/ExpensePieChart.Js';
 import DarkTextLogo from '../../../assets/icons/DarkTextLogo.jsx';
+import InfoComponent from '../../Components/InfoComponent.Js';
+import calculatorInfo from '../../../assets/text/info.json';
 
 function FlipCalcOut(props) {
     const navigation = useNavigation();
-
     const route = useRoute();
     const { inputValues, ...results } = route.params;
+    const [infoModalVisible, setInfoModalVisible] = useState(false);
 
     const formatDollar = (value) => {
         const number = parseFloat(value);
@@ -26,7 +28,6 @@ function FlipCalcOut(props) {
         })}`;
     };
     
-
     const resultDisplayArray = [
         {
             label: "ROI",
@@ -58,7 +59,6 @@ function FlipCalcOut(props) {
             fullWidth: true
         }
     ];
-
 
     const expenseChartData = [
         {
@@ -96,7 +96,7 @@ function FlipCalcOut(props) {
                 <View style={styles.mainResultContainer}>
                     <View style={styles.mainLabelContainer}>
                         <Text style={styles.mainLabel}>Net Profit</Text>
-                        <TouchableOpacity>
+                        <TouchableOpacity onPress={() => setInfoModalVisible(true)}>
                             <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
                         </TouchableOpacity>
                     </View>
@@ -125,6 +125,13 @@ function FlipCalcOut(props) {
                     chartData={expenseChartData}
                 />
             </ScrollView>
+            
+            <InfoComponent
+                visible={infoModalVisible}
+                onClose={() => setInfoModalVisible(false)}
+                title="Net Profit"
+                description="The total profit made from the flip after accounting for all costs and expenses."
+            />
         </SafeAreaView>
     );
 }

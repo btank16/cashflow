@@ -12,6 +12,8 @@ import LoanTerm from '../../Components/LoanTerm.Js';
 import { useDatabase } from '../../../../database/cashflowDatabase.Js';
 import Checkbox from '../../Components/InterestCheckbox.Js';
 import OperatingExpenses from '../../Components/OperatingExpenses.Js';
+import calculatorInfo from '../../../assets/text/info.json';
+
 
 function RentalCalcIn(props) {
     const navigation = useNavigation();
@@ -45,10 +47,6 @@ function RentalCalcIn(props) {
     const [operatingExpenses, setOperatingExpenses] = useState([]);
     const [saveNewExpenses, setSaveNewExpenses] = useState(false);
     const [vacancyRate, setVacancyRate] = useState();
-
-    const uid = () => {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2);
-    }
 
     useEffect(() => {
         checkFormValidity();
@@ -151,10 +149,6 @@ function RentalCalcIn(props) {
         }));
     };
 
-    const handleInfoPress = (infoText) => {
-        console.log(infoText);
-    };
-
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
@@ -209,8 +203,6 @@ function RentalCalcIn(props) {
             vacancyRate: toNumber(vacancyRate)
         };
 
-        const id = calculationId || uid();
-
         const expenseResults = expenses(
             inputValues.purchasePrice,
             inputValues.downPayment,
@@ -258,15 +250,15 @@ function RentalCalcIn(props) {
         };
 
         try {
-            await saveCalculation('rental', inputValues, results, id);
+            const savedId = await saveCalculation('rental', inputValues, results, calculationId);
+            
+            navigation.navigate(resultScreen, {
+                inputValues: { ...inputValues, id: savedId },
+                ...results
+            });
         } catch (error) {
             console.error('Error saving calculation to database:', error);
         }
-
-        navigation.navigate(resultScreen, {
-            inputValues: { ...inputValues, id },
-            ...results
-        });
     };
 
     const numericInputsArray = [
@@ -277,7 +269,8 @@ function RentalCalcIn(props) {
             placeholder: "ex. 225,000",
             isRequired: true,
             type: "$",
-            infoPress: () => handleInfoPress("Information about Purchase Price")
+            infoTitle: calculatorInfo.calculator_input.purchase_price.title,
+            infoDescription: calculatorInfo.calculator_input.purchase_price.description
         },
         {
             label: "Interest Rate",
@@ -285,14 +278,18 @@ function RentalCalcIn(props) {
             onChangeText: (value) => setInterestRateInput(prev => ({ ...prev, value })),
             placeholder: "ex. 5%",
             isRequired: true,
-            type: "%"
+            type: "%",
+            infoTitle: calculatorInfo.calculator_input.interest_rate.title,
+            infoDescription: calculatorInfo.calculator_input.interest_rate.description
         },
         {
             label: "Rehab Cost",
             value: rehabCost,
             onChangeText: setRehabCost,
             placeholder: "ex. $10,000",
-            type: "$"
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.rehab_cost.title,
+            infoDescription: calculatorInfo.calculator_input.rehab_cost.description
         },
         {
             label: "Gross Monthly Rent",
@@ -300,14 +297,18 @@ function RentalCalcIn(props) {
             onChangeText: setMonthRent,
             placeholder: "ex. $1000",
             isRequired: true,
-            type: "$"
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.monthly_rent.title,
+            infoDescription: calculatorInfo.calculator_input.monthly_rent.description
         },
         {
             label: "Vacancy Rate",
             value: vacancyRate,
             onChangeText: setVacancyRate,
             placeholder: "ex. 5%",
-            type: "%"
+            type: "%",
+            infoTitle: calculatorInfo.calculator_input.vacancy_rate.title,
+            infoDescription: calculatorInfo.calculator_input.vacancy_rate.description
         }
     ];
 
@@ -319,7 +320,9 @@ function RentalCalcIn(props) {
             onChangeValue: (value) => handleSwitchableInputChange('downPayment', value),
             onToggleMode: (newIsDollar) => handleSwitchableInputToggle('downPayment', newIsDollar),
             placeholder: switchableInputs.downPayment.isDollar ? "ex. $45,000" : "ex. 20%",
-            isRequired: true
+            isRequired: true,
+            infoTitle: calculatorInfo.calculator_input.down_payment.title,
+            infoDescription: calculatorInfo.calculator_input.down_payment.description
         },
         {
             label: "Closing Cost",
@@ -327,7 +330,9 @@ function RentalCalcIn(props) {
             isDollar: switchableInputs.closingCost.isDollar,
             onChangeValue: (value) => handleSwitchableInputChange('closingCost', value),
             onToggleMode: (newIsDollar) => handleSwitchableInputToggle('closingCost', newIsDollar),
-            placeholder: switchableInputs.closingCost.isDollar ? "ex. $5,000" : "ex. 2%"
+            placeholder: switchableInputs.closingCost.isDollar ? "ex. $5,000" : "ex. 2%",
+            infoTitle: calculatorInfo.calculator_input.closing_costs.title,
+            infoDescription: calculatorInfo.calculator_input.closing_costs.description
         },
         {
             label: "Annual Property Tax",
@@ -336,7 +341,9 @@ function RentalCalcIn(props) {
             onChangeValue: (value) => handleSwitchableInputChange('propertyTax', value),
             onToggleMode: (newIsDollar) => handleSwitchableInputToggle('propertyTax', newIsDollar),
             placeholder: switchableInputs.propertyTax.isDollar ? "ex. $2,000" : "ex. 2%",
-            isRequired: true
+            isRequired: true,
+            infoTitle: calculatorInfo.calculator_input.property_tax.title,
+            infoDescription: calculatorInfo.calculator_input.property_tax.description
         },
         {
             label: "Annual CapEx Estimate",
@@ -344,7 +351,9 @@ function RentalCalcIn(props) {
             isDollar: switchableInputs.capexEst.isDollar,
             onChangeValue: (value) => handleSwitchableInputChange('capexEst', value),
             onToggleMode: (newIsDollar) => handleSwitchableInputToggle('capexEst', newIsDollar),
-            placeholder: switchableInputs.capexEst.isDollar ? "ex. $3,000" : "ex. 5%"
+            placeholder: switchableInputs.capexEst.isDollar ? "ex. $3,000" : "ex. 5%",
+            infoTitle: calculatorInfo.calculator_input.capex.title,
+            infoDescription: calculatorInfo.calculator_input.capex.description
         }
     ];
 
@@ -422,7 +431,8 @@ function RentalCalcIn(props) {
                                 label="Loan Term"
                                 value={loanTerm}
                                 onValueChange={(itemValue) => setLoanTerm(itemValue)}
-                                infoPress={() => handleInfoPress("Information about Loan Term")}
+                                infoTitle={calculatorInfo.calculator_input.loan_term.title}
+                                infoDescription={calculatorInfo.calculator_input.loan_term.description}
                             />
                         </>
                     )}
@@ -439,6 +449,8 @@ function RentalCalcIn(props) {
                         onExpensesChange={handleOperatingExpensesChange}
                         onSaveNewExpensesChange={handleSaveNewExpensesChange}
                         initialExpenses={operatingExpenses}
+                        infoTitle={calculatorInfo.calculator_input.operating_expenses.title}
+                        infoDescription={calculatorInfo.calculator_input.operating_expenses.description}
                     />
                 </ScrollView>
             </KeyboardAvoidingView>

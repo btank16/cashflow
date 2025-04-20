@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, Text, TouchableOpacity } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
@@ -8,11 +8,14 @@ import BackButton from '../../Components/BackButton.Js';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ExpensePieChart from '../../Components/ExpensePieChart.Js';
 import DarkTextLogo from '../../../assets/icons/DarkTextLogo.jsx';
+import InfoComponent from '../../Components/InfoComponent.Js';
+import calculatorInfo from '../../../assets/text/info.json';
 
 function CommercialCalcOut(props) {
     const navigation = useNavigation();
     const route = useRoute();
     const { inputValues, ...results } = route.params;
+    const [infoModalVisible, setInfoModalVisible] = useState(false);
 
     const formatDollar = (value) => {
         const number = parseFloat(value);
@@ -58,37 +61,44 @@ function CommercialCalcOut(props) {
             label: "Total Acquisition Costs",
             value: results.totalAcquisitionCosts,
             type: "dollar",
-            infoPress: () => handleInfoPress("Information about Total Acquisition Costs")
+            infoTitle: calculatorInfo.calculator_output.acquisition_cost.title,
+            infoDescription: calculatorInfo.calculator_output.acquisition_cost.description
         },
         {
             label: "Capital Reserve",
             value: inputValues.capitalReserve,
             type: "dollar",
             textColor: colors.primaryBlack,
-            infoPress: () => handleInfoPress("Information about Capital Reserve")
+            infoTitle: calculatorInfo.calculator_input.cap_reserve.title,
+            infoDescription: calculatorInfo.calculator_input.cap_reserve.description
         },
         {
             label: "Cash on Cash Return",
             value: results.cashOnCash,
             type: "percentage",
-            infoPress: () => handleInfoPress("Information about Cash on Cash Return")
+            infoTitle: calculatorInfo.calculator_output.cash_on_cash.title,
+            infoDescription: calculatorInfo.calculator_output.cash_on_cash.description
         },
         {
             label: "Cap Rate",
             value: results.capRate,
             type: "percentage",
-            infoPress: () => handleInfoPress("Information about Cap Rate")
+            infoTitle: calculatorInfo.calculator_output.cap_rate.title,
+            infoDescription: calculatorInfo.calculator_output.cap_rate.description
         }
     ];
 
     const fullWidthDisplays = [
         {
             label: "Debt Service Coverage Ratio (DSCR)",
-            value: results.DSCR,
+            value: results.DSCR === 'N/A' ? 'N/A' : results.DSCR,
             type: "float",
-            additionalText: getDSCRText(results.DSCR),
-            infoPress: () => handleInfoPress("Information about DSCR"),
-            fullWidth: true
+            additionalText: results.DSCR === 'N/A' ? 
+                'Not applicable for Cash Purchases' : 
+                getDSCRText(results.DSCR),
+            fullWidth: true,
+            infoTitle: calculatorInfo.calculator_output.dscr.title,
+            infoDescription: calculatorInfo.calculator_output.dscr.description
         },
         {
             label: "Months to Break Even",
@@ -96,14 +106,12 @@ function CommercialCalcOut(props) {
             type: "integer",
             additionalText: breakEvenText(results.monthsTillEven),
             textColor: colors.primaryBlack,
-            infoPress: () => handleInfoPress("Information about Break Even"),
-            fullWidth: true
+            fullWidth: true,
+            infoTitle: calculatorInfo.calculator_output.break_even.title,
+            infoDescription: calculatorInfo.calculator_output.break_even.description
         }
     ];
 
-    const handleInfoPress = (infoText) => {
-        console.log(infoText);
-    };
 
     const expenseChartData = [
         {
@@ -151,7 +159,7 @@ function CommercialCalcOut(props) {
                 <View style={styles.mainResultContainer}>
                     <View style={styles.mainLabelContainer}>
                         <Text style={styles.mainLabel}>Annual Cashflow</Text>
-                        <TouchableOpacity onPress={() => handleInfoPress("Information about Annual Cashflow")}>
+                        <TouchableOpacity onPress={() => setInfoModalVisible(true)}>
                             <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
                         </TouchableOpacity>
                     </View>
@@ -180,6 +188,13 @@ function CommercialCalcOut(props) {
                     chartData={expenseChartData}
                 />
             </ScrollView>
+
+            <InfoComponent
+                visible={infoModalVisible}
+                onClose={() => setInfoModalVisible(false)}
+                title={calculatorInfo.calculator_output.annual_cashflow.title}
+                description={calculatorInfo.calculator_output.annual_cashflow.description}
+            />
         </SafeAreaView>
     );
 }

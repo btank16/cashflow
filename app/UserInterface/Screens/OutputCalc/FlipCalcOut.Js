@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, Text, TouchableOpacity } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
@@ -8,12 +8,14 @@ import BackButton from '../../Components/BackButton.Js';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ExpensePieChart from '../../Components/ExpensePieChart.Js';
 import DarkTextLogo from '../../../assets/icons/DarkTextLogo.jsx';
+import InfoComponent from '../../Components/InfoComponent.Js';
+import calculatorInfo from '../../../assets/text/info.json';
 
 function FlipCalcOut(props) {
     const navigation = useNavigation();
-
     const route = useRoute();
     const { inputValues, ...results } = route.params;
+    const [infoModalVisible, setInfoModalVisible] = useState(false);
 
     const formatDollar = (value) => {
         const number = parseFloat(value);
@@ -26,19 +28,20 @@ function FlipCalcOut(props) {
         })}`;
     };
     
-
     const resultDisplayArray = [
         {
             label: "ROI",
             value: results.returnPerc,
             type: "percentage",
-            infoPress: () => handleInfoPress("Information about Monthly Cashflow")
+            infoTitle: calculatorInfo.calculator_output.roi.title,
+            infoDescription: calculatorInfo.calculator_output.roi.description
         },
         {
             label: "Cash on Cash ROI",
             value: results.cashROI,
             type: "percentage",
-            infoPress: () => handleInfoPress("Information about Cash Down")
+            infoTitle: calculatorInfo.calculator_output.cash_roi.title,
+            infoDescription: calculatorInfo.calculator_output.cash_roi.description
         }
     ];
 
@@ -49,8 +52,9 @@ function FlipCalcOut(props) {
             type: "dollar",
             textColor: colors.primaryBlack,
             additionalText: "Down Payment and Rehab Cost",
-            infoPress: () => handleInfoPress("Information about DSCR"),
-            fullWidth: true
+            fullWidth: true,
+            infoTitle: calculatorInfo.calculator_output.cash_down.title,
+            infoDescription: calculatorInfo.calculator_output.cash_down.description
         },
         {
             label: "Total Cash Costs",
@@ -58,14 +62,11 @@ function FlipCalcOut(props) {
             type: "dollar",
             textColor: colors.primaryBlack,
             additionalText: "The sum of all Cash Costs, including Expenses during the Rehab Period",
-            infoPress: () => handleInfoPress("Information about Break Even"),
-            fullWidth: true
+            fullWidth: true,
+            infoTitle: calculatorInfo.calculator_output.total_cash_cost.title,
+            infoDescription: calculatorInfo.calculator_output.total_cash_cost.description
         }
     ];
-
-    const handleInfoPress = (infoText) => {
-        console.log(infoText);
-    };
 
     const expenseChartData = [
         {
@@ -103,7 +104,7 @@ function FlipCalcOut(props) {
                 <View style={styles.mainResultContainer}>
                     <View style={styles.mainLabelContainer}>
                         <Text style={styles.mainLabel}>Net Profit</Text>
-                        <TouchableOpacity onPress={() => handleInfoPress("Information about Annual Cashflow")}>
+                        <TouchableOpacity onPress={() => setInfoModalVisible(true)}>
                             <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
                         </TouchableOpacity>
                     </View>
@@ -132,6 +133,13 @@ function FlipCalcOut(props) {
                     chartData={expenseChartData}
                 />
             </ScrollView>
+            
+            <InfoComponent
+                visible={infoModalVisible}
+                onClose={() => setInfoModalVisible(false)}
+                title={calculatorInfo.calculator_output.net_profit.title}
+                description={calculatorInfo.calculator_output.net_profit.description}
+            />
         </SafeAreaView>
     );
 }

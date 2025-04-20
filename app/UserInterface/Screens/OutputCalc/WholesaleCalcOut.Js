@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, Text, TouchableOpacity } from "react-native";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../../Colors/colors.Js';
@@ -7,19 +7,25 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import DarkTextLogo from '../../../assets/icons/DarkTextLogo.jsx';
 import DoubleResultDisplay from '../../Components/DoubleResultDisplay.Js';
 import ResultDisplay from '../../Components/ResultDisplay.Js';
+import InfoComponent from '../../Components/InfoComponent.Js';
+import calculatorInfo from '../../../assets/text/info.json';
 
 function WholesaleCalcOut(props) {
     const navigation = useNavigation();
     const route = useRoute();
     const { inputValues, ...results } = route.params;
     const { purchasePrice } = inputValues;
+    const [infoModalVisible, setInfoModalVisible] = useState(false);
 
     const formatDollar = (value) => {
         const number = parseFloat(value);
-        return isNaN(number) ? '$0.00' : '$' + number.toLocaleString('en-US', {
+        if (isNaN(number)) return '$0.00';
+        
+        const absNumber = Math.abs(number);
+        return `${number < 0 ? '-' : ''}$${absNumber.toLocaleString('en-US', {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2
-        });
+        })}`;
     };
 
     const fullWidthDisplays = [
@@ -27,10 +33,11 @@ function WholesaleCalcOut(props) {
             label: "Total Expenses",
             value: results.totalExpenses,
             type: "dollar",
-            infoPress: () => handleInfoPress("Information about Total Expenses"),
             fullWidth: true,
             textColor: colors.primaryBlack,
             additionalText: "Total expenses incurred during the holding period",
+            infoTitle: calculatorInfo.calculator_output.wholesale_expense.title,
+            infoDescription: calculatorInfo.calculator_output.wholesale_expense.description
         }
     ];
 
@@ -52,7 +59,7 @@ function WholesaleCalcOut(props) {
                 <View style={styles.mainResultContainer}>
                     <View style={styles.mainLabelContainer}>
                         <Text style={styles.mainLabel}>Maximum Allowable Offer</Text>
-                        <TouchableOpacity onPress={() => handleInfoPress("Information about Maximum Allowable Offer")}>
+                        <TouchableOpacity onPress={() => setInfoModalVisible(true)}>
                             <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
                         </TouchableOpacity>
                     </View>
@@ -78,16 +85,20 @@ function WholesaleCalcOut(props) {
                         topValue={formatDollar(results.sale5Perc)}
                         bottomLabel="Minimum Fee"
                         bottomValue={formatDollar(results.fee5Perc)}
-                        topInfoPress={() => handleInfoPress("Information about 5% Sale Price")}
-                        bottomInfoPress={() => handleInfoPress("Information about 5% Fee")}
+                        topInfoTitle={calculatorInfo.calculator_output.min_sale_price.title}
+                        topInfoDescription={calculatorInfo.calculator_output.min_sale_price.description}
+                        bottomInfoTitle={calculatorInfo.calculator_output.min_fee.title}
+                        bottomInfoDescription={calculatorInfo.calculator_output.min_fee.description}
                     />
                     <DoubleResultDisplay
                         topLabel="Maximum Sale Price"
                         topValue={formatDollar(results.sale15Perc)}
                         bottomLabel="Maximum Fee"
                         bottomValue={formatDollar(results.fee15Perc)}
-                        topInfoPress={() => handleInfoPress("Information about 15% Sale Price")}
-                        bottomInfoPress={() => handleInfoPress("Information about 15% Fee")}
+                        topInfoTitle={calculatorInfo.calculator_output.max_sale_price.title}
+                        topInfoDescription={calculatorInfo.calculator_output.max_sale_price.description}
+                        bottomInfoTitle={calculatorInfo.calculator_output.max_fee.title}
+                        bottomInfoDescription={calculatorInfo.calculator_output.max_fee.description}
                     />
                     {fullWidthDisplays.map((item, index) => (
                         <ResultDisplay 
@@ -97,6 +108,13 @@ function WholesaleCalcOut(props) {
                     ))}
                 </View>
             </ScrollView>
+
+            <InfoComponent
+                visible={infoModalVisible}
+                onClose={() => setInfoModalVisible(false)}
+                title={calculatorInfo.calculator_output.mao.title}
+                description={calculatorInfo.calculator_output.mao.description}
+            />
         </SafeAreaView>
     );
 }

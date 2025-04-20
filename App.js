@@ -9,6 +9,7 @@ import * as WebBrowser from 'expo-web-browser';
 import awsconfig from './amplify_outputs.json';
 import { forceCheckAuthAndRedirect, hasActiveSession, checkIsFirstTimeUser } from './app/UserInterface/Utils/AuthUtils.Js';
 import { initWebBrowserConfig } from './app/UserInterface/Utils/WebBrowserConfig.Js';
+import { initUserAttributesCache, clearUserAttributesCache } from './app/UserInterface/Utils/UserAttributesCache.Js';
 import LottieView from 'lottie-react-native';
 import colors from './app/UserInterface/Colors/colors.Js';
 import AnimationLoader from './app/UserInterface/Components/AnimationLoader.Js';
@@ -78,6 +79,7 @@ function App() {
   const [animationDurationElapsed, setAnimationDurationElapsed] = useState(false);
   const [isAnimationReady, setIsAnimationReady] = useState(false);
   const [fadeOutAnimation, setFadeOutAnimation] = useState(false);
+  const [userAttributesLoaded, setUserAttributesLoaded] = useState(false);
 
   // Check for any deep links or handle authentication at startup
   useEffect(() => {
@@ -87,6 +89,10 @@ function App() {
         const sessionActive = await hasActiveSession();
         
         if (sessionActive) {
+          // Initialize user attributes cache if session is active
+          const attributes = await initUserAttributesCache();
+          setUserAttributesLoaded(!!attributes);
+          
           // If session is active, get user status
           const userStatus = await checkIsFirstTimeUser();
           
@@ -104,15 +110,21 @@ function App() {
           } else {
             setIsAuthenticated(false);
             setInitialRoute('Auth');
+            // Clear attributes cache if not authenticated
+            clearUserAttributesCache();
           }
         } else {
           setIsAuthenticated(false);
           setInitialRoute('Auth');
+          // Clear attributes cache if no session
+          clearUserAttributesCache();
+          setUserAttributesLoaded(false);
         }
       } catch (error) {
         console.log('Error checking authentication status:', error);
         setIsAuthenticated(false);
         setInitialRoute('Auth');
+        setUserAttributesLoaded(false);
       } finally {
         setAuthCheckComplete(true);
       }
@@ -217,7 +229,7 @@ function App() {
         <NavigationContainer
           ref={navigationRef}
           linking={{
-            prefixes: ['cashflow://', 'https://3f63ead00107678794a4.auth.us-east-1.amazoncognito.com'],
+            prefixes: ['cashflow://', `https://${awsconfig.auth.oauth.domain}`],
             config: {
               screens: {
                 SignIn: 'signin',

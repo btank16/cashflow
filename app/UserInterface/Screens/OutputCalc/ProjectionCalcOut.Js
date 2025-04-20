@@ -9,6 +9,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import PriceBar from '../../Components/PriceBar.Js';
 import DarkTextLogo from '../../../assets/icons/DarkTextLogo';
 import ExpensePieChart from '../../Components/ExpensePieChart.Js';
+import InfoComponent from '../../Components/InfoComponent.Js';
+import calculatorInfo from '../../../assets/text/info.json';
 
 const getListingPriceColor = (purchasePrice, targetPrice, netZeroPrice) => {
     if (purchasePrice < targetPrice) return colors.tertiaryOrange;
@@ -31,6 +33,7 @@ function ProjectionCalcOut(props) {
     const route = useRoute();
     const { inputValues, ...results } = route.params;
     const [showTargetPrice, setShowTargetPrice] = useState(true);
+    const [infoModalVisible, setInfoModalVisible] = useState(false);
 
     const formatDollar = (value) => {
         const number = parseFloat(value);
@@ -43,26 +46,26 @@ function ProjectionCalcOut(props) {
         })}`;
     };
 
-    const handleInfoPress = (infoText) => {
-        console.log(infoText);
-    };
-
     const doubleResultDisplays = [
         {
             topLabel: "Target Price",
             topValue: formatDollar(results.TargetPrice),
             bottomLabel: "Cash Down",
             bottomValue: formatDollar(results.targetPriceCash),
-            topInfoPress: () => handleInfoPress("Information about Target Price"),
-            bottomInfoPress: () => handleInfoPress("Information about Cash Down")
+            topInfoTitle: calculatorInfo.calculator_output.target_price.title,
+            topInfoDescription: calculatorInfo.calculator_output.target_price.description,
+            bottomInfoTitle: calculatorInfo.calculator_output.cash_down.title,
+            bottomInfoDescription: calculatorInfo.calculator_output.cash_down.description
         },
         {
             topLabel: "Break Even Price",
             topValue: formatDollar(results.NetZeroPrice),
             bottomLabel: "Cash Down",
             bottomValue: formatDollar(results.netZeroCash),
-            topInfoPress: () => handleInfoPress("Information about Break Even Price"),
-            bottomInfoPress: () => handleInfoPress("Information about Cash Down")
+            topInfoTitle: calculatorInfo.calculator_output.breakeven_price.title,
+            topInfoDescription: calculatorInfo.calculator_output.breakeven_price.description,
+            bottomInfoTitle: calculatorInfo.calculator_output.cash_down.title,
+            bottomInfoDescription: calculatorInfo.calculator_output.cash_down.description
         }
     ];
 
@@ -130,7 +133,7 @@ function ProjectionCalcOut(props) {
                 <View style={styles.mainResultContainer}>
                     <View style={styles.mainLabelContainer}>
                         <Text style={styles.mainLabel}>Monthly Cashflow Target</Text>
-                        <TouchableOpacity onPress={() => handleInfoPress("Information about Monthly Cashflow")}>
+                        <TouchableOpacity onPress={() => setInfoModalVisible(true)}>
                             <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
                         </TouchableOpacity>
                     </View>
@@ -151,7 +154,6 @@ function ProjectionCalcOut(props) {
                             label="Listing Price"
                             value={inputValues.purchasePrice}
                             type="dollar"
-                            infoPress={() => handleInfoPress("Information about Purchase Price")}
                             fullWidth={true}
                             textColor={getListingPriceColor(
                                 inputValues.purchasePrice, 
@@ -163,6 +165,8 @@ function ProjectionCalcOut(props) {
                                 results.TargetPrice, 
                                 results.NetZeroPrice
                             )}
+                            infoTitle={calculatorInfo.calculator_input.listing_price.title}
+                            infoDescription={calculatorInfo.calculator_input.listing_price.description}
                         />
                     )}
                     <View style={styles.doubleResultsRow}>
@@ -209,6 +213,13 @@ function ProjectionCalcOut(props) {
                     }
                 />
             </ScrollView>
+
+            <InfoComponent
+                visible={infoModalVisible}
+                onClose={() => setInfoModalVisible(false)}
+                title={calculatorInfo.calculator_input.month_cashflow.title}
+                description={calculatorInfo.calculator_input.month_cashflow.description}
+            />
         </SafeAreaView>
     );
 }

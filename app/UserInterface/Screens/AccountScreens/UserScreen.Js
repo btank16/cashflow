@@ -1,22 +1,44 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Platform, StatusBar, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronLeftIcon, ChevronRightIcon } from "react-native-heroicons/outline";
 import { signOut } from '@aws-amplify/auth';
 import colors from '../../Colors/colors.Js';
+import { getUserAttribute } from '../../Utils/UserAttributesCache.Js';
+import { clearUserAttributesCache } from '../../Utils/UserAttributesCache.Js';
 
 // Import icons
 import UserIcon from '../../../assets/icons/UserIcon.jsx';
-import LockIcon from '../../../assets/icons/LockIcon.jsx';
 import CalculatorIcon from '../../../assets/icons/CalculatorIcon.jsx';
 import FeedbackIcon from '../../../assets/icons/FeedbackIcon.jsx';
 import ExitIcon from '../../../assets/icons/ExitIcon.jsx';
 
 const UserScreen = () => {
   const navigation = useNavigation();
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        // Use the cached user attributes instead of making a direct API call
+        const firstNameValue = await getUserAttribute('custom:firstName');
+        const lastNameValue = await getUserAttribute('custom:lastName');
+        
+        setFirstName(firstNameValue || '');
+        setLastName(lastNameValue || '');
+      } catch (error) {
+        console.error('Error fetching user attributes:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleSignOut = async () => {
     try {
+      // Clear the user attributes cache when signing out
+      clearUserAttributesCache();
       await signOut();
       // Navigate to Auth stack after successful sign out
       navigation.reset({
@@ -55,8 +77,7 @@ const UserScreen = () => {
       </View>
 
       <View style={styles.profileInfo}>
-        <Text style={styles.name}>John Smith</Text>
-        <Text style={styles.username}>@john_smith</Text>
+        <Text style={styles.name}>{firstName} {lastName}</Text>
       </View>
 
       <View style={styles.menuGroup}>
@@ -64,13 +85,7 @@ const UserScreen = () => {
           icon={UserIcon}
           title="Personal info"
           color={colors.primaryGreen}
-          onPress={() => navigation.navigate('PersonalInfo')}
-        />
-        <MenuButton
-          icon={LockIcon}
-          title="Security"
-          color={colors.primaryOrange}
-          onPress={() => navigation.navigate('Security')}
+          onPress={() => navigation.navigate('AttributeScreen')}
         />
         <MenuButton
           icon={CalculatorIcon}

@@ -8,6 +8,7 @@ import StateDropdown from '../../Components/StateDropdown.Js';
 import StateMultiselect from '../../Components/StateMultiselect.Js';
 import InvestmentStrategyMultiselect from '../../Components/InvestmentStrategyMultiselect.Js';
 import InterestCheckbox from '../../Components/InterestCheckbox.Js';
+import PrimaryButton from '../../Components/PrimaryButton.Js';
 
 const SignUpThird = () => {
   const navigation = useNavigation();
@@ -209,19 +210,14 @@ const SignUpThird = () => {
               {renderTermsText()}
             </View>
 
-            <TouchableOpacity 
-              style={[
-                styles.continueButton,
-                isButtonActive ? styles.activeButton : styles.inactiveButton,
-                isLoading && styles.loadingButton
-              ]}
+            <PrimaryButton
+              label="Continue"
+              loadingLabel={isOAuthUser ? 'Saving Profile...' : 'Creating Account...'}
+              isActive={isButtonActive}
+              isLoading={isLoading}
               onPress={handleSignUp}
-              disabled={!isButtonActive || isLoading}
-            >
-              <Text style={styles.continueButtonText}>
-                {isLoading ? (isOAuthUser ? 'Saving Profile...' : 'Creating Account...') : 'Continue'}
-              </Text>
-            </TouchableOpacity>
+              style={{ marginBottom: 16 }}
+            />
           </View>
         </View>
       </View>
@@ -284,24 +280,6 @@ const styles = StyleSheet.create({
   highlightedText: {
     color: colors.primaryGreen,
     fontWeight: '500',
-  },
-  continueButton: {
-    height: 56,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  activeButton: {
-    backgroundColor: colors.primaryGreen,
-  },
-  inactiveButton: {
-    backgroundColor: colors.tertiaryGreen,
-  },
-  continueButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.iconWhite,
   },
   loadingButton: {
     opacity: 0.8,

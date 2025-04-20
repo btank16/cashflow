@@ -11,6 +11,7 @@ import { useDatabase } from '../../../../database/cashflowDatabase.Js';
 import Checkbox from '../../Components/InterestCheckbox.Js';
 import { CommercialCalc } from '../../../Calculations/CommercialCalc.Js';
 import OperatingExpenses from '../../Components/OperatingExpenses.Js';
+import calculatorInfo from '../../../assets/text/info.json';
 
 function CommercialCalcIn(props) {
     const navigation = useNavigation();
@@ -43,10 +44,6 @@ function CommercialCalcIn(props) {
     const [operatingExpensesActive, setOperatingExpensesActive] = useState(true);
     const [operatingExpenses, setOperatingExpenses] = useState([]);
     const [saveNewExpenses, setSaveNewExpenses] = useState(false);
-
-    const uid = () => {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2);
-    }
 
     useEffect(() => {
         checkFormValidity();
@@ -148,10 +145,6 @@ function CommercialCalcIn(props) {
         }));
     };
 
-    const handleInfoPress = (infoText) => {
-        console.log(infoText);
-    };
-
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
@@ -198,8 +191,6 @@ function CommercialCalcIn(props) {
             }
         };
 
-        const id = calculationId || uid();
-
         try {
             const funcResults = CommercialCalc(
                 toNumber(purchasePrice),
@@ -232,14 +223,10 @@ function CommercialCalcIn(props) {
                 annualCashflow: funcResults[12]
             };
 
-        try {
-            await saveCalculation('commercial', inputValues, results, id);
-        } catch (error) {
-            console.error('Error saving calculation to database:', error);
-        }
-
+            const savedId = await saveCalculation('commercial', inputValues, results, calculationId);
+            
             navigation.navigate(resultScreen, {
-                inputValues: { ...inputValues, id },
+                inputValues: { ...inputValues, id: savedId },
                 ...results
             });
         } catch (error) {
@@ -255,7 +242,8 @@ function CommercialCalcIn(props) {
             placeholder: "ex. 1,250,000",
             isRequired: true,
             type: "$",
-            infoPress: () => handleInfoPress("Information about Purchase Price")
+            infoTitle: calculatorInfo.calculator_input.purchase_price.title,
+            infoDescription: calculatorInfo.calculator_input.purchase_price.description
         },
         {
             label: "Interest Rate",
@@ -263,14 +251,18 @@ function CommercialCalcIn(props) {
             onChangeText: (value) => setInterestRateInput(prev => ({ ...prev, value })),
             placeholder: "ex. 5%",
             isRequired: true,
-            type: "%"
+            type: "%",
+            infoTitle: calculatorInfo.calculator_input.interest_rate.title,
+            infoDescription: calculatorInfo.calculator_input.interest_rate.description
         },
         {
             label: "Capital Reserve",
             value: capitalReserve,
             onChangeText: setCapitalReserve,
             placeholder: "ex. $100,000",
-            type: "$"
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.cap_reserve.title,
+            infoDescription: calculatorInfo.calculator_input.cap_reserve.description
         },
         {
             label: "Gross Potential Rent",
@@ -278,14 +270,18 @@ function CommercialCalcIn(props) {
             onChangeText: setGrossRent,
             placeholder: "ex. $12,500",
             isRequired: true,
-            type: "$"
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.monthly_rent.title,
+            infoDescription: calculatorInfo.calculator_input.monthly_rent.description
         },
         {
             label: "Gross Fees and Other Income",
             value: grossFees,
             onChangeText: setGrossFees,
             placeholder: "ex. $5,000",
-            type: "$"
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.gross_fees.title,
+            infoDescription: calculatorInfo.calculator_input.gross_fees.description
         },
     ];
 
@@ -297,7 +293,9 @@ function CommercialCalcIn(props) {
             onChangeValue: (value) => handleSwitchableInputChange('downPayment', value),
             onToggleMode: (newIsDollar) => handleSwitchableInputToggle('downPayment', newIsDollar),
             placeholder: switchableInputs.downPayment.isDollar ? "ex. $250,000" : "ex. 20%",
-            isRequired: true
+            isRequired: true,
+            infoTitle: calculatorInfo.calculator_input.down_payment.title,
+            infoDescription: calculatorInfo.calculator_input.down_payment.description
         },
         {
             label: "Additional Acquisition Costs",
@@ -306,6 +304,8 @@ function CommercialCalcIn(props) {
             onChangeValue: (value) => handleSwitchableInputChange('acquisitionCosts', value),
             onToggleMode: (newIsDollar) => handleSwitchableInputToggle('acquisitionCosts', newIsDollar),
             placeholder: switchableInputs.acquisitionCosts.isDollar ? "ex. $100,000" : "ex. 10%",
+            infoTitle: calculatorInfo.calculator_input.acquisition_cost.title,
+            infoDescription: calculatorInfo.calculator_input.acquisition_cost.description
         },
         {
             label: "Closing Cost",
@@ -313,7 +313,9 @@ function CommercialCalcIn(props) {
             isDollar: switchableInputs.closingCost.isDollar,
             onChangeValue: (value) => handleSwitchableInputChange('closingCost', value),
             onToggleMode: (newIsDollar) => handleSwitchableInputToggle('closingCost', newIsDollar),
-            placeholder: switchableInputs.closingCost.isDollar ? "ex. $25,000" : "ex. 2%"
+            placeholder: switchableInputs.closingCost.isDollar ? "ex. $25,000" : "ex. 2%",
+            infoTitle: calculatorInfo.calculator_input.closing_costs.title,
+            infoDescription: calculatorInfo.calculator_input.closing_costs.description
         },
         {
             label: "Annual Property Tax",
@@ -322,7 +324,9 @@ function CommercialCalcIn(props) {
             onChangeValue: (value) => handleSwitchableInputChange('propertyTax', value),
             onToggleMode: (newIsDollar) => handleSwitchableInputToggle('propertyTax', newIsDollar),
             placeholder: switchableInputs.propertyTax.isDollar ? "ex. $2,000" : "ex. 2%",
-            isRequired: true
+            isRequired: true,
+            infoTitle: calculatorInfo.calculator_input.property_tax.title,
+            infoDescription: calculatorInfo.calculator_input.property_tax.description
         },
         {
             label: "Annual CapEx Estimate",
@@ -330,7 +334,9 @@ function CommercialCalcIn(props) {
             isDollar: switchableInputs.capexEst.isDollar,
             onChangeValue: (value) => handleSwitchableInputChange('capexEst', value),
             onToggleMode: (newIsDollar) => handleSwitchableInputToggle('capexEst', newIsDollar),
-            placeholder: switchableInputs.capexEst.isDollar ? "ex. $3,000" : "ex. 5%"
+            placeholder: switchableInputs.capexEst.isDollar ? "ex. $3,000" : "ex. 5%",
+            infoTitle: calculatorInfo.calculator_input.capex.title,
+            infoDescription: calculatorInfo.calculator_input.capex.description
         },
         {
             label: "Annual Vacancy Loss",
@@ -338,7 +344,9 @@ function CommercialCalcIn(props) {
             isDollar: switchableInputs.vacancyLoss.isDollar,
             onChangeValue: (value) => handleSwitchableInputChange('vacancyLoss', value),
             onToggleMode: (newIsDollar) => handleSwitchableInputToggle('vacancyLoss', newIsDollar),
-            placeholder: switchableInputs.vacancyLoss.isDollar ? "ex. $3,000" : "ex. 5%"
+            placeholder: switchableInputs.vacancyLoss.isDollar ? "ex. $3,000" : "ex. 5%",
+            infoTitle: calculatorInfo.calculator_input.vacancy_rate.title,
+            infoDescription: calculatorInfo.calculator_input.vacancy_rate.description
         }
     ];
 
@@ -405,6 +413,8 @@ function CommercialCalcIn(props) {
                         label="Loan Term"
                         value={loanTerm}
                         onValueChange={(itemValue) => setLoanTerm(itemValue)}
+                        infoTitle={calculatorInfo.calculator_input.loan_term.title}
+                        infoDescription={calculatorInfo.calculator_input.loan_term.description}
                     />
 
                     <Text style={styles.secondaryTitle}>Annual Rent Details</Text>
@@ -421,6 +431,8 @@ function CommercialCalcIn(props) {
                         onExpensesChange={handleOperatingExpensesChange}
                         onSaveNewExpensesChange={handleSaveNewExpensesChange}
                         initialExpenses={operatingExpenses}
+                        infoTitle={calculatorInfo.calculator_input.operating_expenses.title}
+                        infoDescription={calculatorInfo.calculator_input.operating_expenses.description}
                     />
                 </ScrollView>
             </KeyboardAvoidingView>

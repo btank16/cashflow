@@ -1,9 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../Colors/colors.Js';
+import InfoComponent from './InfoComponent.Js';
 
-const ResultDisplay = ({ label, value, type, additionalText, infoPress, fullWidth, textColor }) => {
+const ResultDisplay = ({ 
+  label, 
+  value, 
+  type, 
+  additionalText, 
+  infoTitle,
+  infoDescription,
+  fullWidth, 
+  textColor 
+}) => {
+  const [infoModalVisible, setInfoModalVisible] = useState(false);
+
   const getValueColor = () => {
     if (textColor) return textColor;
     
@@ -50,6 +62,12 @@ const ResultDisplay = ({ label, value, type, additionalText, infoPress, fullWidt
     }
   };
 
+  const handleInfoPress = () => {
+    if (infoTitle || infoDescription) {
+      setInfoModalVisible(true);
+    }
+  };
+
   return (
     <View style={[styles.container, fullWidth && styles.fullWidth]}>
       <View style={[
@@ -61,7 +79,7 @@ const ResultDisplay = ({ label, value, type, additionalText, infoPress, fullWidt
           fullWidth && styles.fullWidthLabel
         ]} numberOfLines={2}>{label}</Text>
         <View style={styles.infoButtonContainer}>
-          <TouchableOpacity onPress={infoPress}>
+          <TouchableOpacity onPress={handleInfoPress}>
             <Ionicons name="information-circle-outline" size={20} color={colors.sixthGrey} />
           </TouchableOpacity>
         </View>
@@ -70,6 +88,13 @@ const ResultDisplay = ({ label, value, type, additionalText, infoPress, fullWidt
       {additionalText && (
         <Text style={styles.additionalText}>{additionalText}</Text>
       )}
+
+      <InfoComponent
+        visible={infoModalVisible}
+        onClose={() => setInfoModalVisible(false)}
+        title={infoTitle || label}
+        description={infoDescription || "No additional information available."}
+      />
     </View>
   );
 };

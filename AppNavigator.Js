@@ -19,12 +19,15 @@ import UserScreen from './app/UserInterface/Screens/AccountScreens/UserScreen.Js
 import ExpenseScreen from './app/UserInterface/Screens/AccountScreens/ExpenseScreen.Js';
 import FirstAddExpense from './app/UserInterface/Screens/AccountScreens/FirstAddExpense.Js';
 import SecondAddExpense from './app/UserInterface/Screens/AccountScreens/SecondAddExpense.Js';
+import AttributeScreen from './app/UserInterface/Screens/AccountScreens/AttributeScreen.Js';
 import IntroScreen from './app/UserInterface/Screens/AuthScreens/IntroScreen.Js';
 import SignIn from './app/UserInterface/Screens/AuthScreens/SignIn.Js';
 import SignUpFirst from './app/UserInterface/Screens/AuthScreens/SignUpFirst.Js';
 import SignUpSec from './app/UserInterface/Screens/AuthScreens/SignUpSec.Js';
 import SignUpThird from './app/UserInterface/Screens/AuthScreens/SignUpThird.Js';
 import VerificationScreen from './app/UserInterface/Screens/AuthScreens/VerificationScreen.Js';
+import ForgetPassFirst from './app/UserInterface/Screens/AuthScreens/ForgetPassFirst.Js';
+import ForgetPassSec from './app/UserInterface/Screens/AuthScreens/ForgetPassSec.Js';
 
 const Stack = createStackNavigator();
 
@@ -37,6 +40,8 @@ const AuthStack = () => (
     <Stack.Screen name="SignUpSec" component={SignUpSec} />
     <Stack.Screen name="SignUpThird" component={SignUpThird} />
     <Stack.Screen name="VerificationScreen" component={VerificationScreen} />
+    <Stack.Screen name="ForgetPassFirst" component={ForgetPassFirst} />
+    <Stack.Screen name="ForgetPassSec" component={ForgetPassSec} />
   </Stack.Navigator>
 );
 
@@ -58,6 +63,7 @@ const MainStack = () => (
     <Stack.Screen name="WholesaleCalcOut" component={WholesaleCalcOut} />
     <Stack.Screen name="HistoryScreen" component={HistoryScreen} />
     <Stack.Screen name="UserScreen" component={UserScreen} />
+    <Stack.Screen name="AttributeScreen" component={AttributeScreen} />
     <Stack.Screen name="ExpenseScreen" component={ExpenseScreen} />
     <Stack.Screen name="FirstAddExpense" component={FirstAddExpense} />
     <Stack.Screen name="SecondAddExpense" component={SecondAddExpense} />

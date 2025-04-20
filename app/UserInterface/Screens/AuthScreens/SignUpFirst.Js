@@ -8,6 +8,7 @@ import MailIcon from '../../../assets/icons/MailIcon.jsx';
 import NormTextbox from '../../Components/NormTextbox.Js';
 import SocialSignInButton from '../../Components/SocialSignInButton.Js';
 import { handleOAuthRedirect, forceCheckAuthAndRedirect, hasActiveSession } from '../../Utils/AuthUtils.Js';
+import PrimaryButton from '../../Components/PrimaryButton.Js';
 
 const SignUpFirst = () => {
   const navigation = useNavigation();
@@ -145,17 +146,14 @@ const SignUpFirst = () => {
           </View>
 
           <View style={styles.bottomContent}>
-            <TouchableOpacity 
-              style={[
-                styles.continueButton,
-                isButtonActive ? styles.activeButton : styles.inactiveButton,
-                checkingAuth && styles.loadingButton
-              ]}
+            <PrimaryButton
+              label="Continue"
+              isActive={isButtonActive}
+              isLoading={false}
+              disabled={checkingAuth}
               onPress={handleContinue}
-              disabled={!isButtonActive || checkingAuth}
-            >
-              <Text style={styles.continueButtonText}>Continue</Text>
-            </TouchableOpacity>
+              style={{ marginBottom: 16 }}
+            />
           </View>
         </View>
       </View>
@@ -255,24 +253,6 @@ const styles = StyleSheet.create({
   },
   loadingButton: {
     opacity: 0.8,
-  },
-  continueButton: {
-    height: 56,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  activeButton: {
-    backgroundColor: colors.primaryGreen,
-  },
-  inactiveButton: {
-    backgroundColor: colors.tertiaryGreen,
-  },
-  continueButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.iconWhite,
   },
   bottomContent: {
     marginTop: 'auto',

@@ -18,10 +18,16 @@ This is a Mobile App developed in react native, which will function on both iOS 
 ### Database
 
 - Calculation Database: This is a SQLite database that stores the calculations for each calculator. The most recent calculations will show up on the Home Screen, but there is also a History Screen to view all previous calculations.
+  - Files where used: cashflowDatabase.Js, CalcHomeScreen.Js, HistoryScreen.Js,
 - Expense Database: This is a SQLite database that stores the expenses for each calculator. This is used to calculate the operating expenses for each calculator.
 
 ## Dependencies
 
 ### AWS Amplify
 
-- Impacted files: SignIn.Js, SignUpThird.Js, VerificationScreen.Js, UserScreen.Js, AppNavigator.Js, App.Js
+- Impacted files: SignIn.Js, SignUpThird.Js, VerificationScreen.Js, UserScreen.Js, AppNavigator.Js, App.Js, AuthUtils, UserAttributeCache, SocialSignInButton, ForgetPassFirst, ForgetPassSec
+- Files with User Attributes: CalcHomeScreen, AttributeScreen, UserScreen, SignUpThird, FeedbackScreen, cashflowDatabase
+
+### EmailJS
+
+- Used in feedback screen to send emails to the domain support@cashflow.deal

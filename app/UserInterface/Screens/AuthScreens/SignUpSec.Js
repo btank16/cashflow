@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, Platform, StatusBar } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../../Colors/colors.Js';
 import BackButton from '../../Components/BackButton.Js';
 import LockIcon from '../../../assets/icons/LockIcon.jsx';
 import PasswordBox from '../../Components/PasswordBox.Js';
+import PrimaryButton from '../../Components/PrimaryButton.Js';
 
 const SignUpSec = () => {
   const navigation = useNavigation();
@@ -23,6 +24,16 @@ const SignUpSec = () => {
   React.useEffect(() => {
     setIsButtonActive(password.length > 0 && password === confirmPassword);
   }, [password, confirmPassword]);
+
+  const handleContinue = () => {
+    if (isButtonActive) {
+      navigation.navigate('SignUpThird', {
+        email,
+        password,
+        confirmPassword
+      });
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -69,24 +80,12 @@ const SignUpSec = () => {
             />
           </View>
 
-          <TouchableOpacity 
-            style={[
-              styles.continueButton,
-              isButtonActive ? styles.activeButton : styles.inactiveButton
-            ]}
-            onPress={() => {
-              if (isButtonActive) {
-                navigation.navigate('SignUpThird', {
-                  email,
-                  password,
-                  confirmPassword
-                });
-              }
-            }}
-            disabled={!isButtonActive}
-          >
-            <Text style={styles.continueButtonText}>Continue</Text>
-          </TouchableOpacity>
+          <PrimaryButton
+            label="Continue"
+            isActive={isButtonActive}
+            onPress={handleContinue}
+            style={{ marginBottom: 16 }}
+          />
         </View>
       </View>
     </SafeAreaView>
@@ -150,25 +149,7 @@ const styles = StyleSheet.create({
     color: colors.primaryBlack,
     textAlign: 'center',
     marginBottom: 32,
-  },
-  continueButton: {
-    height: 56,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  activeButton: {
-    backgroundColor: colors.primaryGreen,
-  },
-  inactiveButton: {
-    backgroundColor: colors.tertiaryGreen,
-  },
-  continueButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.iconWhite,
-  },
+  }
 });
 
 export default SignUpSec;

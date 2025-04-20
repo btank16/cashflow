@@ -8,13 +8,16 @@ import BackButton from '../../Components/BackButton.Js';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ExpensePieChart from '../../Components/ExpensePieChart.Js';
 import DarkTextLogo from '../../../assets/icons/DarkTextLogo.jsx';
+import InfoComponent from '../../Components/InfoComponent.Js';
+import calculatorInfo from '../../../assets/text/info.json';
 
 
 function BRRCalcOut(props) {
     const navigation = useNavigation();
-
     const route = useRoute();
     const { inputValues, ...results } = route.params;
+    const [infoModalVisible, setInfoModalVisible] = useState(false);
+    const [showRefinanced, setShowRefinanced] = useState(false);
 
     const formatDollar = (value) => {
         const number = parseFloat(value);
@@ -32,32 +35,32 @@ function BRRCalcOut(props) {
             label: "Monthly Cashflow (post-refinance)",
             value: results.BRRCashflow,
             type: "dollar",
-            infoPress: () => handleInfoPress("Information about Monthly Cashflow")
+            infoTitle: calculatorInfo.calculator_output.monthly_cashflow_refi.title,
+            infoDescription: calculatorInfo.calculator_output.monthly_cashflow_refi.description
         },
         {
             label: "Cash Down",
             value: results.cashDown,
             type: "dollar",
             textColor: colors.primaryBlack,
-            infoPress: () => handleInfoPress("Information about Cash Down")
+            infoTitle: calculatorInfo.calculator_output.cash_down.title,
+            infoDescription: calculatorInfo.calculator_output.cash_down.description
         },
         {
             label: "Cash on Cash Return",
             value: results.CashOnCash,
             type: "percentage",
-            infoPress: () => handleInfoPress("Information about Cash on Cash Return")
+            infoTitle: calculatorInfo.calculator_output.cash_on_cash.title,
+            infoDescription: calculatorInfo.calculator_output.cash_on_cash.description
         },
         {
-            label: "ROI from Equity",
+            label: "Return on Equity (ROE)",
             value: results.EquityReturnPerc,
             type: "percentage",
-            infoPress: () => handleInfoPress("Information about Maximum Equity Usage")
+            infoTitle: calculatorInfo.calculator_output.equity_roi.title,
+            infoDescription: calculatorInfo.calculator_output.equity_roi.description
         }
     ];
-
-    const handleInfoPress = (infoText) => {
-        console.log(infoText);
-    };
 
     const expenseChartData = [
         {
@@ -111,13 +114,11 @@ function BRRCalcOut(props) {
             value: results.MaxEquity,
             type: "dollar",
             additionalText: "Assumes an 80% Loan-to-Value refinance",
-            infoPress: () => handleInfoPress("Information about Maximum Equity Usage"),
-            fullWidth: true
+            fullWidth: true,
+            infoTitle: calculatorInfo.calculator_output.equity_usage.title,
+            infoDescription: calculatorInfo.calculator_output.equity_usage.description
         },
     ];
-
-    const [showRefinanced, setShowRefinanced] = useState(false);
-
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
@@ -136,7 +137,7 @@ function BRRCalcOut(props) {
                 <View style={styles.mainResultContainer}>
                     <View style={styles.mainLabelContainer}>
                         <Text style={styles.mainLabel}>Annual Cashflow (post-refinance)</Text>
-                        <TouchableOpacity onPress={() => handleInfoPress("Information about Annual Cashflow")}>
+                        <TouchableOpacity onPress={() => setInfoModalVisible(true)}>
                             <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
                         </TouchableOpacity>
                     </View>
@@ -195,6 +196,13 @@ function BRRCalcOut(props) {
                     }
                 />
             </ScrollView>
+
+            <InfoComponent
+                visible={infoModalVisible}
+                onClose={() => setInfoModalVisible(false)}
+                title={calculatorInfo.calculator_output.annual_cashflow_refi.title}
+                description={calculatorInfo.calculator_output.annual_cashflow_refi.description}
+            />
         </SafeAreaView>
     );
 }

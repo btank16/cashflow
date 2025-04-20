@@ -8,6 +8,7 @@ import HomeButton from '../../Components/HomeButton.Js';
 import { useDatabase } from '../../../../database/cashflowDatabase.Js';
 import { wholesalefunction } from '../../../Calculations/WholesalingFunction.Js';
 import OperatingExpenses from '../../Components/OperatingExpenses.Js';
+import calculatorInfo from '../../../assets/text/info.json';
 
 function WholesaleCalcIn(props) {
     const navigation = useNavigation();
@@ -19,7 +20,7 @@ function WholesaleCalcIn(props) {
     const scrollViewRef = useRef();
     const [resultScreen, setResultScreen] = useState('WholesaleCalcOut');
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-    const { saveCalculation } = useDatabase();
+    const { saveCalculation, saveExpense } = useDatabase();
     const [calculationId, setCalculationId] = useState(null);
     const [showHeaderTitle, setShowHeaderTitle] = useState(false);
     const scrollY = useRef(new Animated.Value(0)).current;
@@ -27,9 +28,6 @@ function WholesaleCalcIn(props) {
     const [operatingExpenses, setOperatingExpenses] = useState([]);
     const [saveNewExpenses, setSaveNewExpenses] = useState(false);
     const [monthsHeld, setMonthsHeld] = useState('');
-    const uid = () => {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2);
-    }
 
     useEffect(() => {
         checkFormValidity();
@@ -86,12 +84,6 @@ function WholesaleCalcIn(props) {
         );
     };
 
-    const handleInfoPress = (infoText) => {
-        // Implement the logic to show the overlay with infoText
-        // This could be setting a state variable to show a modal, for example
-        console.log(infoText);
-    };
-
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
@@ -130,9 +122,6 @@ function WholesaleCalcIn(props) {
             }
         };
 
-        // Calculate a new uid if calculationId is null
-        const id = calculationId || uid();
-
         // Call wholesalefunction directly
         const wholesaleResults = wholesalefunction(
             inputValues.purchasePrice,
@@ -153,16 +142,16 @@ function WholesaleCalcIn(props) {
 
         // Save the calculation to the database using expo-sqlite/next notation
         try {
-            await saveCalculation('wholesale', inputValues, results, id);
+            const savedId = await saveCalculation('wholesale', inputValues, results, calculationId);
+            
+            // Navigate to the result screen
+            navigation.navigate(resultScreen, {
+                inputValues: {...inputValues, id: savedId},
+                ...results
+            });
         } catch (error) {
             console.error('Error saving calculation to database:', error);
         }
-
-        // Navigate to the result screen
-        navigation.navigate(resultScreen, {
-            inputValues: {...inputValues, id},
-            ...results
-        });
     };
 
     const numericInputsArray = [
@@ -173,14 +162,18 @@ function WholesaleCalcIn(props) {
             placeholder: "ex. 225,000",
             isRequired: true,
             type: "$",
-            infoPress: () => handleInfoPress("Information about Purchase Price")
+            infoTitle: calculatorInfo.calculator_input.contract_price.title,
+            infoDescription: calculatorInfo.calculator_input.contract_price.description
         },
         {
             label: "Estimated Rehab Cost",
             value: rehabCost,
             onChangeText: setRehabCost,
             placeholder: "ex. $10,000",
-            type: "$"
+            isRequired: true,
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.rehab_cost.title,
+            infoDescription: calculatorInfo.calculator_input.rehab_cost.description
         },
         {
             label: "After Repair Value",
@@ -188,14 +181,18 @@ function WholesaleCalcIn(props) {
             onChangeText: setAfterRev,
             placeholder: "ex. $250,000",
             isRequired: true,
-            type: "$"
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.arv.title,
+            infoDescription: calculatorInfo.calculator_input.arv.description
         },
         {
             label: "Months Held",
             value: monthsHeld,
             onChangeText: setMonthsHeld,
             placeholder: "ex. 2 months",
-            type: "Months"
+            type: "Months",
+            infoTitle: calculatorInfo.calculator_input.months_held.title,
+            infoDescription: calculatorInfo.calculator_input.months_held.description
         }
     ];
 
@@ -256,6 +253,8 @@ function WholesaleCalcIn(props) {
                         initialExpenses={operatingExpenses}
                         sectionTitle="Additional Expenses"
                         viewAllButtonText="View all Saved Expenses"
+                        infoTitle={calculatorInfo.calculator_input.additional_expenses.title}
+                        infoDescription={calculatorInfo.calculator_input.additional_expenses.description}
                     />
                 </ScrollView>
             </KeyboardAvoidingView>

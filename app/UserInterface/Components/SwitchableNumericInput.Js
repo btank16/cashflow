@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, TextInput, Text, StyleSheet, TouchableOpacity, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../Colors/colors.Js';
+import InfoComponent from './InfoComponent.Js';
 
 const formatNumber = (value) => {
   if (!value) return '';
@@ -20,10 +21,12 @@ const SwitchableNumericInput = ({
   onToggleMode,
   placeholder, 
   isRequired,
-  infoPress
+  infoTitle,
+  infoDescription
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
+  const [infoModalVisible, setInfoModalVisible] = useState(false);
 
   const handleChangeText = (text) => {
     const unformattedValue = unformatNumber(text);
@@ -38,10 +41,16 @@ const SwitchableNumericInput = ({
     setModalVisible(false);
   };
 
+  const handleInfoPress = () => {
+    if (infoTitle || infoDescription) {
+      setInfoModalVisible(true);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.labelContainer}>
-        <TouchableOpacity onPress={infoPress} style={styles.infoButton}>
+        <TouchableOpacity onPress={handleInfoPress} style={styles.infoButton}>
           <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
         </TouchableOpacity>
         <Text style={styles.label}>
@@ -104,6 +113,13 @@ const SwitchableNumericInput = ({
           </View>
         </View>
       </Modal>
+
+      <InfoComponent
+        visible={infoModalVisible}
+        onClose={() => setInfoModalVisible(false)}
+        title={infoTitle || label}
+        description={infoDescription || "No additional information available."}
+      />
     </View>
   );
 };

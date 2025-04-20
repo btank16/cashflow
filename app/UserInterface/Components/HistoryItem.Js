@@ -85,7 +85,7 @@ const getCalculatorDetails = (item) => {
       return {
         icon: <BRRRRIcon width={12} height={12} fill={colors.iconWhite} />,
         details: [
-          { title: 'Purchase Price', value: `$${formatNumber(inputValues.purchasePrice)}` },
+          { title: 'Purchase Price', value: `$${formatNumber(inputValues.purchasePrice.value)}` },
           { title: 'ARV', value: `$${formatNumber(inputValues.afterRev)}` },
           { title: 'Monthly Cashflow', value: `$${formatNumber(results.BRRCashflow)}` },
         ],
@@ -172,7 +172,7 @@ const HistoryItem = ({ item, onDelete, navigation }) => {
         navigation.navigate(screen, {
           inputValues: {
             ...JSON.parse(item.input_values),
-            id: item.unique_id
+            id: item.id
           },
           ...JSON.parse(item.results)
         });

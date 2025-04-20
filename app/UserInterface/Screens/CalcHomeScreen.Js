@@ -1,7 +1,8 @@
-import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, SafeAreaView, StatusBar, Text, TouchableOpacity, Image, ScrollView, Modal, Platform } from "react-native";
+import React, { useState, useCallback, useEffect } from 'react';
+import { View, StyleSheet, SafeAreaView, StatusBar, Text, TouchableOpacity, Image, ScrollView, Platform } from "react-native";
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { InformationCircleIcon, ChevronRightIcon, XMarkIcon } from 'react-native-heroicons/outline';
+import { InformationCircleIcon, ChevronRightIcon } from 'react-native-heroicons/outline';
+import { getUserAttribute } from '../Utils/UserAttributesCache.Js';
 import colors from '../Colors/colors.Js';
 import { useDatabase } from '../../../database/cashflowDatabase.Js';
 import RentalIcon from '../../assets/icons/RentalIcon.jsx';
@@ -15,9 +16,19 @@ import FeedbackIcon from '../../assets/icons/FeedbackIcon.jsx';
 import HistoryIcon from '../../assets/icons/HistoryIcon.jsx';
 import UserIcon from '../../assets/icons/UserIcon.jsx';
 import CommercialIcon from '../../assets/icons/CommercialIcon.jsx';
+import InfoComponent from '../Components/InfoComponent.Js';
+import calculatorInfo from '../../assets/text/info.json';
 
-const CalculatorButton = ({ name, screen, Icon, color, article, onInfoPress, fullWidth }) => {
+const CalculatorButton = ({ name, screen, Icon, color, infoTitle, infoDescription, fullWidth }) => {
   const navigation = useNavigation();
+  const [infoModalVisible, setInfoModalVisible] = useState(false);
+
+  const handleInfoPress = () => {
+    if (infoTitle || infoDescription) {
+      setInfoModalVisible(true);
+    }
+  };
+
   return (
     <TouchableOpacity 
       style={[styles.calculatorButton, { width: fullWidth ? '100%' : '48%' }]}
@@ -25,7 +36,7 @@ const CalculatorButton = ({ name, screen, Icon, color, article, onInfoPress, ful
     >
       <TouchableOpacity 
         style={styles.infoIconContainer}
-        onPress={() => onInfoPress(article)}
+        onPress={handleInfoPress}
       >
         <View style={styles.infoIconCircle}>
           <InformationCircleIcon color={colors.iconWhite} size={16} />
@@ -41,31 +52,16 @@ const CalculatorButton = ({ name, screen, Icon, color, article, onInfoPress, ful
         </View>
         <Text style={styles.calculatorButtonText}>{name}</Text>
       </View>
+
+      <InfoComponent
+        visible={infoModalVisible}
+        onClose={() => setInfoModalVisible(false)}
+        title={infoTitle || name}
+        description={infoDescription || "No additional information available."}
+      />
     </TouchableOpacity>
   );
 };
-
-const ArticleModal = ({ isVisible, onClose, article }) => (
-  <Modal
-    animationType="slide"
-    transparent={true}
-    visible={isVisible}
-    onRequestClose={onClose}
-  >
-    <View style={styles.modalOverlay}>
-      <View style={styles.modalContent}>
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <XMarkIcon color={colors.darkGreenPrimary} size={24} />
-        </TouchableOpacity>
-        <ScrollView style={styles.modalScrollView}>
-          <Image source={article?.image} style={styles.modalImage} />
-          <Text style={styles.modalTitle}>{article?.title}</Text>
-          <Text style={styles.modalDescription}>{article?.fullContent}</Text>
-        </ScrollView>
-      </View>
-    </View>
-  </Modal>
-);
 
 const ArticleItem = ({ item, onPress }) => (
   <TouchableOpacity style={styles.articleItem} onPress={onPress}>
@@ -81,12 +77,34 @@ function CalcHomeScreen() {
   const navigation = useNavigation();
   const { getAllCalculations, deleteCalculation } = useDatabase();
   const [history, setHistory] = useState([]);
-  const [selectedArticle, setSelectedArticle] = useState(null);
+  const [firstName, setFirstName] = useState('');
 
   const loadHistory = useCallback(async () => {
     const allCalculations = await getAllCalculations();
     setHistory(allCalculations.slice(0, 3)); // Get only the 3 most recent calculations
   }, [getAllCalculations]);
+
+  // Fetch user attributes when component mounts
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        // Use the cached user attributes instead of making a direct API call
+        const firstNameValue = await getUserAttribute('custom:firstName');
+        if (firstNameValue) {
+          setFirstName(firstNameValue);
+        } else {
+          // Fallback to get given_name if custom:firstName is not available
+          const givenName = await getUserAttribute('given_name');
+          setFirstName(givenName || 'User');
+        }
+      } catch (error) {
+        console.error('Error fetching user attributes:', error);
+        setFirstName('User');
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -138,42 +156,48 @@ function CalcHomeScreen() {
       screen: "RentalCalcIn", 
       Icon: RentalIcon, 
       color: colors.primaryGreen,
-      article: articles[0]
+      infoTitle: calculatorInfo.calculator_type.rental_calc.title,
+      infoDescription: calculatorInfo.calculator_type.rental_calc.description
     },
     { 
       name: "Fix & Flip Calculator", 
       screen: "FlipCalcIn", 
       Icon: FlipIcon, 
       color: colors.primaryOrange,
-      article: articles[1]
+      infoTitle: calculatorInfo.calculator_type.flip_calc.title,
+      infoDescription: calculatorInfo.calculator_type.flip_calc.description
     },
     { 
       name: "BRRRR Calculator", 
       screen: "BRRCalcIn", 
       Icon: BRRRRIcon, 
       color: colors.primaryBlue,
-      article: articles[2]
+      infoTitle: calculatorInfo.calculator_type.brrrr_calc.title,
+      infoDescription: calculatorInfo.calculator_type.brrrr_calc.description
     },
     { 
       name: "Wholesale Calculator", 
       screen: "WholesaleCalcIn", 
       Icon: WholesaleIcon, 
       color: colors.brightGreen,
-      article: articles[3]
+      infoTitle: calculatorInfo.calculator_type.wholesale_calc.title,
+      infoDescription: calculatorInfo.calculator_type.wholesale_calc.description
     },
     { 
       name: "Price Target Calculator", 
       screen: "ProjectionCalcIn", 
       Icon: TargetIcon, 
       color: colors.primaryPurple,
-      article: articles[4],
+      infoTitle: calculatorInfo.calculator_type.target_calc.title,
+      infoDescription: calculatorInfo.calculator_type.target_calc.description
     },
     { 
       name: "Commercial Multi-Family", 
       screen: "CommercialCalcIn", 
       Icon: CommercialIcon, 
       color: colors.primaryPink,
-      article: articles[5],
+      infoTitle: calculatorInfo.calculator_type.commercial_calc.title,
+      infoDescription: calculatorInfo.calculator_type.commercial_calc.description
     },
   ];
 
@@ -202,7 +226,8 @@ function CalcHomeScreen() {
   );
 
   const handleArticlePress = (article) => {
-    setSelectedArticle(article);
+    // This is just a placeholder for the article press action
+    // You can implement this differently if needed
   };
 
   return (
@@ -224,13 +249,12 @@ function CalcHomeScreen() {
         </View>
       </View>
       <ScrollView style={styles.contentContainer}>
-        <Text style={styles.welcomeText}>Welcome, User!</Text>
+        <Text style={styles.welcomeText}>Welcome, {firstName || 'User'}!</Text>
         <View style={styles.calculatorsGrid}>
           {calculators.map((calc, index) => (
             <CalculatorButton 
               key={index} 
               {...calc} 
-              onInfoPress={handleArticlePress}
             />
           ))}
         </View>
@@ -242,11 +266,6 @@ function CalcHomeScreen() {
           ))}
         </View>
       </ScrollView>
-      <ArticleModal
-        isVisible={selectedArticle !== null}
-        onClose={() => setSelectedArticle(null)}
-        article={selectedArticle}
-      />
     </SafeAreaView>
   );
 }
@@ -410,47 +429,6 @@ const styles = StyleSheet.create({
   },
   headerIcon: {
     marginLeft: 16,
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    backgroundColor: colors.iconWhite,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 12,
-    height: '80%',
-    width: '100%',
-    paddingTop: 0, 
-  },
-  closeButton: {
-    position: 'absolute', 
-    top: 10, 
-    right: 10, 
-    zIndex: 1, 
-  },
-  modalScrollView: {
-    width: '100%',
-    marginTop: 40, 
-  },
-  modalImage: {
-    width: '100%',
-    height: 200,
-    borderRadius: 10,
-    marginBottom: 15,
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: colors.darkGreenPrimary,
-    marginBottom: 16,
-  },
-  modalDescription: {
-    fontSize: 16,
-    color: colors.darkGreenPrimary,
-    lineHeight: 24,
   },
 });
 

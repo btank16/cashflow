@@ -12,7 +12,7 @@ import { expenses } from '../../../Calculations/ExpenseFunction.Js';
 import { outputs } from '../../../Calculations/CoreOutputs.Js';
 import Checkbox from '../../Components/InterestCheckbox.Js';
 import OperatingExpenses from '../../Components/OperatingExpenses.Js';
-
+import calculatorInfo from '../../../assets/text/info.json';
 function FlipCalcIn(props) {
     const navigation = useNavigation();
     const route = useRoute();
@@ -45,10 +45,6 @@ function FlipCalcIn(props) {
     const [operatingExpensesActive, setOperatingExpensesActive] = useState(true);
     const [operatingExpenses, setOperatingExpenses] = useState([]);
     const [saveNewExpenses, setSaveNewExpenses] = useState(false);
-
-    const uid = () => {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2);
-    }
 
     useEffect(() => {
         checkFormValidity();
@@ -151,10 +147,6 @@ function FlipCalcIn(props) {
         }));
     };
 
-    const handleInfoPress = (infoText) => {
-        console.log(infoText);
-    };
-
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
@@ -208,8 +200,6 @@ function FlipCalcIn(props) {
             }
         };
 
-        const id = calculationId || uid();
-
         const expenseResults = expenses(
             inputValues.purchasePrice,
             inputValues.downPayment,
@@ -256,15 +246,15 @@ function FlipCalcIn(props) {
         };
 
         try {
-            await saveCalculation('flip', inputValues, results, id);
+            const savedId = await saveCalculation('flip', inputValues, results, calculationId);
+            
+            navigation.navigate(resultScreen, {
+                inputValues: {...inputValues, id: savedId},
+                ...results
+            });
         } catch (error) {
             console.error('Error saving calculation to database:', error);
         }
-
-        navigation.navigate(resultScreen, {
-            inputValues: {...inputValues, id},
-            ...results
-        });
     };
 
     const numericInputsArray = [
@@ -275,7 +265,8 @@ function FlipCalcIn(props) {
             placeholder: "ex. 225,000",
             isRequired: true,
             type: "$",
-            infoPress: () => handleInfoPress("Information about Purchase Price")
+            infoTitle: calculatorInfo.calculator_input.purchase_price.title,
+            infoDescription: calculatorInfo.calculator_input.purchase_price.description
         },
         {
             label: "Interest Rate",
@@ -283,14 +274,18 @@ function FlipCalcIn(props) {
             onChangeText: (value) => setInterestRateInput(prev => ({ ...prev, value })),
             placeholder: "ex. 5%",
             isRequired: true,
-            type: "%"
+            type: "%",
+            infoTitle: calculatorInfo.calculator_input.interest_rate.title,
+            infoDescription: calculatorInfo.calculator_input.interest_rate.description
         },
         {
             label: "Rehab Cost",
             value: rehabCost,
             onChangeText: setRehabCost,
             placeholder: "ex. $10,000",
-            type: "$"
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.rehab_cost.title,
+            infoDescription: calculatorInfo.calculator_input.rehab_cost.description
         },
         {
             label: "After Repair Value",
@@ -298,14 +293,18 @@ function FlipCalcIn(props) {
             onChangeText: setAfterRev,
             placeholder: "ex. $300,000",
             isRequired: true,
-            type: "$"
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.arv.title,
+            infoDescription: calculatorInfo.calculator_input.arv.description
         },
         {
             label: "Rehab Time",
             value: rehabTime,
             onChangeText: setRehabTime,
             placeholder: "ex. 10 months",
-            type: "Months"
+            type: "Months",
+            infoTitle: calculatorInfo.calculator_input.rehab_time.title,
+            infoDescription: calculatorInfo.calculator_input.rehab_time.description
         },
     ];
 
@@ -317,7 +316,9 @@ function FlipCalcIn(props) {
             onChangeValue: (value) => handleSwitchableInputChange('downPayment', value),
             onToggleMode: (newIsDollar) => handleSwitchableInputToggle('downPayment', newIsDollar),
             placeholder: switchableInputs.downPayment.isDollar ? "ex. $45,000" : "ex. 20%",
-            isRequired: true
+            isRequired: true,
+            infoTitle: calculatorInfo.calculator_input.down_payment.title,
+            infoDescription: calculatorInfo.calculator_input.down_payment.description
         },
         {
             label: "Closing Cost",
@@ -325,7 +326,9 @@ function FlipCalcIn(props) {
             isDollar: switchableInputs.closingCost.isDollar,
             onChangeValue: (value) => handleSwitchableInputChange('closingCost', value),
             onToggleMode: (newIsDollar) => handleSwitchableInputToggle('closingCost', newIsDollar),
-            placeholder: switchableInputs.closingCost.isDollar ? "ex. $5,000" : "ex. 2%"
+            placeholder: switchableInputs.closingCost.isDollar ? "ex. $5,000" : "ex. 2%",
+            infoTitle: calculatorInfo.calculator_input.closing_costs.title,
+            infoDescription: calculatorInfo.calculator_input.closing_costs.description
         },
         {
             label: "Annual Property Tax",
@@ -334,7 +337,9 @@ function FlipCalcIn(props) {
             onChangeValue: (value) => handleSwitchableInputChange('propertyTax', value),
             onToggleMode: (newIsDollar) => handleSwitchableInputToggle('propertyTax', newIsDollar),
             placeholder: switchableInputs.propertyTax.isDollar ? "ex. $2,000" : "ex. 2%",
-            isRequired: true
+            isRequired: true,
+            infoTitle: calculatorInfo.calculator_input.property_tax.title,
+            infoDescription: calculatorInfo.calculator_input.property_tax.description
         },
         {
             label: "Agent Commission",
@@ -342,7 +347,9 @@ function FlipCalcIn(props) {
             isDollar: switchableInputs.agentCommish.isDollar,
             onChangeValue: (value) => handleSwitchableInputChange('agentCommish', value),
             onToggleMode: (newIsDollar) => handleSwitchableInputToggle('agentCommish', newIsDollar),
-            placeholder: switchableInputs.agentCommish.isDollar ? "ex. $5,000" : "ex. 6%"
+            placeholder: switchableInputs.agentCommish.isDollar ? "ex. $5,000" : "ex. 6%",
+            infoTitle: calculatorInfo.calculator_input.agent_commission.title,
+            infoDescription: calculatorInfo.calculator_input.agent_commission.description
         }
     ];
 
@@ -420,7 +427,8 @@ function FlipCalcIn(props) {
                                 label="Loan Term"
                                 value={loanTerm}
                                 onValueChange={(itemValue) => setLoanTerm(itemValue)}
-                                infoPress={() => handleInfoPress("Information about Loan Term")}
+                                infoTitle={calculatorInfo.calculator_input.loan_term.title}
+                                infoDescription={calculatorInfo.calculator_input.loan_term.description}
                             />
                         </>
                     )}
@@ -438,6 +446,8 @@ function FlipCalcIn(props) {
                         onExpensesChange={handleOperatingExpensesChange}
                         onSaveNewExpensesChange={handleSaveNewExpensesChange}
                         initialExpenses={operatingExpenses}
+                        infoTitle={calculatorInfo.calculator_input.operating_expenses.title}
+                        infoDescription={calculatorInfo.calculator_input.operating_expenses.description}
                     />
                 </ScrollView>
             </KeyboardAvoidingView>

@@ -36,6 +36,8 @@ function WholesaleCalcOut(props) {
             fullWidth: true,
             textColor: colors.primaryBlack,
             additionalText: "Total expenses incurred during the holding period",
+            infoTitle: calculatorInfo.calculator_output.wholesale_expense.title,
+            infoDescription: calculatorInfo.calculator_output.wholesale_expense.description
         }
     ];
 
@@ -83,12 +85,20 @@ function WholesaleCalcOut(props) {
                         topValue={formatDollar(results.sale5Perc)}
                         bottomLabel="Minimum Fee"
                         bottomValue={formatDollar(results.fee5Perc)}
+                        topInfoTitle={calculatorInfo.calculator_output.min_sale_price.title}
+                        topInfoDescription={calculatorInfo.calculator_output.min_sale_price.description}
+                        bottomInfoTitle={calculatorInfo.calculator_output.min_fee.title}
+                        bottomInfoDescription={calculatorInfo.calculator_output.min_fee.description}
                     />
                     <DoubleResultDisplay
                         topLabel="Maximum Sale Price"
                         topValue={formatDollar(results.sale15Perc)}
                         bottomLabel="Maximum Fee"
                         bottomValue={formatDollar(results.fee15Perc)}
+                        topInfoTitle={calculatorInfo.calculator_output.max_sale_price.title}
+                        topInfoDescription={calculatorInfo.calculator_output.max_sale_price.description}
+                        bottomInfoTitle={calculatorInfo.calculator_output.max_fee.title}
+                        bottomInfoDescription={calculatorInfo.calculator_output.max_fee.description}
                     />
                     {fullWidthDisplays.map((item, index) => (
                         <ResultDisplay 
@@ -102,8 +112,8 @@ function WholesaleCalcOut(props) {
             <InfoComponent
                 visible={infoModalVisible}
                 onClose={() => setInfoModalVisible(false)}
-                title="Maximum Allowable Offer"
-                description="The maximum amount you can offer for a property without incurring a loss."
+                title={calculatorInfo.calculator_output.mao.title}
+                description={calculatorInfo.calculator_output.mao.description}
             />
         </SafeAreaView>
     );

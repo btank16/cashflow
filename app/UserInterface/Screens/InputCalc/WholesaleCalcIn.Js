@@ -8,6 +8,7 @@ import HomeButton from '../../Components/HomeButton.Js';
 import { useDatabase } from '../../../../database/cashflowDatabase.Js';
 import { wholesalefunction } from '../../../Calculations/WholesalingFunction.Js';
 import OperatingExpenses from '../../Components/OperatingExpenses.Js';
+import calculatorInfo from '../../../assets/text/info.json';
 
 function WholesaleCalcIn(props) {
     const navigation = useNavigation();
@@ -160,7 +161,9 @@ function WholesaleCalcIn(props) {
             onChangeText: setPurchasePrice,
             placeholder: "ex. 225,000",
             isRequired: true,
-            type: "$"
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.contract_price.title,
+            infoDescription: calculatorInfo.calculator_input.contract_price.description
         },
         {
             label: "Estimated Rehab Cost",
@@ -168,7 +171,9 @@ function WholesaleCalcIn(props) {
             onChangeText: setRehabCost,
             placeholder: "ex. $10,000",
             isRequired: true,
-            type: "$"
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.rehab_cost.title,
+            infoDescription: calculatorInfo.calculator_input.rehab_cost.description
         },
         {
             label: "After Repair Value",
@@ -176,14 +181,18 @@ function WholesaleCalcIn(props) {
             onChangeText: setAfterRev,
             placeholder: "ex. $250,000",
             isRequired: true,
-            type: "$"
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.arv.title,
+            infoDescription: calculatorInfo.calculator_input.arv.description
         },
         {
             label: "Months Held",
             value: monthsHeld,
             onChangeText: setMonthsHeld,
             placeholder: "ex. 2 months",
-            type: "Months"
+            type: "Months",
+            infoTitle: calculatorInfo.calculator_input.months_held.title,
+            infoDescription: calculatorInfo.calculator_input.months_held.description
         }
     ];
 
@@ -244,6 +253,8 @@ function WholesaleCalcIn(props) {
                         initialExpenses={operatingExpenses}
                         sectionTitle="Additional Expenses"
                         viewAllButtonText="View all Saved Expenses"
+                        infoTitle={calculatorInfo.calculator_input.additional_expenses.title}
+                        infoDescription={calculatorInfo.calculator_input.additional_expenses.description}
                     />
                 </ScrollView>
             </KeyboardAvoidingView>

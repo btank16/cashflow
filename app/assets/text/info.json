@@ -2,203 +2,219 @@
   "calculator_type": {
     "rental_calc": {
       "title": "Rental Calculator",
-      "description": "Calculate your rental income and expenses to determine your potential rental yield."
+      "description": "Calculate the potential cashflow for residential rental properties based on the expenses and rental income."
     },
     "flip_calc": {
       "title": "Fix & Flip Calculator",
-      "description": ""
+      "description": "Calculate the potential profit from rehabbing a distressed property. This calculator calculates profit by comparing the after repair value (ARV) to the cost of the property and the rehab costs."
     },
     "brrrr_calc": {
       "title": "BRRRR Calculator",
-      "description": ""
+      "description": "The Buy, Rehab, Rent, Refinance, Repeat (BRRRR) method is a strategy where you rehab a property, then rent it out, and refinance it to pull equity out. This calculator projects the potential cashflow and equity available after refinancing."
     },
     "wholesale_calc": {
       "title": "Wholesale Calculator",
-      "description": ""
+      "description": "Calculate the potential profit from assigning a contract from a seller to a buyer."
     },
     "target_calc": {
       "title": "Price Target Calculator",
-      "description": ""
+      "description": "Calculate the price to pay for a property to meet your cashflow goals. This calculator also calculates the price to pay to break even. The range between the break even price and target price should lead to cashflow."
     },
     "commercial_calc": {
       "title": "Commercial Multi-Family Calculator",
-      "description": ""
+      "description": "Calculate the potential cashflow for commercial properties based on the expenses and rental income."
     }
   },
   "calculator_input": {
     "purchase_price": {
       "title": "Purchase Price",
-      "description": ""
+      "description": "The amount paid for the property."
     },
     "down_payment": {
       "title": "Down Payment",
-      "description": ""
+      "description": "The portion of the property's purchase price paid upfront in cash by the buyer."
     },
     "interest_rate": {
       "title": "Interest Rate",
-      "description": ""
+      "description": "The interest rate on the mortgage."
     },
     "closing_costs": {
       "title": "Closing Costs",
-      "description": ""
+      "description": "Additional costs paid alongside the down payment. Either a percentage of the purchase price or a fixed amount."
     },
     "loan_term": {
       "title": "Loan Term",
-      "description": ""
+      "description": "The length of the mortgage."
     },
     "property_tax": {
       "title": "Property Taxes",
-      "description": ""
+      "description": "The amount paid in property taxes. Either a percentage of the property value or a fixed amount annually."
     },
     "rehab_cost": {
       "title": "Rehab Cost",
-      "description": ""
+      "description": "The total cost of rehabbing the property. This includes, but is not limited to, the cost of materials and labor."
     },
     "monthly_rent": {
       "title": "Monthly Rent",
-      "description": ""
+      "description": "The sum of the gross rent from each unit within the property."
     },
     "capex": {
       "title": "Capital Expenditures",
-      "description": ""
+      "description": "Infrequent expenses used to improve or extend the life of a property. Typically a percentage (e.g., 5-10%) of rent is set aside for this purpose."
     },
     "vacancy_rate": {
       "title": "Vacancy Rate",
-      "description": ""
+      "description": "The percentage of time the property is vacant."
     },
     "rehab_time": {
       "title": "Rehab Time",
-      "description": ""
+      "description": "The time it takes to rehab the property."
     },
     "arv": {
       "title": "After Repair Value (ARV)",
-      "description": ""
+      "description": "The estimated value of the property after it is rehabbed."
     },
     "agent_commission": {
       "title": "Agent Commission",
-      "description": ""
+      "description": "The percentage (or fixed amount) of the sale price paid to the agent."
     },
     "refinance_cost": {
       "title": "Refinance Cost",
-      "description": ""
+      "description": "The cost of refinancing the property."
     },
     "contract_price": {
       "title": "Contract Price",
-      "description": ""
+      "description": "The amount owed to the seller for the property."
+    },
+    "months_held": {
+      "title": "Months Held",
+      "description": "The number of months the property (or contract) is held before being sold."
     },
     "listing_price": {
       "title": "Listing Price",
-      "description": ""
+      "description": "The price at which the property is listed for sale."
     },
     "month_cashflow": {
       "title": "Monthly Cashflow Target",
-      "description": ""
+      "description": "Your goal for monthly cashflow."
     },
     "cap_reserve": {
       "title": "Capital Reserve",
-      "description": ""
+      "description": "Funds set aside for large expenses or upgrades to a property."
     },
     "acquisition_cost": {
       "title": "Additional Acquisition Costs",
-      "description": ""
+      "description": "Additional costs paid to acquire the property."
     },
     "gross_fees": {
       "title": "Gross Fees and Other Income",
-      "description": ""
+      "description": "Any additional fees (e.g., parking, pets, etc.) charged to tenants."
+    },
+    "operating_expenses": {
+      "title": "Operating Expenses",
+      "description": "Below you may add custom operating expenses (e.g., insurance, utilities, etc.) for the property. These expenses may be paid Monthly, Annually, or Non-recurring (i.e., one-time expenses).\nThe checkbox below will allow you to save these expenses for later use."
+    },
+    "additional_expenses": {
+      "title": "Additional Expenses",
+      "description": "Below you may add custom expenses incurred during the holding period of the property. These expenses may be paid Monthly, Annually, or Non-recurring (i.e., one-time expenses).\nThe checkbox below will allow you to save these expenses for later use."
     }
   },
   "calculator_output": {
     "annual_cashflow": {
       "title": "Annual Cashflow",
-      "description": ""
+      "description": "The net profit from the property on an annual basis after all expenses are paid."
     },
     "monthly_cashflow": {
       "title": "Monthly Cashflow",
-      "description": ""
+      "description": "The net profit from the property on a monthly basis after all expenses are paid."
     },
     "cash_on_cash": {
       "title": "Cash on Cash Return",
-      "description": ""
+      "description": "The annual pre-tax income an investor earns relative to the cash invested"
     },
     "cash_down": {
       "title": "Cash Down",
-      "description": ""
+      "description": "The total amount of cash invested in the property, including the down payment, closing costs, and rehab costs."
     },
     "cap_rate": {
       "title": "Cap Rate",
-      "description": ""
+      "description": "The ratio of a property's net operating income (NOI) to its purchase price or market value."
     },
     "dscr": {
       "title": "Debt Service Coverage Ratio (DSCR)",
-      "description": ""
+      "description": "Measures a property's ability to cover its debt obligations (e.g., mortgage payments) with its net operating income (NOI)."
     },
     "break_even": {
       "title": "Months to Break Even",
-      "description": ""
+      "description": "The number of months it takes for the property to generate enough cashflow to cover the initial investment."
     },
     "roi": {
       "title": "Return on Investment (ROI)",
-      "description": ""
+      "description": "The profit from the property as a percentage of the initial purchase price."
     },
     "cash_roi": {
       "title": "Cash on Cash ROI",
-      "description": ""
+      "description": "The profit from the property as a percentage of the initial cash investment (e.g., down payment, rehab costs, etc.)."
+    },
+    "net_profit": {
+      "title": "Net Profit",
+      "description": "The amount of money left over after a property is sold."
     },
     "total_cash_cost": {
       "title": "Total Cash Costs",
-      "description": ""
+      "description": "The total amount of cash invested in the property, including the down payment, closing costs, rehab costs, and any costs incurred during the holding period."
     },
     "annual_cashflow_refi": {
       "title": "Annual Cashflow After Refinance",
-      "description": ""
+      "description": "The net profit from the property on an annual basis after all expenses are paid. It is assumed that cashflow will not begin until after the property is refinanced."
     },
     "monthly_cashflow_refi": {
       "title": "Monthly Cashflow After Refinance",
-      "description": ""
+      "description": "The net profit from the property on a monthly basis after all expenses are paid. It is assumed that cashflow will not begin until after the property is refinanced."
     },
     "equity_roi": {
       "title": "Return on Equity (ROE)",
-      "description": ""
+      "description": "The equity return as a percentage of the initial cash investment (e.g., down payment, rehab costs, etc.)."
     },
     "equity_usage": {
-      "title": "MaximumEquity Usage",
-      "description": ""
+      "title": "Maximum Equity Usage",
+      "description": "The maximum amount of equity that can be used from the property value."
     },
     "mao": {
       "title": "Maximum Allowable Offer (MAO)",
-      "description": ""
+      "description": "The maximum amount that can be paid for the property to generate profit."
     },
     "min_sale_price": {
       "title": "Minimum Sale Price",
-      "description": ""
+      "description": "The minimum suggested sale price of the property."
     },
     "min_fee": {
       "title": "Minimum Fee",
-      "description": ""
+      "description": "The minimum fee that can be charged to the buyer to make a profit."
     },
     "max_sale_price": {
       "title": "Maximum Sale Price",
-      "description": ""
+      "description": "The maximum suggested sale price of the property."
     },
     "max_fee": {
       "title": "Maximum Fee",
-      "description": ""
+      "description": "The maximum fee that can be charged to the buyer to make a profit."
     },
     "wholesale_expense": {
       "title": "Total Holding Expenses",
-      "description": ""
+      "description": "The total amount of expenses incurred during the holding period of the property."
     },
     "target_price": {
       "title": "Target Price",
-      "description": ""
+      "description": "The price to pay for the property to meet your cashflow goals."
     },
     "breakeven_price": {
       "title": "Break Even Price",
-      "description": ""
+      "description": "The price to pay for the property to break even (i.e., the monthly cashflow is zero)."
     },
     "acquisition_cost": {
       "title": "Total Acquisition Costs",
-      "description": ""
+      "description": "The total amount of costs incurred to acquire the property."
     }
   }
 }

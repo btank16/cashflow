@@ -32,12 +32,16 @@ function FlipCalcOut(props) {
         {
             label: "ROI",
             value: results.returnPerc,
-            type: "percentage"
+            type: "percentage",
+            infoTitle: calculatorInfo.calculator_output.roi.title,
+            infoDescription: calculatorInfo.calculator_output.roi.description
         },
         {
             label: "Cash on Cash ROI",
             value: results.cashROI,
-            type: "percentage"
+            type: "percentage",
+            infoTitle: calculatorInfo.calculator_output.cash_roi.title,
+            infoDescription: calculatorInfo.calculator_output.cash_roi.description
         }
     ];
 
@@ -48,7 +52,9 @@ function FlipCalcOut(props) {
             type: "dollar",
             textColor: colors.primaryBlack,
             additionalText: "Down Payment and Rehab Cost",
-            fullWidth: true
+            fullWidth: true,
+            infoTitle: calculatorInfo.calculator_output.cash_down.title,
+            infoDescription: calculatorInfo.calculator_output.cash_down.description
         },
         {
             label: "Total Cash Costs",
@@ -56,7 +62,9 @@ function FlipCalcOut(props) {
             type: "dollar",
             textColor: colors.primaryBlack,
             additionalText: "The sum of all Cash Costs, including Expenses during the Rehab Period",
-            fullWidth: true
+            fullWidth: true,
+            infoTitle: calculatorInfo.calculator_output.total_cash_cost.title,
+            infoDescription: calculatorInfo.calculator_output.total_cash_cost.description
         }
     ];
 
@@ -129,8 +137,8 @@ function FlipCalcOut(props) {
             <InfoComponent
                 visible={infoModalVisible}
                 onClose={() => setInfoModalVisible(false)}
-                title="Net Profit"
-                description="The total profit made from the flip after accounting for all costs and expenses."
+                title={calculatorInfo.calculator_output.net_profit.title}
+                description={calculatorInfo.calculator_output.net_profit.description}
             />
         </SafeAreaView>
     );

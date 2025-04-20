@@ -12,6 +12,7 @@ import SwitchableNumericInput from '../../Components/SwitchableNumericInput.Js';
 import { useDatabase } from '../../../../database/cashflowDatabase.Js';
 import Checkbox from '../../Components/InterestCheckbox.Js';
 import OperatingExpenses from '../../Components/OperatingExpenses.Js';
+import calculatorInfo from '../../../assets/text/info.json';
 
 function BRRCalcIn(props) {
     const navigation = useNavigation();
@@ -291,14 +292,18 @@ function BRRCalcIn(props) {
             onChangeText: (value) => setPurchasePrice(prev => ({ ...prev, value })),
             placeholder: "ex. 225,000",
             isRequired: true,
-            type: "$"
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.purchase_price.title,
+            infoDescription: calculatorInfo.calculator_input.purchase_price.description
         },
         {
             label: "Rehab Cost",
             value: rehabCost,
             onChangeText: setRehabCost,
             placeholder: "ex. $10,000",
-            type: "$"
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.rehab_cost.title,
+            infoDescription: calculatorInfo.calculator_input.rehab_cost.description
         },
         {
             label: "Gross Monthly Rent",
@@ -306,7 +311,9 @@ function BRRCalcIn(props) {
             onChangeText: setBRRmonthRent,
             placeholder: "ex. $1000",
             isRequired: true,
-            type: "$"
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.monthly_rent.title,
+            infoDescription: calculatorInfo.calculator_input.monthly_rent.description
         },
         {
             label: "After Repair Value",
@@ -314,28 +321,36 @@ function BRRCalcIn(props) {
             onChangeText: setAfterRev,
             placeholder: "ex. $300,000",
             isRequired: true,
-            type: "$"
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.arv.title,
+            infoDescription: calculatorInfo.calculator_input.arv.description
         },
         {
             label: "Rehab Time",
             value: rehabTime,
             onChangeText: setRehabTime,
             placeholder: "ex. 10 months",
-            type: "Months"
+            type: "Months",
+            infoTitle: calculatorInfo.calculator_input.rehab_time.title,
+            infoDescription: calculatorInfo.calculator_input.rehab_time.description
         },
         {
             label: "Refinance Costs",
             value: refinanceCost,
             onChangeText: setRefinanceCost,
             placeholder: "ex. $1000",
-            type: "$"
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.refinance_cost.title,
+            infoDescription: calculatorInfo.calculator_input.refinance_cost.description
         },
         {
             label: "Vacancy Rate",
             value: vacancyRate,
             onChangeText: setVacancyRate,
             placeholder: "ex. 5%",
-            type: "%"
+            type: "%",
+            infoTitle: calculatorInfo.calculator_input.vacancy_rate.title,
+            infoDescription: calculatorInfo.calculator_input.vacancy_rate.description
         }
     ];
 
@@ -347,7 +362,9 @@ function BRRCalcIn(props) {
             onChangeValue: (value) => handleSwitchableInputChange('downPayment', value),
             onToggleMode: (newIsDollar) => handleSwitchableInputToggle('downPayment', newIsDollar),
             placeholder: switchableInputs.downPayment.isDollar ? "ex. $45,000" : "ex. 20%",
-            isRequired: true
+            isRequired: true,
+            infoTitle: calculatorInfo.calculator_input.down_payment.title,
+            infoDescription: calculatorInfo.calculator_input.down_payment.description
         },
         {
             label: "Closing Cost",
@@ -355,7 +372,9 @@ function BRRCalcIn(props) {
             isDollar: switchableInputs.closingCost.isDollar,
             onChangeValue: (value) => handleSwitchableInputChange('closingCost', value),
             onToggleMode: (newIsDollar) => handleSwitchableInputToggle('closingCost', newIsDollar),
-            placeholder: switchableInputs.closingCost.isDollar ? "ex. $5,000" : "ex. 2%"
+            placeholder: switchableInputs.closingCost.isDollar ? "ex. $5,000" : "ex. 2%",
+            infoTitle: calculatorInfo.calculator_input.closing_costs.title,
+            infoDescription: calculatorInfo.calculator_input.closing_costs.description
         },
         {
             label: "Annual Property Tax",
@@ -364,7 +383,9 @@ function BRRCalcIn(props) {
             onChangeValue: (value) => handleSwitchableInputChange('propertyTax', value),
             onToggleMode: (newIsDollar) => handleSwitchableInputToggle('propertyTax', newIsDollar),
             placeholder: switchableInputs.propertyTax.isDollar ? "ex. $2,000" : "ex. 2%",
-            isRequired: true
+            isRequired: true,
+            infoTitle: calculatorInfo.calculator_input.property_tax.title,
+            infoDescription: calculatorInfo.calculator_input.property_tax.description
         },
         {
             label: "Annual CapEx Estimate",
@@ -372,7 +393,9 @@ function BRRCalcIn(props) {
             isDollar: switchableInputs.BRRcapexEst.isDollar,
             onChangeValue: (value) => handleSwitchableInputChange('BRRcapexEst', value),
             onToggleMode: (newIsDollar) => handleSwitchableInputToggle('BRRcapexEst', newIsDollar),
-            placeholder: switchableInputs.BRRcapexEst.isDollar ? "ex. $3,000" : "ex. 5%"
+            placeholder: switchableInputs.BRRcapexEst.isDollar ? "ex. $3,000" : "ex. 5%",
+            infoTitle: calculatorInfo.calculator_input.capex.title,
+            infoDescription: calculatorInfo.calculator_input.capex.description
         }
     ];
 
@@ -448,6 +471,8 @@ function BRRCalcIn(props) {
                                 placeholder="ex. 5%"
                                 isRequired={true}
                                 type="%"
+                                infoTitle={calculatorInfo.calculator_input.interest_rate.title}
+                                infoDescription={calculatorInfo.calculator_input.interest_rate.description}
                             />
                             <Checkbox
                                 label="Interest Only?"
@@ -458,6 +483,8 @@ function BRRCalcIn(props) {
                                 label="Loan Term"
                                 value={loanTerm}
                                 onValueChange={(itemValue) => setLoanTerm(itemValue)}
+                                infoTitle={calculatorInfo.calculator_input.loan_term.title}
+                                infoDescription={calculatorInfo.calculator_input.loan_term.description}
                             />
                         </>
                     )}
@@ -480,6 +507,8 @@ function BRRCalcIn(props) {
                         placeholder="ex. 5%"
                         isRequired={true}
                         type="%"
+                        infoTitle={calculatorInfo.calculator_input.interest_rate.title}
+                        infoDescription={calculatorInfo.calculator_input.interest_rate.description}
                    />
                    <Checkbox
                         label="Interest Only?"
@@ -490,6 +519,8 @@ function BRRCalcIn(props) {
                         label="New Loan Term"
                         value={newloanTerm}
                         onValueChange={(itemValue) => setnewLoanTerm(itemValue)}
+                        infoTitle={calculatorInfo.calculator_input.loan_term.title}
+                        infoDescription={calculatorInfo.calculator_input.loan_term.description}
                     />
                     <OperatingExpenses
                         calculatorType="brrrr"
@@ -497,6 +528,8 @@ function BRRCalcIn(props) {
                         onExpensesChange={handleOperatingExpensesChange}
                         onSaveNewExpensesChange={handleSaveNewExpensesChange}
                         initialExpenses={operatingExpenses}
+                        infoTitle={calculatorInfo.calculator_input.operating_expenses.title}
+                        infoDescription={calculatorInfo.calculator_input.operating_expenses.description}
                     />
                 </ScrollView>
             </KeyboardAvoidingView>

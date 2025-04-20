@@ -51,13 +51,21 @@ function ProjectionCalcOut(props) {
             topLabel: "Target Price",
             topValue: formatDollar(results.TargetPrice),
             bottomLabel: "Cash Down",
-            bottomValue: formatDollar(results.targetPriceCash)
+            bottomValue: formatDollar(results.targetPriceCash),
+            topInfoTitle: calculatorInfo.calculator_output.target_price.title,
+            topInfoDescription: calculatorInfo.calculator_output.target_price.description,
+            bottomInfoTitle: calculatorInfo.calculator_output.cash_down.title,
+            bottomInfoDescription: calculatorInfo.calculator_output.cash_down.description
         },
         {
             topLabel: "Break Even Price",
             topValue: formatDollar(results.NetZeroPrice),
             bottomLabel: "Cash Down",
-            bottomValue: formatDollar(results.netZeroCash)
+            bottomValue: formatDollar(results.netZeroCash),
+            topInfoTitle: calculatorInfo.calculator_output.breakeven_price.title,
+            topInfoDescription: calculatorInfo.calculator_output.breakeven_price.description,
+            bottomInfoTitle: calculatorInfo.calculator_output.cash_down.title,
+            bottomInfoDescription: calculatorInfo.calculator_output.cash_down.description
         }
     ];
 
@@ -157,6 +165,8 @@ function ProjectionCalcOut(props) {
                                 results.TargetPrice, 
                                 results.NetZeroPrice
                             )}
+                            infoTitle={calculatorInfo.calculator_input.listing_price.title}
+                            infoDescription={calculatorInfo.calculator_input.listing_price.description}
                         />
                     )}
                     <View style={styles.doubleResultsRow}>
@@ -207,8 +217,8 @@ function ProjectionCalcOut(props) {
             <InfoComponent
                 visible={infoModalVisible}
                 onClose={() => setInfoModalVisible(false)}
-                title="Monthly Cashflow Target"
-                description="The monthly cashflow target for the property."
+                title={calculatorInfo.calculator_input.month_cashflow.title}
+                description={calculatorInfo.calculator_input.month_cashflow.description}
             />
         </SafeAreaView>
     );

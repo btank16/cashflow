@@ -34,23 +34,31 @@ function BRRCalcOut(props) {
         {
             label: "Monthly Cashflow (post-refinance)",
             value: results.BRRCashflow,
-            type: "dollar"
+            type: "dollar",
+            infoTitle: calculatorInfo.calculator_output.monthly_cashflow_refi.title,
+            infoDescription: calculatorInfo.calculator_output.monthly_cashflow_refi.description
         },
         {
             label: "Cash Down",
             value: results.cashDown,
             type: "dollar",
-            textColor: colors.primaryBlack
+            textColor: colors.primaryBlack,
+            infoTitle: calculatorInfo.calculator_output.cash_down.title,
+            infoDescription: calculatorInfo.calculator_output.cash_down.description
         },
         {
             label: "Cash on Cash Return",
             value: results.CashOnCash,
-            type: "percentage"
+            type: "percentage",
+            infoTitle: calculatorInfo.calculator_output.cash_on_cash.title,
+            infoDescription: calculatorInfo.calculator_output.cash_on_cash.description
         },
         {
-            label: "ROI from Equity",
+            label: "Return on Equity (ROE)",
             value: results.EquityReturnPerc,
-            type: "percentage"
+            type: "percentage",
+            infoTitle: calculatorInfo.calculator_output.equity_roi.title,
+            infoDescription: calculatorInfo.calculator_output.equity_roi.description
         }
     ];
 
@@ -106,7 +114,9 @@ function BRRCalcOut(props) {
             value: results.MaxEquity,
             type: "dollar",
             additionalText: "Assumes an 80% Loan-to-Value refinance",
-            fullWidth: true
+            fullWidth: true,
+            infoTitle: calculatorInfo.calculator_output.equity_usage.title,
+            infoDescription: calculatorInfo.calculator_output.equity_usage.description
         },
     ];
     return (
@@ -190,8 +200,8 @@ function BRRCalcOut(props) {
             <InfoComponent
                 visible={infoModalVisible}
                 onClose={() => setInfoModalVisible(false)}
-                title="Annual Cashflow (post-refinance)"
-                description="The annual cash flow after the property has been refinanced."
+                title={calculatorInfo.calculator_output.annual_cashflow_refi.title}
+                description={calculatorInfo.calculator_output.annual_cashflow_refi.description}
             />
         </SafeAreaView>
     );

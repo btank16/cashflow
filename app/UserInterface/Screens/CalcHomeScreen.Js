@@ -19,8 +19,16 @@ import CommercialIcon from '../../assets/icons/CommercialIcon.jsx';
 import InfoComponent from '../Components/InfoComponent.Js';
 import calculatorInfo from '../../assets/text/info.json';
 
-const CalculatorButton = ({ name, screen, Icon, color, calcType, onInfoPress, fullWidth }) => {
+const CalculatorButton = ({ name, screen, Icon, color, infoTitle, infoDescription, fullWidth }) => {
   const navigation = useNavigation();
+  const [infoModalVisible, setInfoModalVisible] = useState(false);
+
+  const handleInfoPress = () => {
+    if (infoTitle || infoDescription) {
+      setInfoModalVisible(true);
+    }
+  };
+
   return (
     <TouchableOpacity 
       style={[styles.calculatorButton, { width: fullWidth ? '100%' : '48%' }]}
@@ -28,7 +36,7 @@ const CalculatorButton = ({ name, screen, Icon, color, calcType, onInfoPress, fu
     >
       <TouchableOpacity 
         style={styles.infoIconContainer}
-        onPress={() => onInfoPress(calcType)}
+        onPress={handleInfoPress}
       >
         <View style={styles.infoIconCircle}>
           <InformationCircleIcon color={colors.iconWhite} size={16} />
@@ -44,6 +52,13 @@ const CalculatorButton = ({ name, screen, Icon, color, calcType, onInfoPress, fu
         </View>
         <Text style={styles.calculatorButtonText}>{name}</Text>
       </View>
+
+      <InfoComponent
+        visible={infoModalVisible}
+        onClose={() => setInfoModalVisible(false)}
+        title={infoTitle || name}
+        description={infoDescription || "No additional information available."}
+      />
     </TouchableOpacity>
   );
 };
@@ -62,8 +77,6 @@ function CalcHomeScreen() {
   const navigation = useNavigation();
   const { getAllCalculations, deleteCalculation } = useDatabase();
   const [history, setHistory] = useState([]);
-  const [selectedCalcType, setSelectedCalcType] = useState(null);
-  const [infoModalVisible, setInfoModalVisible] = useState(false);
   const [firstName, setFirstName] = useState('');
 
   const loadHistory = useCallback(async () => {
@@ -143,42 +156,48 @@ function CalcHomeScreen() {
       screen: "RentalCalcIn", 
       Icon: RentalIcon, 
       color: colors.primaryGreen,
-      calcType: "rental_calc"
+      infoTitle: calculatorInfo.calculator_type.rental_calc.title,
+      infoDescription: calculatorInfo.calculator_type.rental_calc.description
     },
     { 
       name: "Fix & Flip Calculator", 
       screen: "FlipCalcIn", 
       Icon: FlipIcon, 
       color: colors.primaryOrange,
-      calcType: "flip_calc"
+      infoTitle: calculatorInfo.calculator_type.flip_calc.title,
+      infoDescription: calculatorInfo.calculator_type.flip_calc.description
     },
     { 
       name: "BRRRR Calculator", 
       screen: "BRRCalcIn", 
       Icon: BRRRRIcon, 
       color: colors.primaryBlue,
-      calcType: "brrrr_calc"
+      infoTitle: calculatorInfo.calculator_type.brrrr_calc.title,
+      infoDescription: calculatorInfo.calculator_type.brrrr_calc.description
     },
     { 
       name: "Wholesale Calculator", 
       screen: "WholesaleCalcIn", 
       Icon: WholesaleIcon, 
       color: colors.brightGreen,
-      calcType: "wholesale_calc"
+      infoTitle: calculatorInfo.calculator_type.wholesale_calc.title,
+      infoDescription: calculatorInfo.calculator_type.wholesale_calc.description
     },
     { 
       name: "Price Target Calculator", 
       screen: "ProjectionCalcIn", 
       Icon: TargetIcon, 
       color: colors.primaryPurple,
-      calcType: "target_calc"
+      infoTitle: calculatorInfo.calculator_type.target_calc.title,
+      infoDescription: calculatorInfo.calculator_type.target_calc.description
     },
     { 
       name: "Commercial Multi-Family", 
       screen: "CommercialCalcIn", 
       Icon: CommercialIcon, 
       color: colors.primaryPink,
-      calcType: "commercial_calc"
+      infoTitle: calculatorInfo.calculator_type.commercial_calc.title,
+      infoDescription: calculatorInfo.calculator_type.commercial_calc.description
     },
   ];
 
@@ -206,23 +225,8 @@ function CalcHomeScreen() {
     </View>
   );
 
-  const handleCalcTypePress = (calcType) => {
-    setSelectedCalcType(calcType);
-    setInfoModalVisible(true);
-  };
-
-  const getInfoContent = () => {
-    if (!selectedCalcType || !calculatorInfo.calculator_type[selectedCalcType]) {
-      return { title: "", description: "Information not available." };
-    }
-    return {
-      title: calculatorInfo.calculator_type[selectedCalcType].title || "Calculator Information",
-      description: calculatorInfo.calculator_type[selectedCalcType].description || "Description not available."
-    };
-  };
-
   const handleArticlePress = (article) => {
-    // This is now just a placeholder for the article press action
+    // This is just a placeholder for the article press action
     // You can implement this differently if needed
   };
 
@@ -251,7 +255,6 @@ function CalcHomeScreen() {
             <CalculatorButton 
               key={index} 
               {...calc} 
-              onInfoPress={handleCalcTypePress}
             />
           ))}
         </View>
@@ -263,13 +266,6 @@ function CalcHomeScreen() {
           ))}
         </View>
       </ScrollView>
-      
-      <InfoComponent
-        visible={infoModalVisible}
-        onClose={() => setInfoModalVisible(false)}
-        title={getInfoContent().title}
-        description={getInfoContent().description}
-      />
     </SafeAreaView>
   );
 }

@@ -7,6 +7,7 @@ import { useDatabase } from '../../../database/cashflowDatabase.Js';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
+import InfoComponent from './InfoComponent.Js';
 
 const frequencies = [
   { label: 'Monthly', value: 'Monthly' },
@@ -21,7 +22,9 @@ const OperatingExpenses = ({
   onSaveNewExpensesChange,
   initialExpenses = [],
   sectionTitle = "Operating Expenses",
-  viewAllButtonText = "View all Saved Expenses"
+  viewAllButtonText = "View all Saved Expenses",
+  infoTitle,
+  infoDescription
 }) => {
   const [isActive, setIsActive] = useState(true);
   const [activeExpenses, setActiveExpenses] = useState([{ 
@@ -39,6 +42,7 @@ const OperatingExpenses = ({
   const [isPickerVisible, setIsPickerVisible] = useState(false);
   const [activePickerIndex, setActivePickerIndex] = useState(null);
   const [tempFrequency, setTempFrequency] = useState('');
+  const [infoModalVisible, setInfoModalVisible] = useState(false);
 
   useEffect(() => {
     if (initialExpenses && initialExpenses.length > 0) {
@@ -189,6 +193,12 @@ const OperatingExpenses = ({
     setActivePickerIndex(null);
   };
 
+  const handleInfoPress = () => {
+    if (infoTitle || infoDescription) {
+      setInfoModalVisible(true);
+    }
+  };
+
   const renderExpenseInput = (expense, index) => (
     <React.Fragment key={index}>
       <View style={styles.expenseInputs}>
@@ -327,7 +337,12 @@ const OperatingExpenses = ({
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>{sectionTitle}</Text>
+          <View style={styles.titleWithInfoContainer}>
+            <TouchableOpacity onPress={handleInfoPress} style={styles.infoButton}>
+              <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
+            </TouchableOpacity>
+            <Text style={styles.title}>{sectionTitle}</Text>
+          </View>
           <Switch
             value={isActive}
             onValueChange={handleToggleActive}
@@ -361,12 +376,6 @@ const OperatingExpenses = ({
             <Text style={styles.checkboxLabel}>
               Save new expenses for this calculator
             </Text>
-            <Ionicons 
-              name="information-circle-outline" 
-              size={20} 
-              color={colors.primaryGrey}
-              style={styles.infoIcon}
-            />
           </TouchableOpacity>
           
           <View style={styles.divider} />
@@ -417,6 +426,13 @@ const OperatingExpenses = ({
           </Modal>
         </View>
       )}
+
+      <InfoComponent
+        visible={infoModalVisible}
+        onClose={() => setInfoModalVisible(false)}
+        title={infoTitle || sectionTitle}
+        description={infoDescription || "No additional information available."}
+      />
     </View>
   );
 };
@@ -441,10 +457,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  titleWithInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   title: {
     fontSize: 18,
     fontWeight: '500',
     color: colors.primaryBlack,
+  },
+  infoButton: {
+    marginRight: 5,
   },
   content: {
     backgroundColor: colors.tertiaryGrey,
@@ -538,9 +561,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.primaryBlack,
     flex: 1,
-  },
-  infoIcon: {
-    marginLeft: 8,
   },
   divider: {
     height: 1,

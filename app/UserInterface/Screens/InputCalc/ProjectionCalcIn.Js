@@ -10,7 +10,7 @@ import SwitchableNumericInput from '../../Components/SwitchableNumericInput.Js';
 import { useDatabase } from '../../../../database/cashflowDatabase.Js';
 import { PriceSuggestion } from '../../../Calculations/SuggestPrice.Js';
 import OperatingExpenses from '../../Components/OperatingExpenses.Js';
-
+import calculatorInfo from '../../../assets/text/info.json';
 function ProjectionCalcIn(props) {
     const navigation = useNavigation();
     const route = useRoute();
@@ -222,7 +222,9 @@ function ProjectionCalcIn(props) {
             value: purchasePrice,
             onChangeText: setPurchasePrice,
             placeholder: "ex. 225,000",
-            type: "$"
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.listing_price.title,
+            infoDescription: calculatorInfo.calculator_input.listing_price.description
         },
         {
             label: "Monthly Cashflow Target",
@@ -230,7 +232,9 @@ function ProjectionCalcIn(props) {
             onChangeText: setMonthCashflow,
             placeholder: "ex. $1000",
             isRequired: true,
-            type: "$"
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.month_cashflow.title,
+            infoDescription: calculatorInfo.calculator_input.month_cashflow.description
         },
         {
             label: "Down Payment",
@@ -238,7 +242,9 @@ function ProjectionCalcIn(props) {
             onChangeText: setDownPayment,
             placeholder: "ex. 20%",
             isRequired: true,
-            type: "%"
+            type: "%",
+            infoTitle: calculatorInfo.calculator_input.down_payment.title,
+            infoDescription: calculatorInfo.calculator_input.down_payment.description
         },
         {
             label: "Interest Rate",
@@ -246,7 +252,9 @@ function ProjectionCalcIn(props) {
             onChangeText: setInterestRate,
             placeholder: "ex. 5%",
             isRequired: true,
-            type: "%"
+            type: "%",
+            infoTitle: calculatorInfo.calculator_input.interest_rate.title,
+            infoDescription: calculatorInfo.calculator_input.interest_rate.description
         },
         {
             label: "Gross Monthly Rent",
@@ -254,7 +262,9 @@ function ProjectionCalcIn(props) {
             onChangeText: setMonthRent,
             placeholder: "ex. $1000",
             isRequired: true,
-            type: "$"
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.monthly_rent.title,
+            infoDescription: calculatorInfo.calculator_input.monthly_rent.description
         },
         {
             label: "Annual Property Tax",
@@ -262,7 +272,9 @@ function ProjectionCalcIn(props) {
             onChangeText: setPropertyTax,
             placeholder: "ex. 2%",
             isRequired: true,
-            type: "%"
+            type: "%",
+            infoTitle: calculatorInfo.calculator_input.property_tax.title,
+            infoDescription: calculatorInfo.calculator_input.property_tax.description
         }
     ];
 
@@ -273,7 +285,9 @@ function ProjectionCalcIn(props) {
             isDollar: switchableInputs.closingCost.isDollar,
             onChangeValue: (value) => handleSwitchableInputChange('closingCost', value),
             onToggleMode: (newIsDollar) => handleSwitchableInputToggle('closingCost', newIsDollar),
-            placeholder: switchableInputs.closingCost.isDollar ? "ex. $5,000" : "ex. 2%"
+            placeholder: switchableInputs.closingCost.isDollar ? "ex. $5,000" : "ex. 2%",
+            infoTitle: calculatorInfo.calculator_input.closing_costs.title,
+            infoDescription: calculatorInfo.calculator_input.closing_costs.description
         },
         {
             label: "Annual CapEx Estimate",
@@ -281,7 +295,9 @@ function ProjectionCalcIn(props) {
             isDollar: switchableInputs.capexEst.isDollar,
             onChangeValue: (value) => handleSwitchableInputChange('capexEst', value),
             onToggleMode: (newIsDollar) => handleSwitchableInputToggle('capexEst', newIsDollar),
-            placeholder: switchableInputs.capexEst.isDollar ? "ex. $3,000" : "ex. 5%"
+            placeholder: switchableInputs.capexEst.isDollar ? "ex. $3,000" : "ex. 5%",
+            infoTitle: calculatorInfo.calculator_input.capex.title,
+            infoDescription: calculatorInfo.calculator_input.capex.description
         }
     ];
 
@@ -340,6 +356,8 @@ function ProjectionCalcIn(props) {
                         label="Loan Term"
                         value={loanTerm}
                         onValueChange={(itemValue) => setLoanTerm(itemValue)}
+                        infoTitle={calculatorInfo.calculator_input.loan_term.title}
+                        infoDescription={calculatorInfo.calculator_input.loan_term.description}
                     />
                     <Text style={styles.secondaryTitle}>Rent Details</Text>
                     <NumericInput {...numericInputsArray[1]} />
@@ -351,6 +369,8 @@ function ProjectionCalcIn(props) {
                         onExpensesChange={handleOperatingExpensesChange}
                         onSaveNewExpensesChange={handleSaveNewExpensesChange}
                         initialExpenses={operatingExpenses}
+                        infoTitle={calculatorInfo.calculator_input.operating_expenses.title}
+                        infoDescription={calculatorInfo.calculator_input.operating_expenses.description}
                     />
                 </ScrollView>
             </KeyboardAvoidingView>

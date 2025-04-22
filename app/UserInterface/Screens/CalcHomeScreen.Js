@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, StatusBar, Text, TouchableOpacity, Image, ScrollView, Platform } from "react-native";
+import { View, StyleSheet, SafeAreaView, StatusBar, Text, TouchableOpacity, Image, ScrollView, Platform, Alert } from "react-native";
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { InformationCircleIcon, ChevronRightIcon } from 'react-native-heroicons/outline';
 import { getUserAttribute } from '../Utils/UserAttributesCache.Js';
@@ -18,6 +18,9 @@ import UserIcon from '../../assets/icons/UserIcon.jsx';
 import CommercialIcon from '../../assets/icons/CommercialIcon.jsx';
 import InfoComponent from '../Components/InfoComponent.Js';
 import calculatorInfo from '../../assets/text/info.json';
+import GreenLogo from '../../assets/icons/GreenLogo.jsx';
+import MarkdownModal from '../Components/ArticleModal.Js';
+import introToCashflow from '../../assets/text/introToCashflow.Js';
 
 const CalculatorButton = ({ name, screen, Icon, color, infoTitle, infoDescription, fullWidth }) => {
   const navigation = useNavigation();
@@ -65,10 +68,15 @@ const CalculatorButton = ({ name, screen, Icon, color, infoTitle, infoDescriptio
 
 const ArticleItem = ({ item, onPress }) => (
   <TouchableOpacity style={styles.articleItem} onPress={onPress}>
-    <Image source={item.image} style={styles.articleImage} />
+    <View style={styles.articleImageContainer}>
+      {item.icon ? (
+        item.icon
+      ) : (
+        <Image source={item.image} style={styles.articleImage} />
+      )}
+    </View>
     <View style={styles.articleContent}>
       <Text style={styles.articleTitle}>{item.title}</Text>
-      <Text style={styles.articleDescription} numberOfLines={2}>{item.description}</Text>
     </View>
   </TouchableOpacity>
 );
@@ -78,6 +86,8 @@ function CalcHomeScreen() {
   const { getAllCalculations, deleteCalculation } = useDatabase();
   const [history, setHistory] = useState([]);
   const [firstName, setFirstName] = useState('');
+  const [markdownModalVisible, setMarkdownModalVisible] = useState(false);
+  const [currentMarkdownContent, setCurrentMarkdownContent] = useState('');
 
   const loadHistory = useCallback(async () => {
     const allCalculations = await getAllCalculations();
@@ -124,29 +134,9 @@ function CalcHomeScreen() {
 
   const articles = [
     { 
-      title: "Rental property calculator", 
-      description: "How to input data (purchase price, rental income, expenses, etc.), calculate...", 
-      image: require('../../assets/images/Rental.jpg'),
-    },
-    { 
-      title: "Fix and Flip Calculator", 
-      description: "How to estimate the potential profit from a real estate renovation project...", 
-      image: require('../../assets/images/Flip.jpg') 
-    },
-    { 
-      title: "BRRRR Calculator", 
-      description: "How to calculate the potential return on investment for a 'Buy, Rehab, Rent...", 
-      image: require('../../assets/images/BRRR.jpg') 
-    },
-    { 
-      title: "Wholesale Calculator", 
-      description: "How to calculate the potential return on investment for a wholesale deal...", 
-      image: require('../../assets/images/Wholesale.jpg') 
-    },
-    { 
-      title: "Price Target Calculator", 
-      description: "How to determine a suitable purchase price for a property based on factors s...", 
-      image: require('../../assets/images/Target.jpg') 
+      title: "Intro to Cashflow", 
+      icon: <GreenLogo width={120} height={120} />,
+      markdownContent: introToCashflow,
     },
   ];
 
@@ -226,8 +216,10 @@ function CalcHomeScreen() {
   );
 
   const handleArticlePress = (article) => {
-    // This is just a placeholder for the article press action
-    // You can implement this differently if needed
+    if (article.markdownContent) {
+      setCurrentMarkdownContent(article.markdownContent);
+      setMarkdownModalVisible(true);
+    }
   };
 
   return (
@@ -260,12 +252,18 @@ function CalcHomeScreen() {
         </View>
         {renderHistorySection()}
         <View style={styles.sectionContainer}>
-          <Text style={[styles.sectionTitle, {marginBottom: 16}]}>Related Articles</Text>
+          <Text style={[styles.sectionTitle, {marginBottom: 16}]}>Resources</Text>
           {articles.map((article, index) => (
             <ArticleItem key={index} item={article} onPress={() => handleArticlePress(article)} />
           ))}
         </View>
       </ScrollView>
+
+      <MarkdownModal 
+        visible={markdownModalVisible}
+        onClose={() => setMarkdownModalVisible(false)}
+        markdownContent={currentMarkdownContent}
+      />
     </SafeAreaView>
   );
 }
@@ -400,9 +398,24 @@ const styles = StyleSheet.create({
   },
   articleItem: {
     flexDirection: 'row',
-    backgroundColor: colors.darkGreenSecondary,
+    backgroundColor: colors.iconWhite,
     borderRadius: 8,
     marginBottom: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  articleImageContainer: {
+    width: 100,
+    height: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
     overflow: 'hidden',
   },
   articleImage: {
@@ -411,17 +424,13 @@ const styles = StyleSheet.create({
   },
   articleContent: {
     flex: 1,
-    padding: 12,
+    padding: 16,
+    justifyContent: 'center',
   },
   articleTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: colors.iconWhite,
-    marginBottom: 4,
-  },
-  articleDescription: {
-    fontSize: 14,
-    color: colors.mainShade,
+    color: colors.primaryBlack,
   },
   headerIcons: {
     flexDirection: 'row',

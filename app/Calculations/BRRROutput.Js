@@ -1,8 +1,6 @@
-import { expenses } from './ExpenseFunction.Js';
 
 export const BuyRefi = (
     PurchPrice,
-    // DownPayPerc,
     RefinanceCost,
     NewInterest,
     AfterRep,
@@ -21,13 +19,10 @@ export const BuyRefi = (
   ) => {
     // Convert inputs to numbers
     const purchaseAmount = Number(PurchPrice.value);
-    // DownPayPerc = Number(DownPayPerc);
     RefinanceCost = Number(RefinanceCost);
-    // NewInterest = Number(NewInterest);
     AfterRep = Number(AfterRep);
     MonthsHeld = Number(MonthsHeld);
     BRRMonthRent = Number(BRRMonthRent);
-    // BRRCapexPerc = Number(BRRCapexPerc);
     CashDown = Number(CashDown);
     MortgageCost = Number(MortgageCost);
     MonthlyCost = Number(MonthlyCost);
@@ -35,6 +30,7 @@ export const BuyRefi = (
     MonthEx = Number(MonthEx)
     OperatingExpense = Number(OperatingExpense)
     VacancyRate = Number(VacancyRate)
+
     // Calculate new loan amount after refinance
     const NewLoanAmount = AfterRep * 0.80; // Assuming 80% LTV refinance
   
@@ -48,10 +44,10 @@ export const BuyRefi = (
       BRRMortgageCost = (
         (NewLoanAmount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
         (Math.pow(1 + monthlyRate, numberOfPayments) - 1)
-      ).toFixed(2);
+      );
     }
 
-    // Calculate property tax and insurance
+    // Calculate property tax
     let BRRPropTax;
     if (propTax.isDollar) {
       BRRPropTax = Number(propTax.value) / 12;
@@ -59,52 +55,55 @@ export const BuyRefi = (
       BRRPropTax = (AfterRep * (Number(propTax.value) / 100)) / 12;
     }
   
-    // Calculate new monthly cost
+    // Calculate monthly capex
     let monthlyCapEx;
     if (BRRCapex.isDollar) {
       monthlyCapEx = Number(BRRCapex.value) / 12;
     } else {
       monthlyCapEx = (BRRMonthRent * (Number(BRRCapex.value) / 100));
     }
-    const VacancyLoss = BRRMonthRent * (VacancyRate / 100);
-
+    
+    // Inverse the vacancy rate to calculate the vacancy loss from cashflow
+    const VacancyLoss = (VacancyRate / 100) * (BRRMonthRent * 12);
+    //Total monthly expenses
     const BRRMonthlyCost = (
-      parseFloat(BRRMortgageCost) + BRRPropTax + OperatingExpense + monthlyCapEx).toFixed(2);
+      parseFloat(BRRMortgageCost) + BRRPropTax + OperatingExpense + monthlyCapEx);
   
     // Calculate new cashflow
-    const BRRCashflow = (BRRMonthRent - (BRRMonthlyCost + VacancyLoss)).toFixed(2);
+    const BRRCashflow = BRRMonthRent - BRRMonthlyCost;
   
-    // Calculate new annual cashflow
-    const BRRAnnualCashflow = (BRRCashflow * 12).toFixed(2);
+    // Calculate new annual cashflow accounting for vacancy loss
+    const BRRAnnualCashflow = ((BRRCashflow * 12) - VacancyLoss);
   
     // Calculate maximum equity
     let MaxEquity
     if (PurchPrice.isCashPurchase) {
-      MaxEquity = NewLoanAmount.toFixed(2);
+      MaxEquity = NewLoanAmount;
     } else {
-      MaxEquity = (NewLoanAmount-PrincipalAmt).toFixed(2);
+      MaxEquity = (NewLoanAmount-PrincipalAmt);
     }
   
     // Calculate equity return
     const totalInvestment = CashDown + (MonthsHeld * MonthlyCost) + RefinanceCost;
     const EquityReturn = MaxEquity - totalInvestment;
     const EquityReturnPerc = totalInvestment > 0 
-      ? (((EquityReturn) / totalInvestment) * 100).toFixed(2)
+      ? ((EquityReturn / totalInvestment) * 100)
       : "N/A";
 
-    const CashOnCash = ((BRRAnnualCashflow / CashDown) * 100).toFixed(2);
+    //Calculate Cash on Cash including expenses during the rehab period
+    const CashOnCash = ((BRRAnnualCashflow / totalInvestment) * 100);
 
   
     return [
-      BRRMortgageCost,
-      BRRMonthlyCost,
-      BRRCashflow,
-      BRRAnnualCashflow,
-      MaxEquity,
+      BRRMortgageCost.toFixed(2),
+      BRRMonthlyCost.toFixed(2),
+      BRRCashflow.toFixed(2),
+      BRRAnnualCashflow.toFixed(2),
+      MaxEquity.toFixed(2),
       EquityReturn.toFixed(2),
-      EquityReturnPerc,
-      monthlyCapEx,
-      BRRPropTax,
-      CashOnCash
+      EquityReturnPerc.toFixed(2),
+      monthlyCapEx.toFixed(2) ,
+      BRRPropTax.toFixed(2),
+      CashOnCash.toFixed(2)
     ];
   };

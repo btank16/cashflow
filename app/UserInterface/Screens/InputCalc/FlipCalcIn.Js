@@ -190,7 +190,6 @@ function FlipCalcIn(props) {
             afterRev: toNumber(afterRev),
             rehabTime: toNumber(rehabTime),
             agentCommish: switchableInputs.agentCommish,
-            propertyInsurance: 0,
             capexEst: { value: '0', isDollar: false },
             monthRent: 0,
             operatingExpenseArray: {
@@ -206,7 +205,6 @@ function FlipCalcIn(props) {
             inputValues.interestRate,
             inputValues.loanTerm,
             inputValues.propertyTax,
-            inputValues.propertyInsurance,
             inputValues.capexEst,
             inputValues.rehabCost,
             inputValues.closingCost,
@@ -223,7 +221,8 @@ function FlipCalcIn(props) {
             inputValues.purchasePrice,
             expenseResults[2],
             expenseResults[1],
-            '0'
+            '0',
+            expenseResults[4]
         );
 
         const results = {

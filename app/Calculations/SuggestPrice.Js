@@ -84,6 +84,8 @@ export const PriceSuggestion = (
       closingCostTarget = (TargetPrice * (Number(closingCost.value) / 100));
       closingCostZero = (NetZeroPrice * (Number(closingCost.value) / 100));
     }
+
+    // Calculate the total cash down for each scenario
     const netZeroCash = (NetZeroPrice * DownPayPerc) + closingCostZero + rehabCost + totalFixedExpenses;
     const targetPriceCash = (TargetPrice * DownPayPerc) + closingCostTarget + rehabCost + totalFixedExpenses;
 

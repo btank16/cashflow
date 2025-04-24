@@ -17,7 +17,7 @@ export const CommercialCalc = (
   let downPaymentAmount
   if (downPayment.isDollar) {
     downPaymentAmount = Number(downPayment.value);
-    DownPayPerc = ((Number(downPayment.value) / purchasePrice) * 100).toFixed(2);
+    DownPayPerc = ((Number(downPayment.value) / purchasePrice) * 100);
   } else {
     downPaymentAmount = purchasePrice * (Number(downPayment.value) / 100);
     DownPayPerc = Number(downPayment.value);
@@ -41,21 +41,12 @@ export const CommercialCalc = (
     MortgageCost = (
       (LoanAmount * monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) /
       (Math.pow(1 + monthlyRate, numberOfPayments) - 1)
-    ).toFixed(2);
+    );
   }
-  
-  // Calculate Principal left
-  // let PrincipalAmt = LoanAmount;
-  // let adjMonths = MonthsHeld;
-  // while (adjMonths > 0) {
-  //   const PrincipalPayment = MortgageCost - (PrincipalAmt * monthlyRate);
-  //   PrincipalAmt = PrincipalAmt - PrincipalPayment;
-  //   adjMonths--;
-  // }
 
   // New if statement for PMI
   if (DownPayPerc < 20) {
-    MortgageCost = (parseFloat(MortgageCost) + ((LoanAmount * 0.0085) / 12)).toFixed(2);
+    MortgageCost = (parseFloat(MortgageCost) + ((LoanAmount * 0.0085) / 12));
   }
 
   // Calculate property tax and insurance
@@ -78,12 +69,7 @@ export const CommercialCalc = (
   }
 
     // Calculate vacancy
-    let monthlyVacancy;
-    if (vacancy.isDollar) {
-      monthlyVacancy = Number(vacancy.value) / 12;
-    } else {
-      monthlyVacancy = (monthlyRent * (Number(vacancy.value) / 100));
-    }
+    const VacancyLoss = (vacancy / 100) * (monthlyRent * 12);
 
   // Sum up all monthly expenses
   let totalMonthlyExpenses = 0;
@@ -104,13 +90,12 @@ export const CommercialCalc = (
   }
 
   // Calculate total monthly cost
-  const MonthEx = monthlyPropTax + monthlyCapEx + totalMonthlyExpenses + monthlyVacancy;
+  const MonthEx = monthlyPropTax + monthlyCapEx + totalMonthlyExpenses;
   const MonthlyCost = (
-    parseFloat(MortgageCost) + MonthEx).toFixed(2);
+    parseFloat(MortgageCost) + MonthEx);
   
   // Calculate DSCR
-  const DSCRexpense = parseFloat(MortgageCost) + monthlyPropTax;
-  const DSCR = monthlyRent / DSCRexpense;
+  const DSCR = (monthlyRent - (MonthlyCost - monthlyCapEx)) / parseFloat(MortgageCost);
 
   // Calculate closing costs
   let closingCostTotal;
@@ -129,27 +114,26 @@ export const CommercialCalc = (
     }
 
   // Calculate cash down
-  const totalAcquisitionCosts = (downPaymentAmount + closingCostTotal + realAcqCosts + totalFixedExpenses).toFixed(2);
+  const totalAcquisitionCosts = (downPaymentAmount + closingCostTotal + realAcqCosts + totalFixedExpenses);
 
     // Calculate monthly cashflow
-    const Cashflow = (monthlyRent - MonthlyCost).toFixed(2);
+    const Cashflow = (monthlyRent - MonthlyCost);
   
     // Calculate annual cashflow
-    const AnnualCashflow = Cashflow * 12;
+    const AnnualCashflow = ((Cashflow * 12) - VacancyLoss);
   
     // Calculate Cash on Cash return
-    const CashOnCash = ((AnnualCashflow / totalAcquisitionCosts) * 100).toFixed(2);
+    const CashOnCash = ((AnnualCashflow / totalAcquisitionCosts) * 100);
   
     // Calculate Cap Rate
-    const CapRate = ((AnnualCashflow / purchasePrice) * 100).toFixed(2);
+    const CapRate = ((AnnualCashflow / purchasePrice) * 100);
   
     // Calculate Months Till Even
     const MonthsTillEven = Math.ceil(totalAcquisitionCosts / parseFloat(Cashflow));
 
-  return [MortgageCost, MonthlyCost, totalAcquisitionCosts, MonthEx.toFixed(2), 
-    DSCR, monthlyPropTax.toFixed(2), monthlyCapEx.toFixed(2), 
-    totalMonthlyExpenses.toFixed(2), 
-    monthlyVacancy.toFixed(2), Number(CashOnCash).toFixed(2), 
-    Number(CapRate).toFixed(2), MonthsTillEven, AnnualCashflow.toFixed(2)];
+  return [MortgageCost.toFixed(2), MonthlyCost.toFixed(2), totalAcquisitionCosts.toFixed(2), MonthEx.toFixed(2), 
+    DSCR.toFixed(2), monthlyPropTax.toFixed(2), monthlyCapEx.toFixed(2), 
+    totalMonthlyExpenses.toFixed(2), Number(CashOnCash).toFixed(2), 
+    Number(CapRate).toFixed(2), MonthsTillEven.toFixed(2), AnnualCashflow.toFixed(2)];
 };
 

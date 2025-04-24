@@ -191,7 +191,6 @@ function RentalCalcIn(props) {
             capexEst: switchableInputs.capexEst,
             rehabCost: toNumber(rehabCost),
             monthRent: toNumber(monthRent),
-            propertyInsurance: 0,
             afterRev: 0,
             rehabTime: 0,
             agentCommish: { value: '0', isDollar: false },
@@ -209,7 +208,6 @@ function RentalCalcIn(props) {
             inputValues.interestRate,
             inputValues.loanTerm,
             inputValues.propertyTax,
-            inputValues.propertyInsurance,
             inputValues.capexEst,
             inputValues.rehabCost,
             inputValues.closingCost,
@@ -226,7 +224,8 @@ function RentalCalcIn(props) {
             inputValues.purchasePrice,
             expenseResults[2],
             expenseResults[1],
-            inputValues.vacancyRate
+            inputValues.vacancyRate,
+            expenseResults[4]
         );
 
         const results = {

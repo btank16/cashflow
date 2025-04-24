@@ -133,11 +133,6 @@ function CommercialCalcOut(props) {
             name: 'Capital Expenditure',
             value: results.monthlyCapEx,
             color: colors.brightGreen,
-        },
-        {
-            name: 'Vacancy Loss',
-            value: results.monthlyVacancy,
-            color: colors.primaryRed,
         }
     ];
 

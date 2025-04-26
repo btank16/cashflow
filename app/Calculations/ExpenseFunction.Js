@@ -117,7 +117,7 @@ export const expenses = (
   if (PurchasePrice.isCashPurchase) {
     DSCR = 'N/A';
   } else {
-    DSCR = Number((MonthRent - (MonthlyCost - monthlyCapEx))) / parseFloat(MortgageCost);
+    DSCR = (Number((MonthRent - (MonthlyCost - monthlyCapEx))) / parseFloat(MortgageCost)).toFixed(2);
   }
 
   // Calculate closing costs andcash down (down payment + rehab cost + closing costs)
@@ -130,5 +130,5 @@ export const expenses = (
   const CashDown = (DownPayment + RehabCost + closingCostTotal + totalFixedExpenses);
 
   return [MortgageCost.toFixed(2), MonthlyCost.toFixed(2), CashDown.toFixed(2), MonthEx.toFixed(2), PrincipalAmt.toFixed(2), 
-    DSCR.toFixed(2), monthlyPropTax.toFixed(2), monthlyCapEx.toFixed(2), totalMonthlyExpenses.toFixed(2)];
+    DSCR, monthlyPropTax.toFixed(2), monthlyCapEx.toFixed(2), totalMonthlyExpenses.toFixed(2)];
 };

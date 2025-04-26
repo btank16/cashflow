@@ -95,7 +95,7 @@ export const CommercialCalc = (
     parseFloat(MortgageCost) + MonthEx);
   
   // Calculate DSCR
-  const DSCR = (monthlyRent - (MonthlyCost - monthlyCapEx)) / parseFloat(MortgageCost);
+  const DSCR = ((monthlyRent - (MonthlyCost - monthlyCapEx)) / parseFloat(MortgageCost)).toFixed(2);
 
   // Calculate closing costs
   let closingCostTotal;
@@ -132,7 +132,7 @@ export const CommercialCalc = (
     const MonthsTillEven = Math.ceil(totalAcquisitionCosts / parseFloat(Cashflow));
 
   return [MortgageCost.toFixed(2), MonthlyCost.toFixed(2), totalAcquisitionCosts.toFixed(2), MonthEx.toFixed(2), 
-    DSCR.toFixed(2), monthlyPropTax.toFixed(2), monthlyCapEx.toFixed(2), 
+    DSCR, monthlyPropTax.toFixed(2), monthlyCapEx.toFixed(2), 
     totalMonthlyExpenses.toFixed(2), Number(CashOnCash).toFixed(2), 
     Number(CapRate).toFixed(2), MonthsTillEven.toFixed(2), AnnualCashflow.toFixed(2)];
 };

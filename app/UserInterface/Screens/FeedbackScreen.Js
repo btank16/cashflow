@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, StatusBar, Platform, TextInput, ScrollView, TouchableOpacity, Modal, Alert } from "react-native";
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Modal, Alert } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import { ChevronDownIcon } from "react-native-heroicons/outline";
@@ -10,6 +10,7 @@ import GreenLogo from '../../assets/icons/GreenLogo.jsx';
 import PrimaryButton from '../Components/PrimaryButton.Js';
 import { getUserAttribute } from '../Utils/UserAttributesCache.Js';
 import secretKeys from '../../../secretkeys.json';
+import ScreenLayout from '../UtilScreens/ScreenLayout.Js';
 
 const SUBJECT_OPTIONS = [
   "Bug Report", 
@@ -182,86 +183,67 @@ function FeedbackScreen() {
     }
   };
 
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <BackButton destinationScreen="CalcHomeScreen" />
+    </View>
+  );
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <BackButton destinationScreen="CalcHomeScreen" />
-        </View>
-
-        <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
-          <View style={styles.logoContainer}>
-            <GreenLogo />
-          </View>
-
-          <Text style={styles.title}>Please share your experience with us</Text>
-          
-          <SubjectDropdown
-            label="Subject"
-            value={subject}
-            onValueChange={setSubject}
-            placeholder="Select"
-          />
-          
-          <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Feedback</Text>
-            <View style={[
-              styles.feedbackWrapper,
-              feedbackFocused ? styles.feedbackWrapperFocused : styles.feedbackWrapperBlurred
-            ]}>
-              <TextInput
-                style={styles.feedbackInput}
-                placeholder="Feedback"
-                placeholderTextColor={colors.sixthGrey}
-                value={feedback}
-                onChangeText={handleFeedbackChange}
-                multiline={true}
-                textAlignVertical="top"
-                onFocus={() => setFeedbackFocused(true)}
-                onBlur={() => setFeedbackFocused(false)}
-              />
-            </View>
-            <Text style={styles.characterCount}>
-              {feedback.length}/{MAX_FEEDBACK_CHARS}
-            </Text>
-          </View>
-
-          <View style={styles.buttonContainer}>
-            <PrimaryButton
-              label="Send Feedback"
-              loadingLabel="Sending..."
-              isActive={subject.length > 0 && feedback.length > 0}
-              isLoading={isLoading}
-              onPress={sendFeedback}
-              style={{ marginTop: 16 }}
-            />
-          </View>
-        </ScrollView>
+    <ScreenLayout header={renderHeader()}>
+      <View style={styles.logoContainer}>
+        <GreenLogo />
       </View>
-    </SafeAreaView>
+
+      <Text style={styles.title}>Please share your experience with us</Text>
+      
+      <SubjectDropdown
+        label="Subject"
+        value={subject}
+        onValueChange={setSubject}
+        placeholder="Select"
+      />
+      
+      <View style={styles.inputContainer}>
+        <Text style={styles.inputLabel}>Feedback</Text>
+        <View style={[
+          styles.feedbackWrapper,
+          feedbackFocused ? styles.feedbackWrapperFocused : styles.feedbackWrapperBlurred
+        ]}>
+          <TextInput
+            style={styles.feedbackInput}
+            placeholder="Feedback"
+            placeholderTextColor={colors.sixthGrey}
+            value={feedback}
+            onChangeText={handleFeedbackChange}
+            multiline={true}
+            textAlignVertical="top"
+            onFocus={() => setFeedbackFocused(true)}
+            onBlur={() => setFeedbackFocused(false)}
+          />
+        </View>
+        <Text style={styles.characterCount}>
+          {feedback.length}/{MAX_FEEDBACK_CHARS}
+        </Text>
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <PrimaryButton
+          label="Send Feedback"
+          loadingLabel="Sending..."
+          isActive={subject.length > 0 && feedback.length > 0}
+          isLoading={isLoading}
+          onPress={sendFeedback}
+          style={{ marginTop: 16 }}
+        />
+      </View>
+    </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.iconWhite,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
-  container: {
-    flex: 1,
-  },
   header: {
-    height: 56,
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-  },
-  content: {
-    flex: 1,
-  },
-  contentContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
+    width: '100%',
   },
   logoContainer: {
     alignItems: 'center',

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, StatusBar, Text, TouchableOpacity, Image, ScrollView, Platform, Alert } from "react-native";
+import { View, StyleSheet, Text, TouchableOpacity, Image } from "react-native";
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { InformationCircleIcon, ChevronRightIcon } from 'react-native-heroicons/outline';
 import { getUserAttribute } from '../Utils/UserAttributesCache.Js';
@@ -21,6 +21,7 @@ import calculatorInfo from '../../assets/text/info.json';
 import GreenLogo from '../../assets/icons/GreenLogo.jsx';
 import MarkdownModal from '../Components/ArticleModal.Js';
 import introToCashflow from '../../assets/text/introToCashflow.Js';
+import ScreenLayout from '../UtilScreens/ScreenLayout.Js';
 
 const CalculatorButton = ({ name, screen, Icon, color, infoTitle, infoDescription, fullWidth }) => {
   const navigation = useNavigation();
@@ -222,63 +223,62 @@ function CalcHomeScreen() {
     }
   };
 
-  return (
-    <SafeAreaView style={styles.masterBackground}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('UserScreen')}>
-          <UserIcon color={colors.primary} size={24} />
-        </TouchableOpacity>
-        <View style={styles.logoContainer}>
-          <WhiteTextLogo width={120} height={28} />
-        </View>
-        <View style={styles.headerIcons}>
-          <TouchableOpacity onPress={() => navigation.navigate('HistoryScreen')} style={styles.headerIcon}>
-            <HistoryIcon color={colors.primary} size={24} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('FeedbackScreen')} style={styles.headerIcon}>
-            <FeedbackIcon color={colors.primary} size={24} />
-          </TouchableOpacity>
-        </View>
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('UserScreen')}>
+        <UserIcon color={colors.primary} size={24} />
+      </TouchableOpacity>
+      <View style={styles.logoContainer}>
+        <WhiteTextLogo width={120} height={28} />
       </View>
-      <ScrollView style={styles.contentContainer}>
-        <Text style={styles.welcomeText}>Welcome, {firstName || 'User'}!</Text>
-        <View style={styles.calculatorsGrid}>
-          {calculators.map((calc, index) => (
-            <CalculatorButton 
-              key={index} 
-              {...calc} 
-            />
-          ))}
-        </View>
-        {renderHistorySection()}
-        <View style={styles.sectionContainer}>
-          <Text style={[styles.sectionTitle, {marginBottom: 16}]}>Resources</Text>
-          {articles.map((article, index) => (
-            <ArticleItem key={index} item={article} onPress={() => handleArticlePress(article)} />
-          ))}
-        </View>
-      </ScrollView>
+      <View style={styles.headerIcons}>
+        <TouchableOpacity onPress={() => navigation.navigate('HistoryScreen')} style={styles.headerIcon}>
+          <HistoryIcon color={colors.primary} size={24} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('FeedbackScreen')} style={styles.headerIcon}>
+          <FeedbackIcon color={colors.primary} size={24} />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  return (
+    <ScreenLayout
+      header={renderHeader()}
+      backgroundColor={colors.darkGreenPrimary}
+    >
+      <Text style={styles.welcomeText}>Welcome, {firstName || 'User'}!</Text>
+      <View style={styles.calculatorsGrid}>
+        {calculators.map((calc, index) => (
+          <CalculatorButton 
+            key={index} 
+            {...calc} 
+          />
+        ))}
+      </View>
+      {renderHistorySection()}
+      <View style={styles.sectionContainer}>
+        <Text style={[styles.sectionTitle, {marginBottom: 16}]}>Resources</Text>
+        {articles.map((article, index) => (
+          <ArticleItem key={index} item={article} onPress={() => handleArticlePress(article)} />
+        ))}
+      </View>
 
       <MarkdownModal 
         visible={markdownModalVisible}
         onClose={() => setMarkdownModalVisible(false)}
         markdownContent={currentMarkdownContent}
       />
-    </SafeAreaView>
+    </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  masterBackground: {
-    flex: 1,
-    backgroundColor: colors.darkGreenPrimary,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    width: '100%',
   },
   logoContainer: {
     position: 'absolute',
@@ -287,21 +287,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: -1,
   },
-  contentContainer: {
-    flex: 1,
-  },
   welcomeText: {
     fontSize: 28,
     fontWeight: 'bold',
     color: colors.iconWhite,
-    padding: 16,
+    paddingVertical: 16,
     textAlign: 'center',
   },
   calculatorsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    padding: 16,
+    marginBottom: 8,
   },
   calculatorButton: {
     aspectRatio: undefined,
@@ -348,7 +345,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sectionContainer: {
-    padding: 16,
+    marginBottom: 16,
   },
   sectionTitleContainer: {
     flexDirection: 'row',
@@ -360,36 +357,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: colors.iconWhite,
-  },
-  historyItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: colors.darkGreenSecondary,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-  },
-  historyItemText: {
-    fontSize: 14,
-    color: colors.iconWhite,
-  },
-  historyItemType: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  historyItemIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 4,
-  },
-  historyItemTypeText: {
-    fontSize: 12,
-    color: colors.mainShade,
-  },
-  historyItemTime: {
-    fontSize: 12,
-    color: colors.mainShade,
   },
   emptyHistoryText: {
     textAlign: 'center',

@@ -57,6 +57,12 @@ Amplify.configure({
         email: true
       }
     }
+  },
+  // Correct format for Data API (using Gen 2 notation)
+  Data: {
+    endpoint: awsconfig.data.url,
+    region: awsconfig.data.aws_region,
+    authMode: 'userPool'
   }
 });
 

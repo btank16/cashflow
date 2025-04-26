@@ -199,7 +199,7 @@ function RentalCalcIn(props) {
                 expenses: operatingExpenses,
                 saveNewExpenses: saveNewExpenses
             },
-            vacancyRate: toNumber(vacancyRate)
+            vacancyRate: toNumber(vacancyRate) || '0'
         };
 
         const expenseResults = expenses(

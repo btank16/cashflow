@@ -216,7 +216,7 @@ function BRRCalcIn(props) {
                 expenses: operatingExpenses,
                 saveNewExpenses: saveNewExpenses
             },
-            vacancyRate: toNumber(vacancyRate)
+            vacancyRate: toNumber(vacancyRate) || '0'
         };
 
         const initialExpenseResults = expenses(
@@ -225,7 +225,6 @@ function BRRCalcIn(props) {
             inputValues.interestRate,
             inputValues.loanTerm,
             inputValues.propertyTax,
-            0,
             inputValues.BRRcapexEst,
             inputValues.rehabCost,
             inputValues.closingCost,

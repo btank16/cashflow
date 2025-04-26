@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, Text, TouchableOpacity } from "react-native";
+import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import colors from '../../Colors/colors.Js';
@@ -10,6 +10,7 @@ import ExpensePieChart from '../../Components/ExpensePieChart.Js';
 import DarkTextLogo from '../../../assets/icons/DarkTextLogo.jsx';
 import InfoComponent from '../../Components/InfoComponent.Js';
 import calculatorInfo from '../../../assets/text/info.json';
+import ScreenLayout from '../../UtilScreens/ScreenLayout.Js';
 
 function FlipCalcOut(props) {
     const navigation = useNavigation();
@@ -86,53 +87,59 @@ function FlipCalcOut(props) {
         },
     ];
 
+    const renderHeader = () => (
+        <View style={styles.logoContainer}>
+            <BackButton 
+                inputValues={inputValues}
+                destinationScreen="FlipCalcIn"
+            />
+            <TouchableOpacity 
+                style={styles.logoWrapper}
+                onPress={() => navigation.navigate('CalcHomeScreen')}
+            >
+                <DarkTextLogo />
+            </TouchableOpacity>
+        </View>
+    );
+
     return (
-        <SafeAreaView style={styles.masterBackground}>
-            <View style={styles.logoContainer}>
-                <BackButton 
-                    inputValues={inputValues}
-                    destinationScreen="FlipCalcIn"
-                />
-                <TouchableOpacity 
-                    style={styles.logoWrapper}
-                    onPress={() => navigation.navigate('CalcHomeScreen')}
-                >
-                    <DarkTextLogo />
-                </TouchableOpacity>
+        <ScreenLayout
+            header={renderHeader()}
+            headerHeight={32}
+            backgroundColor={colors.iconWhite}
+            horizontalPadding={0}
+        >
+            <View style={styles.mainResultContainer}>
+                <View style={styles.mainLabelContainer}>
+                    <Text style={styles.mainLabel}>Net Profit</Text>
+                    <TouchableOpacity onPress={() => setInfoModalVisible(true)}>
+                        <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
+                    </TouchableOpacity>
+                </View>
+                <Text style={[
+                    styles.mainValue,
+                    { color: results.totalProfit >= 0 ? colors.primaryGreen : colors.quaternaryRed }
+                ]}>
+                    {formatDollar(results.totalProfit)}
+                </Text>
             </View>
-            <ScrollView style={styles.contentContainer}>
-                <View style={styles.mainResultContainer}>
-                    <View style={styles.mainLabelContainer}>
-                        <Text style={styles.mainLabel}>Net Profit</Text>
-                        <TouchableOpacity onPress={() => setInfoModalVisible(true)}>
-                            <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
-                        </TouchableOpacity>
-                    </View>
-                    <Text style={[
-                        styles.mainValue,
-                        { color: results.totalProfit >= 0 ? colors.primaryGreen : colors.quaternaryRed }
-                    ]}>
-                        {formatDollar(results.totalProfit)}
-                    </Text>
-                </View>
-                <View style={styles.resultsGrid}>
-                    {resultDisplayArray.map((item, index) => (
-                        <ResultDisplay 
-                            key={index}
-                            {...item}
-                        />
-                    ))}
-                    {fullWidthDisplays.map((item, index) => (
-                        <ResultDisplay 
-                            key={`full-${index}`}
-                            {...item}
-                        />
-                    ))}
-                </View>
-                <ExpensePieChart
-                    chartData={expenseChartData}
-                />
-            </ScrollView>
+            <View style={styles.resultsGrid}>
+                {resultDisplayArray.map((item, index) => (
+                    <ResultDisplay 
+                        key={index}
+                        {...item}
+                    />
+                ))}
+                {fullWidthDisplays.map((item, index) => (
+                    <ResultDisplay 
+                        key={`full-${index}`}
+                        {...item}
+                    />
+                ))}
+            </View>
+            <ExpensePieChart
+                chartData={expenseChartData}
+            />
             
             <InfoComponent
                 visible={infoModalVisible}
@@ -140,41 +147,22 @@ function FlipCalcOut(props) {
                 title={calculatorInfo.calculator_output.net_profit.title}
                 description={calculatorInfo.calculator_output.net_profit.description}
             />
-        </SafeAreaView>
+        </ScreenLayout>
     );
 }
 
 const styles = StyleSheet.create({
-    masterBackground: {
-        flex: 1,
-        backgroundColor: colors.iconWhite,
-        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-    },
     logoContainer: {
         flexDirection: 'row',
-        height: 32,
         alignItems: 'center',
-        backgroundColor: colors.iconWhite,
         justifyContent: 'space-between',
-        paddingHorizontal: 16,
+        width: '100%',
     },
     logoWrapper: {
         position: 'absolute',
         left: 0,
         right: 0,
         alignItems: 'center',
-    },
-    contentContainer: {
-        backgroundColor: colors.iconWhite,
-    },
-    headerTitle: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: colors.primaryBlack,
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        textAlign: 'center',
     },
     mainResultContainer: {
         alignItems: 'center',

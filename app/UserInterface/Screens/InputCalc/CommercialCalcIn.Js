@@ -181,7 +181,7 @@ function CommercialCalcIn(props) {
             loanTerm: toNumber(loanTerm),
             grossRent: toNumber(grossRent),
             rentFees: toNumber(grossFees),
-            vacancy: toNumber(vacancyRate),
+            vacancy: toNumber(vacancyRate) || '0',
             capEx: switchableInputs.capexEst,
             propertyTax: switchableInputs.propertyTax,
             operatingExpenseArray: {

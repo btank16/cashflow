@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Platform, View, SafeAreaView, FlatList, StyleSheet, TouchableOpacity, Text, ScrollView, StatusBar } from 'react-native';
+import { View, FlatList, StyleSheet, TouchableOpacity, Text, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronLeftIcon } from 'react-native-heroicons/outline';
 import { useDatabase } from '../../../database/cashflowDatabase.Js';
@@ -7,6 +7,7 @@ import colors from '../Colors/colors.Js';
 import HistoryItem from '../Components/HistoryItem.Js';
 import FeedbackIcon from '../../assets/icons/FeedbackIcon.jsx';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import ScreenLayout from '../UtilScreens/ScreenLayout.Js';
 
 function HistoryScreen() {
   const [calculations, setCalculations] = useState([]);
@@ -44,7 +45,6 @@ function HistoryScreen() {
       loadCalculations(); // Reload the list after deletion
     } catch (error) {
       console.error('Error deleting calculation:', error);
-      // Optionally, you can show an error message to the user here
     }
   };
 
@@ -73,49 +73,54 @@ function HistoryScreen() {
     </TouchableOpacity>
   );
 
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+        <ChevronLeftIcon color={colors.iconWhite} size={24} />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>Search history</Text>
+      <TouchableOpacity onPress={() => navigation.navigate('FeedbackScreen')}>
+        <FeedbackIcon color={colors.iconWhite} size={24} />
+      </TouchableOpacity>
+    </View>
+  );
+  
+  const renderContent = () => (
+    <>
+      <View style={styles.filterContainer}>
+        <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
+          {calculatorTypes.map((type) => (
+            <FilterButton key={type} title={type} />
+          ))}
+        </ScrollView>
+      </View>
+      <FlatList
+        data={calculations}
+        renderItem={renderItem}
+        keyExtractor={item => item.id.toString()}
+      />
+    </>
+  );
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaView style={styles.masterBackground}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <ChevronLeftIcon color={colors.iconWhite} size={24} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Search history</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('FeedbackScreen')}>
-            <FeedbackIcon color={colors.iconWhite} size={24} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.filterContainer}>
-          <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-            {calculatorTypes.map((type) => (
-              <FilterButton key={type} title={type} />
-            ))}
-          </ScrollView>
-        </View>
-        <FlatList
-          data={calculations}
-          renderItem={renderItem}
-          keyExtractor={item => item.id.toString()}
-          contentContainerStyle={styles.listContainer}
-        />
-      </SafeAreaView>
+      <ScreenLayout
+        header={renderHeader()}
+        scrollable={false}
+        backgroundColor={colors.darkGreenPrimary}
+      >
+        {renderContent()}
+      </ScreenLayout>
     </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  masterBackground: {
-    flex: 1,
-    backgroundColor: colors.darkGreenPrimary,
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    backgroundColor: colors.darkGreenPrimary,
+    width: '100%',
   },
   headerTitle: {
     fontSize: 18,
@@ -125,7 +130,7 @@ const styles = StyleSheet.create({
   filterContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 16,
+    paddingVertical: 16,
     backgroundColor: colors.darkGreenPrimary,
   },
   filterButton: {
@@ -146,9 +151,6 @@ const styles = StyleSheet.create({
   },
   activeFilterButtonText: {
     fontWeight: 'bold',
-  },
-  listContainer: {
-    paddingHorizontal: 16,
   },
 });
 

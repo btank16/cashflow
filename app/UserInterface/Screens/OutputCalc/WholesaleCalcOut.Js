@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, Text, TouchableOpacity } from "react-native";
+import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../../Colors/colors.Js';
 import BackButton from '../../Components/BackButton.Js';
@@ -9,6 +9,7 @@ import DoubleResultDisplay from '../../Components/DoubleResultDisplay.Js';
 import ResultDisplay from '../../Components/ResultDisplay.Js';
 import InfoComponent from '../../Components/InfoComponent.Js';
 import calculatorInfo from '../../../assets/text/info.json';
+import ScreenLayout from '../../UtilScreens/ScreenLayout.Js';
 
 function WholesaleCalcOut(props) {
     const navigation = useNavigation();
@@ -41,73 +42,79 @@ function WholesaleCalcOut(props) {
         }
     ];
 
+    const renderHeader = () => (
+        <View style={styles.logoContainer}>
+            <BackButton 
+                inputValues={inputValues}
+                destinationScreen="WholesaleCalcIn"
+            />
+            <TouchableOpacity 
+                style={styles.logoWrapper}
+                onPress={() => navigation.navigate('CalcHomeScreen')}
+            >
+                <DarkTextLogo />
+            </TouchableOpacity>
+        </View>
+    );
+
     return (
-        <SafeAreaView style={styles.masterBackground}>
-            <View style={styles.logoContainer}>
-                <BackButton 
-                    inputValues={inputValues}
-                    destinationScreen="WholesaleCalcIn"
-                />
-                <TouchableOpacity 
-                    style={styles.logoWrapper}
-                    onPress={() => navigation.navigate('CalcHomeScreen')}
-                >
-                    <DarkTextLogo />
-                </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.contentContainer}>
-                <View style={styles.mainResultContainer}>
-                    <View style={styles.mainLabelContainer}>
-                        <Text style={styles.mainLabel}>Maximum Allowable Offer</Text>
-                        <TouchableOpacity onPress={() => setInfoModalVisible(true)}>
-                            <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
-                        </TouchableOpacity>
-                    </View>
-                    <Text style={styles.mainValue}>
-                        {formatDollar(results.maximumAllowableOffer)}
+        <ScreenLayout
+            header={renderHeader()}
+            headerHeight={32}
+            backgroundColor={colors.iconWhite}
+            horizontalPadding={0}
+        >
+            <View style={styles.mainResultContainer}>
+                <View style={styles.mainLabelContainer}>
+                    <Text style={styles.mainLabel}>Maximum Allowable Offer</Text>
+                    <TouchableOpacity onPress={() => setInfoModalVisible(true)}>
+                        <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
+                    </TouchableOpacity>
+                </View>
+                <Text style={styles.mainValue}>
+                    {formatDollar(results.maximumAllowableOffer)}
+                </Text>
+                <View style={styles.subLabelContainer}>
+                    <Text style={styles.subLabelText}>Contract Price: </Text>
+                    <Text style={[
+                        styles.subLabelValue,
+                        { color: inputValues.purchasePrice > results.maximumAllowableOffer 
+                            ? colors.quaternaryRed 
+                            : colors.primaryGreen 
+                        }
+                    ]}>
+                        {formatDollar(inputValues.purchasePrice)}
                     </Text>
-                    <View style={styles.subLabelContainer}>
-                        <Text style={styles.subLabelText}>Contract Price: </Text>
-                        <Text style={[
-                            styles.subLabelValue,
-                            { color: inputValues.purchasePrice > results.maximumAllowableOffer 
-                                ? colors.quaternaryRed 
-                                : colors.primaryGreen 
-                            }
-                        ]}>
-                            {formatDollar(inputValues.purchasePrice)}
-                        </Text>
-                    </View>
                 </View>
-                <View style={styles.resultsGrid}>
-                    <DoubleResultDisplay
-                        topLabel="Minimum Sale Price"
-                        topValue={formatDollar(results.sale5Perc)}
-                        bottomLabel="Minimum Fee"
-                        bottomValue={formatDollar(results.fee5Perc)}
-                        topInfoTitle={calculatorInfo.calculator_output.min_sale_price.title}
-                        topInfoDescription={calculatorInfo.calculator_output.min_sale_price.description}
-                        bottomInfoTitle={calculatorInfo.calculator_output.min_fee.title}
-                        bottomInfoDescription={calculatorInfo.calculator_output.min_fee.description}
+            </View>
+            <View style={styles.resultsGrid}>
+                <DoubleResultDisplay
+                    topLabel="Minimum Sale Price"
+                    topValue={formatDollar(results.sale5Perc)}
+                    bottomLabel="Minimum Fee"
+                    bottomValue={formatDollar(results.fee5Perc)}
+                    topInfoTitle={calculatorInfo.calculator_output.min_sale_price.title}
+                    topInfoDescription={calculatorInfo.calculator_output.min_sale_price.description}
+                    bottomInfoTitle={calculatorInfo.calculator_output.min_fee.title}
+                    bottomInfoDescription={calculatorInfo.calculator_output.min_fee.description}
+                />
+                <DoubleResultDisplay
+                    topLabel="Maximum Sale Price"
+                    topValue={formatDollar(results.sale15Perc)}
+                    bottomLabel="Maximum Fee"
+                    bottomValue={formatDollar(results.fee15Perc)}
+                    topInfoTitle={calculatorInfo.calculator_output.max_sale_price.title}
+                    topInfoDescription={calculatorInfo.calculator_output.max_sale_price.description}
+                    bottomInfoTitle={calculatorInfo.calculator_output.max_fee.title}
+                    bottomInfoDescription={calculatorInfo.calculator_output.max_fee.description}
+                />
+                {fullWidthDisplays.map((item, index) => (
+                    <ResultDisplay 
+                        key={`full-${index}`}
+                        {...item}
                     />
-                    <DoubleResultDisplay
-                        topLabel="Maximum Sale Price"
-                        topValue={formatDollar(results.sale15Perc)}
-                        bottomLabel="Maximum Fee"
-                        bottomValue={formatDollar(results.fee15Perc)}
-                        topInfoTitle={calculatorInfo.calculator_output.max_sale_price.title}
-                        topInfoDescription={calculatorInfo.calculator_output.max_sale_price.description}
-                        bottomInfoTitle={calculatorInfo.calculator_output.max_fee.title}
-                        bottomInfoDescription={calculatorInfo.calculator_output.max_fee.description}
-                    />
-                    {fullWidthDisplays.map((item, index) => (
-                        <ResultDisplay 
-                            key={`full-${index}`}
-                            {...item}
-                        />
-                    ))}
-                </View>
-            </ScrollView>
+                ))}
+            </View>
 
             <InfoComponent
                 visible={infoModalVisible}
@@ -115,32 +122,22 @@ function WholesaleCalcOut(props) {
                 title={calculatorInfo.calculator_output.mao.title}
                 description={calculatorInfo.calculator_output.mao.description}
             />
-        </SafeAreaView>
+        </ScreenLayout>
     );
 }
 
 const styles = StyleSheet.create({
-    masterBackground: {
-        flex: 1,
-        backgroundColor: colors.iconWhite,
-        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-    },
     logoContainer: {
         flexDirection: 'row',
-        height: 32,
         alignItems: 'center',
-        backgroundColor: colors.iconWhite,
         justifyContent: 'space-between',
-        paddingHorizontal: 16,
+        width: '100%',
     },
     logoWrapper: {
         position: 'absolute',
         left: 0,
         right: 0,
         alignItems: 'center',
-    },
-    contentContainer: {
-        backgroundColor: colors.iconWhite,
     },
     mainResultContainer: {
         alignItems: 'center',

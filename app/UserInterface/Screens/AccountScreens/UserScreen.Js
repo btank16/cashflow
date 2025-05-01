@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Platform, StatusBar, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronLeftIcon, ChevronRightIcon } from "react-native-heroicons/outline";
 import { signOut } from '@aws-amplify/auth';
 import colors from '../../Colors/colors.Js';
 import { getUserAttribute } from '../../Utils/UserAttributesCache.Js';
 import { clearUserAttributesCache } from '../../Utils/UserAttributesCache.Js';
+import ScreenLayout from '../../UtilScreens/ScreenLayout.Js';
 
 // Import icons
 import UserIcon from '../../../assets/icons/UserIcon.jsx';
@@ -63,19 +64,25 @@ const UserScreen = () => {
     </TouchableOpacity>
   );
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => navigation.navigate('CalcHomeScreen')}
-        >
-          <ChevronLeftIcon size={28} color={colors.iconWhite} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>My Profile</Text>
-        <View style={styles.backButton} />
-      </View>
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <TouchableOpacity 
+        style={styles.backButton}
+        onPress={() => navigation.navigate('CalcHomeScreen')}
+      >
+        <ChevronLeftIcon size={28} color={colors.iconWhite} />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>My Profile</Text>
+      <View style={styles.backButton} />
+    </View>
+  );
 
+  return (
+    <ScreenLayout
+      header={renderHeader()}
+      backgroundColor={colors.darkGreenPrimary}
+      scrollable={false}
+    >
       <View style={styles.profileInfo}>
         <Text style={styles.name}>{firstName} {lastName}</Text>
       </View>
@@ -112,22 +119,16 @@ const UserScreen = () => {
           onPress={handleSignOut}
         />
       </View>
-    </SafeAreaView>
+    </ScreenLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.darkGreenPrimary,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    height: 56,
+    width: '100%',
   },
   headerTitle: {
     fontSize: 16,
@@ -151,19 +152,11 @@ const styles = StyleSheet.create({
     color: colors.iconWhite,
     textAlign: 'center',
   },
-  username: {
-    fontSize: 16,
-    color: colors.iconWhite,
-    opacity: 0.7,
-    marginTop: 8,
-    textAlign: 'center',
-  },
   menuGroup: {
     backgroundColor: colors.darkGreenSecondary,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.darkGreenTertiary,
-    marginHorizontal: 20,
     marginBottom: 16,
     overflow: 'hidden',
   },

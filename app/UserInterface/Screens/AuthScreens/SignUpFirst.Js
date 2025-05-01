@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { fetchAuthSession } from '@aws-amplify/auth';
 import colors from '../../Colors/colors.Js';
 import BackButton from '../../Components/BackButton.Js';
 import MailIcon from '../../../assets/icons/MailIcon.jsx';
@@ -9,6 +8,7 @@ import NormTextbox from '../../Components/NormTextbox.Js';
 import SocialSignInButton from '../../Components/SocialSignInButton.Js';
 import { handleOAuthRedirect, forceCheckAuthAndRedirect, hasActiveSession } from '../../Utils/AuthUtils.Js';
 import PrimaryButton from '../../Components/PrimaryButton.Js';
+import ScreenLayoutWithFooter from '../../UtilScreens/ScreenLayoutWithFooter.Js';
 
 const SignUpFirst = () => {
   const navigation = useNavigation();
@@ -85,100 +85,92 @@ const SignUpFirst = () => {
     }
   };
 
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <BackButton destinationScreen="IntroScreen" />
+      <View style={styles.progressContainer}>
+        <View style={styles.progressLineActive} />
+        <View style={styles.progressLine} />
+        <View style={styles.progressLine} />
+      </View>
+    </View>
+  );
+
+  const renderFooter = () => (
+    <PrimaryButton
+      label="Continue"
+      isActive={isButtonActive}
+      isLoading={false}
+      disabled={checkingAuth}
+      onPress={handleContinue}
+    />
+  );
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <BackButton destinationScreen="IntroScreen" />
-          <View style={styles.progressContainer}>
-            <View style={styles.progressLineActive} />
-            <View style={styles.progressLine} />
-            <View style={styles.progressLine} />
+    <ScreenLayoutWithFooter
+      header={renderHeader()}
+      footer={renderFooter()}
+    >
+      <View style={styles.mainContent}>
+        <View style={styles.iconContainer}>
+          <View style={styles.iconCircle}>
+            <MailIcon width={24} height={24} />
           </View>
         </View>
 
-        <View style={styles.mainContent}>
-          <View>
-            <View style={styles.iconContainer}>
-              <View style={styles.iconCircle}>
-                <MailIcon width={24} height={24} />
-              </View>
-            </View>
+        <Text style={styles.title}>Enter your email</Text>
+        
+        <View style={styles.signInContainer}>
+          <Text style={styles.hasAccountText}>Already have an account? </Text>
+          <TouchableOpacity onPress={() => navigation.navigate('SignIn')}>
+            <Text style={styles.signInText}>Sign In</Text>
+          </TouchableOpacity>
+        </View>
 
-            <Text style={styles.title}>Enter your email</Text>
-            
-            <View style={styles.signInContainer}>
-              <Text style={styles.hasAccountText}>Already have an account? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate('SignIn')}>
-                <Text style={styles.signInText}>Sign In</Text>
-              </TouchableOpacity>
-            </View>
+        <NormTextbox
+          label="Email"
+          value={email}
+          onChangeText={setEmail}
+          placeholder="example@gmail.com"
+          keyboardType="email-address"
+          isFocused={emailFocused}
+          onFocus={() => setEmailFocused(true)}
+          onBlur={() => setEmailFocused(false)}
+        />
 
-            <NormTextbox
-              label="Email"
-              value={email}
-              onChangeText={setEmail}
-              placeholder="example@gmail.com"
-              keyboardType="email-address"
-              isFocused={emailFocused}
-              onFocus={() => setEmailFocused(true)}
-              onBlur={() => setEmailFocused(false)}
-            />
+        <View style={styles.dividerContainer}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>or</Text>
+          <View style={styles.dividerLine} />
+        </View>
 
-            <View style={styles.dividerContainer}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            <View style={styles.socialButtonsContainer}>
-              <SocialSignInButton 
-                provider="google" 
-                onSignInStart={(loading = true) => setIsSocialSignUpLoading(loading)}
-                style={isSocialSignUpLoading || checkingAuth ? styles.loadingButton : null}
-              />
-              <SocialSignInButton 
-                provider="apple" 
-                onSignInStart={(loading = true) => setIsSocialSignUpLoading(loading)}
-                style={isSocialSignUpLoading || checkingAuth ? styles.loadingButton : null}
-              />
-            </View>
-          </View>
-
-          <View style={styles.bottomContent}>
-            <PrimaryButton
-              label="Continue"
-              isActive={isButtonActive}
-              isLoading={false}
-              disabled={checkingAuth}
-              onPress={handleContinue}
-              style={{ marginBottom: 16 }}
-            />
-          </View>
+        <View style={styles.socialButtonsContainer}>
+          <SocialSignInButton 
+            provider="google" 
+            onSignInStart={(loading = true) => setIsSocialSignUpLoading(loading)}
+            style={isSocialSignUpLoading || checkingAuth ? styles.loadingButton : null}
+          />
+          <SocialSignInButton 
+            provider="apple" 
+            onSignInStart={(loading = true) => setIsSocialSignUpLoading(loading)}
+            style={isSocialSignUpLoading || checkingAuth ? styles.loadingButton : null}
+          />
         </View>
       </View>
-    </SafeAreaView>
+    </ScreenLayoutWithFooter>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.iconWhite,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
   header: {
-    height: 56,
     justifyContent: 'center',
+    width: '100%',
+    height: '100%',
   },
   progressContainer: {
     flexDirection: 'row',
     position: 'absolute',
-    top: 28,
+    alignItems: 'center',
     left: 48,
     right: 16,
     gap: 4,
@@ -197,11 +189,10 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-    justifyContent: 'space-between',
+    paddingTop: 24,
   },
   iconContainer: {
     alignItems: 'center',
-    marginTop: 24,
     marginBottom: 24,
   },
   iconCircle: {
@@ -253,9 +244,6 @@ const styles = StyleSheet.create({
   },
   loadingButton: {
     opacity: 0.8,
-  },
-  bottomContent: {
-    marginTop: 'auto',
   },
 });
 

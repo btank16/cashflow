@@ -191,7 +191,6 @@ function RentalCalcIn(props) {
             capexEst: switchableInputs.capexEst,
             rehabCost: toNumber(rehabCost),
             monthRent: toNumber(monthRent),
-            propertyInsurance: 0,
             afterRev: 0,
             rehabTime: 0,
             agentCommish: { value: '0', isDollar: false },
@@ -200,7 +199,7 @@ function RentalCalcIn(props) {
                 expenses: operatingExpenses,
                 saveNewExpenses: saveNewExpenses
             },
-            vacancyRate: toNumber(vacancyRate)
+            vacancyRate: toNumber(vacancyRate) || '0'
         };
 
         const expenseResults = expenses(
@@ -209,7 +208,6 @@ function RentalCalcIn(props) {
             inputValues.interestRate,
             inputValues.loanTerm,
             inputValues.propertyTax,
-            inputValues.propertyInsurance,
             inputValues.capexEst,
             inputValues.rehabCost,
             inputValues.closingCost,
@@ -226,7 +224,8 @@ function RentalCalcIn(props) {
             inputValues.purchasePrice,
             expenseResults[2],
             expenseResults[1],
-            inputValues.vacancyRate
+            inputValues.vacancyRate,
+            expenseResults[4]
         );
 
         const results = {
@@ -469,7 +468,6 @@ const styles = StyleSheet.create({
     masterBackground: {
         flex: 1,
         backgroundColor: colors.iconWhite,
-        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     logoContainer: {
         flexDirection: 'row',
@@ -490,8 +488,8 @@ const styles = StyleSheet.create({
         height: 56,
         backgroundColor: colors.iconWhite,
         paddingHorizontal: 16,
-        paddingTop: 12,
-        paddingBottom: 8,
+        paddingTop: 8,
+        marginBottom: Platform.OS === "android" ? 16 : 0,
     },
     title: {
         fontSize: 32,

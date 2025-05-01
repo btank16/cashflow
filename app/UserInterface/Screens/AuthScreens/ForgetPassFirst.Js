@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Platform, StatusBar, Alert } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { resetPassword } from '@aws-amplify/auth';
 import colors from '../../Colors/colors.Js';
@@ -7,6 +7,7 @@ import BackButton from '../../Components/BackButton.Js';
 import LockIcon from '../../../assets/icons/LockIcon.jsx';
 import NormTextbox from '../../Components/NormTextbox.Js';
 import PrimaryButton from '../../Components/PrimaryButton.Js';
+import ScreenLayoutWithFooter from '../../UtilScreens/ScreenLayoutWithFooter.Js';
 
 const ForgetPassFirst = () => {
   const navigation = useNavigation();
@@ -56,75 +57,67 @@ const ForgetPassFirst = () => {
     }
   };
 
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <BackButton destinationScreen="SignIn" />
+    </View>
+  );
+
+  const renderFooter = () => (
+    <PrimaryButton
+      label="Send recovery code"
+      loadingLabel="Sending..."
+      isActive={isButtonActive}
+      isLoading={isLoading}
+      onPress={handleResetPassword}
+    />
+  );
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <BackButton destinationScreen="SignIn" />
-        </View>
-
-        <View style={styles.mainContent}>
-          <View>
-            <View style={styles.iconContainer}>
-              <View style={styles.iconCircle}>
-                <LockIcon width={24} height={24} color={colors.primaryGreen} />
-              </View>
-            </View>
-
-            <Text style={styles.title}>Forgot password</Text>
-            
-            <Text style={styles.description}>
-              To reset your password, please enter your registered email or phone number below. We'll send you a recovery code to verify your identity and help you create a new password.
-            </Text>
-
-            <NormTextbox
-              label="Email"
-              value={email}
-              onChangeText={setEmail}
-              placeholder="example@gmail.com"
-              keyboardType="email-address"
-              isFocused={emailFocused}
-              onFocus={() => setEmailFocused(true)}
-              onBlur={() => setEmailFocused(false)}
-            />
+    <ScreenLayoutWithFooter
+      header={renderHeader()}
+      footer={renderFooter()}
+    >
+      <View style={styles.mainContent}>
+        <View style={styles.iconContainer}>
+          <View style={styles.iconCircle}>
+            <LockIcon width={24} height={24} color={colors.primaryGreen} />
           </View>
-
-          <PrimaryButton
-            label="Send recovery code"
-            loadingLabel="Sending..."
-            isActive={isButtonActive}
-            isLoading={isLoading}
-            onPress={handleResetPassword}
-            style={{ marginTop: 24 }}
-          />
         </View>
+
+        <Text style={styles.title}>Forgot password</Text>
+        
+        <Text style={styles.description}>
+          To reset your password, please enter your registered email or phone number below. We'll send you a recovery code to verify your identity and help you create a new password.
+        </Text>
+
+        <NormTextbox
+          label="Email"
+          value={email}
+          onChangeText={setEmail}
+          placeholder="example@gmail.com"
+          keyboardType="email-address"
+          isFocused={emailFocused}
+          onFocus={() => setEmailFocused(true)}
+          onBlur={() => setEmailFocused(false)}
+        />
       </View>
-    </SafeAreaView>
+    </ScreenLayoutWithFooter>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.iconWhite,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
   header: {
-    height: 56,
     justifyContent: 'center',
+    width: '100%',
+    height: '100%',
   },
   mainContent: {
     flex: 1,
-    justifyContent: 'space-between',
-    paddingBottom: 24,
+    paddingTop: 24,
   },
   iconContainer: {
     alignItems: 'center',
-    marginTop: 24,
     marginBottom: 24,
   },
   iconCircle: {

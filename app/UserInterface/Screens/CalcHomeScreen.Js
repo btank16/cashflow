@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, StatusBar, Text, TouchableOpacity, Image, ScrollView, Platform } from "react-native";
+import { View, StyleSheet, Text, TouchableOpacity, Image } from "react-native";
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { InformationCircleIcon, ChevronRightIcon } from 'react-native-heroicons/outline';
 import { getUserAttribute } from '../Utils/UserAttributesCache.Js';
@@ -18,6 +18,10 @@ import UserIcon from '../../assets/icons/UserIcon.jsx';
 import CommercialIcon from '../../assets/icons/CommercialIcon.jsx';
 import InfoComponent from '../Components/InfoComponent.Js';
 import calculatorInfo from '../../assets/text/info.json';
+import GreenLogo from '../../assets/icons/GreenLogo.jsx';
+import MarkdownModal from '../Components/ArticleModal.Js';
+import introToCashflow from '../../assets/text/introToCashflow.Js';
+import ScreenLayout from '../UtilScreens/ScreenLayout.Js';
 
 const CalculatorButton = ({ name, screen, Icon, color, infoTitle, infoDescription, fullWidth }) => {
   const navigation = useNavigation();
@@ -65,10 +69,15 @@ const CalculatorButton = ({ name, screen, Icon, color, infoTitle, infoDescriptio
 
 const ArticleItem = ({ item, onPress }) => (
   <TouchableOpacity style={styles.articleItem} onPress={onPress}>
-    <Image source={item.image} style={styles.articleImage} />
+    <View style={styles.articleImageContainer}>
+      {item.icon ? (
+        item.icon
+      ) : (
+        <Image source={item.image} style={styles.articleImage} />
+      )}
+    </View>
     <View style={styles.articleContent}>
       <Text style={styles.articleTitle}>{item.title}</Text>
-      <Text style={styles.articleDescription} numberOfLines={2}>{item.description}</Text>
     </View>
   </TouchableOpacity>
 );
@@ -78,6 +87,8 @@ function CalcHomeScreen() {
   const { getAllCalculations, deleteCalculation } = useDatabase();
   const [history, setHistory] = useState([]);
   const [firstName, setFirstName] = useState('');
+  const [markdownModalVisible, setMarkdownModalVisible] = useState(false);
+  const [currentMarkdownContent, setCurrentMarkdownContent] = useState('');
 
   const loadHistory = useCallback(async () => {
     const allCalculations = await getAllCalculations();
@@ -124,29 +135,9 @@ function CalcHomeScreen() {
 
   const articles = [
     { 
-      title: "Rental property calculator", 
-      description: "How to input data (purchase price, rental income, expenses, etc.), calculate...", 
-      image: require('../../assets/images/Rental.jpg'),
-    },
-    { 
-      title: "Fix and Flip Calculator", 
-      description: "How to estimate the potential profit from a real estate renovation project...", 
-      image: require('../../assets/images/Flip.jpg') 
-    },
-    { 
-      title: "BRRRR Calculator", 
-      description: "How to calculate the potential return on investment for a 'Buy, Rehab, Rent...", 
-      image: require('../../assets/images/BRRR.jpg') 
-    },
-    { 
-      title: "Wholesale Calculator", 
-      description: "How to calculate the potential return on investment for a wholesale deal...", 
-      image: require('../../assets/images/Wholesale.jpg') 
-    },
-    { 
-      title: "Price Target Calculator", 
-      description: "How to determine a suitable purchase price for a property based on factors s...", 
-      image: require('../../assets/images/Target.jpg') 
+      title: "Intro to Cashflow", 
+      icon: <GreenLogo width={120} height={120} />,
+      markdownContent: introToCashflow,
     },
   ];
 
@@ -226,61 +217,68 @@ function CalcHomeScreen() {
   );
 
   const handleArticlePress = (article) => {
-    // This is just a placeholder for the article press action
-    // You can implement this differently if needed
+    if (article.markdownContent) {
+      setCurrentMarkdownContent(article.markdownContent);
+      setMarkdownModalVisible(true);
+    }
   };
 
-  return (
-    <SafeAreaView style={styles.masterBackground}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('UserScreen')}>
-          <UserIcon color={colors.primary} size={24} />
-        </TouchableOpacity>
-        <View style={styles.logoContainer}>
-          <WhiteTextLogo width={120} height={28} />
-        </View>
-        <View style={styles.headerIcons}>
-          <TouchableOpacity onPress={() => navigation.navigate('HistoryScreen')} style={styles.headerIcon}>
-            <HistoryIcon color={colors.primary} size={24} />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('FeedbackScreen')} style={styles.headerIcon}>
-            <FeedbackIcon color={colors.primary} size={24} />
-          </TouchableOpacity>
-        </View>
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('UserScreen')}>
+        <UserIcon color={colors.primary} size={24} />
+      </TouchableOpacity>
+      <View style={styles.logoContainer}>
+        <WhiteTextLogo width={120} height={28} />
       </View>
-      <ScrollView style={styles.contentContainer}>
-        <Text style={styles.welcomeText}>Welcome, {firstName || 'User'}!</Text>
-        <View style={styles.calculatorsGrid}>
-          {calculators.map((calc, index) => (
-            <CalculatorButton 
-              key={index} 
-              {...calc} 
-            />
-          ))}
-        </View>
-        {renderHistorySection()}
-        <View style={styles.sectionContainer}>
-          <Text style={[styles.sectionTitle, {marginBottom: 16}]}>Related Articles</Text>
-          {articles.map((article, index) => (
-            <ArticleItem key={index} item={article} onPress={() => handleArticlePress(article)} />
-          ))}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+      <View style={styles.headerIcons}>
+        <TouchableOpacity onPress={() => navigation.navigate('HistoryScreen')} style={styles.headerIcon}>
+          <HistoryIcon color={colors.primary} size={24} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('FeedbackScreen')} style={styles.headerIcon}>
+          <FeedbackIcon color={colors.primary} size={24} />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  return (
+    <ScreenLayout
+      header={renderHeader()}
+      backgroundColor={colors.darkGreenPrimary}
+    >
+      <Text style={styles.welcomeText}>Welcome, {firstName || 'User'}!</Text>
+      <View style={styles.calculatorsGrid}>
+        {calculators.map((calc, index) => (
+          <CalculatorButton 
+            key={index} 
+            {...calc} 
+          />
+        ))}
+      </View>
+      {renderHistorySection()}
+      <View style={styles.sectionContainer}>
+        <Text style={[styles.sectionTitle, {marginBottom: 16}]}>Resources</Text>
+        {articles.map((article, index) => (
+          <ArticleItem key={index} item={article} onPress={() => handleArticlePress(article)} />
+        ))}
+      </View>
+
+      <MarkdownModal 
+        visible={markdownModalVisible}
+        onClose={() => setMarkdownModalVisible(false)}
+        markdownContent={currentMarkdownContent}
+      />
+    </ScreenLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  masterBackground: {
-    flex: 1,
-    backgroundColor: colors.darkGreenPrimary,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    width: '100%',
   },
   logoContainer: {
     position: 'absolute',
@@ -289,21 +287,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     zIndex: -1,
   },
-  contentContainer: {
-    flex: 1,
-  },
   welcomeText: {
     fontSize: 28,
     fontWeight: 'bold',
     color: colors.iconWhite,
-    padding: 16,
+    paddingVertical: 16,
     textAlign: 'center',
   },
   calculatorsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    padding: 16,
+    marginBottom: 8,
   },
   calculatorButton: {
     aspectRatio: undefined,
@@ -350,7 +345,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sectionContainer: {
-    padding: 16,
+    marginBottom: 16,
   },
   sectionTitleContainer: {
     flexDirection: 'row',
@@ -363,36 +358,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.iconWhite,
   },
-  historyItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: colors.darkGreenSecondary,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-  },
-  historyItemText: {
-    fontSize: 14,
-    color: colors.iconWhite,
-  },
-  historyItemType: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  historyItemIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 4,
-  },
-  historyItemTypeText: {
-    fontSize: 12,
-    color: colors.mainShade,
-  },
-  historyItemTime: {
-    fontSize: 12,
-    color: colors.mainShade,
-  },
   emptyHistoryText: {
     textAlign: 'center',
     color: colors.mainShade,
@@ -400,9 +365,24 @@ const styles = StyleSheet.create({
   },
   articleItem: {
     flexDirection: 'row',
-    backgroundColor: colors.darkGreenSecondary,
+    backgroundColor: colors.iconWhite,
     borderRadius: 8,
     marginBottom: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  articleImageContainer: {
+    width: 100,
+    height: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
     overflow: 'hidden',
   },
   articleImage: {
@@ -411,17 +391,13 @@ const styles = StyleSheet.create({
   },
   articleContent: {
     flex: 1,
-    padding: 12,
+    padding: 16,
+    justifyContent: 'center',
   },
   articleTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: colors.iconWhite,
-    marginBottom: 4,
-  },
-  articleDescription: {
-    fontSize: 14,
-    color: colors.mainShade,
+    color: colors.primaryBlack,
   },
   headerIcons: {
     flexDirection: 'row',

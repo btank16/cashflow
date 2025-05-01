@@ -1,5 +1,3 @@
-import { expenses } from './ExpenseFunction.Js';
-
 export const outputs = (
   AfterRep,
   MonthsHeld,
@@ -8,7 +6,8 @@ export const outputs = (
   PurchPrice,
   CashDown,
   MonthlyCost,
-  VacancyRate
+  VacancyRate,
+  PrincipalAmt
 ) => {
     // Convert inputs to numbers to ensure we're working with numeric values
     AfterRep = Number(AfterRep);
@@ -18,7 +17,9 @@ export const outputs = (
     CashDown = Number(CashDown);
     MonthlyCost = Number(MonthlyCost);
     VacancyRate = Number(VacancyRate);
-  // Calculate total profit
+    PrincipalAmt = Number(PrincipalAmt);
+
+  // Calculate agent commission
   let AgentLoss;
   if (AgentCommish.isDollar) {
     AgentLoss = Number(AgentCommish.value);
@@ -30,31 +31,35 @@ export const outputs = (
   const TotalExpense = CashDown + (MonthsHeld * MonthlyCost);
   let TotalProfit;
   if (PurchPrice.isCashPurchase) {
+    //Note that TotalExpense holds the whole purchase price here
     TotalProfit = AfterRep - (TotalExpense + AgentLoss);
   } else {
-    TotalProfit = (AfterRep - (purchaseAmount + AgentLoss + TotalExpense));
+    //Note that we use PrincipalAmt here to account for the amount left on the loan at the time of sale
+    TotalProfit = (AfterRep - (PrincipalAmt + AgentLoss + TotalExpense));
   }
 
-  // Calculate ReturnCash (formerly ROI)
-  const ReturnPerc = ((TotalProfit / purchaseAmount) * 100).toFixed(2);
-  const CashROI = ((TotalProfit / TotalExpense) * 100).toFixed(2);
+  // Calculate ROI and Cash ROI
+  //Note that cash ROI is based on the investor's cash costs and returns
+  const ReturnPerc = ((TotalProfit / purchaseAmount) * 100);
+  const CashROI = ((TotalProfit / TotalExpense) * 100);
 
-  // Calculate monthly cashflow
-  const VacancyLoss = MonthRent * (VacancyRate / 100);
-  const Cashflow = (MonthRent - (MonthlyCost + VacancyLoss)).toFixed(2);
+  // Calculate monthly cashflow and vacancy loss
+  const VacancyLoss = (VacancyRate / 100) * (MonthRent * 12);
+  const Cashflow = (MonthRent - (MonthlyCost));
 
   // Calculate annual cashflow
-  const AnnualCashflow = Cashflow * 12;
+  //Note that only Annual Cashflow accounts for vacancy loss
+  const AnnualCashflow = ((Cashflow * 12) - VacancyLoss);
 
   // Calculate Cash on Cash return
-  const CashOnCash = ((AnnualCashflow / CashDown) * 100).toFixed(2);
+  const CashOnCash = ((AnnualCashflow / CashDown) * 100);
 
   // Calculate Cap Rate
-  const CapRate = ((AnnualCashflow / purchaseAmount) * 100).toFixed(2);
+  const CapRate = ((AnnualCashflow / purchaseAmount) * 100);
 
   // Calculate Months Till Even
   const MonthsTillEven = Math.ceil(CashDown / parseFloat(Cashflow));
 
-  return [TotalProfit.toFixed(2), ReturnPerc, CashROI, Cashflow, AnnualCashflow.toFixed(2), 
-    CashOnCash, CapRate, MonthsTillEven, TotalExpense.toFixed(2)];
+  return [TotalProfit.toFixed(2), ReturnPerc.toFixed(2), CashROI.toFixed(2), Cashflow.toFixed(2), AnnualCashflow.toFixed(2), 
+    CashOnCash.toFixed(2), CapRate.toFixed(2), MonthsTillEven.toFixed(2), TotalExpense.toFixed(2)];
 };

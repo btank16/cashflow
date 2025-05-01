@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, Text, TouchableOpacity } from "react-native";
+import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { useRoute } from '@react-navigation/native';
 import colors from '../../Colors/colors.Js';
@@ -10,6 +10,7 @@ import ExpensePieChart from '../../Components/ExpensePieChart.Js';
 import DarkTextLogo from '../../../assets/icons/DarkTextLogo.jsx';
 import InfoComponent from '../../Components/InfoComponent.Js';
 import calculatorInfo from '../../../assets/text/info.json';
+import ScreenLayout from '../../UtilScreens/ScreenLayout.Js';
 
 
 function BRRCalcOut(props) {
@@ -119,83 +120,90 @@ function BRRCalcOut(props) {
             infoDescription: calculatorInfo.calculator_output.equity_usage.description
         },
     ];
+
+    const renderHeader = () => (
+        <View style={styles.logoContainer}>
+            <BackButton 
+                inputValues={inputValues}
+                destinationScreen="BRRCalcIn"
+            />
+            <TouchableOpacity 
+                style={styles.logoWrapper}
+                onPress={() => navigation.navigate('CalcHomeScreen')}
+            >
+                <DarkTextLogo />
+            </TouchableOpacity>
+        </View>
+    );
+
     return (
-        <SafeAreaView style={styles.masterBackground}>
-            <View style={styles.logoContainer}>
-                <BackButton 
-                    inputValues={inputValues}
-                    destinationScreen="BRRCalcIn"
-                />
+        <ScreenLayout
+            header={renderHeader()}
+            headerHeight={32}
+            backgroundColor={colors.iconWhite}
+            horizontalPadding={0}
+        >
+            <View style={styles.mainResultContainer}>
+                <View style={styles.mainLabelContainer}>
+                    <Text style={styles.mainLabel}>Annual Cashflow (post-refinance)</Text>
+                    <TouchableOpacity onPress={() => setInfoModalVisible(true)}>
+                        <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
+                    </TouchableOpacity>
+                </View>
+                <Text style={[
+                    styles.mainValue,
+                    { color: Number(results.BRRAnnualCashflow) >= 0 ? colors.primaryGreen : colors.quaternaryRed }
+                ]}>
+                    {formatDollar(results.BRRAnnualCashflow)}
+                </Text>
+            </View>
+            <View style={styles.resultsGrid}>
+                {resultDisplayArray.map((item, index) => (
+                    <ResultDisplay 
+                        key={index}
+                        {...item}
+                    />
+                ))}
+                {fullWidthDisplays.map((item, index) => (
+                    <ResultDisplay 
+                        key={`full-${index}`}
+                        {...item}
+                    />
+                ))}
+            </View>
+            <View style={styles.toggleContainer}>
                 <TouchableOpacity 
-                    style={styles.logoWrapper}
-                    onPress={() => navigation.navigate('CalcHomeScreen')}
+                    style={[
+                        styles.toggleButton, 
+                        !showRefinanced && styles.toggleButtonActive
+                    ]}
+                    onPress={() => setShowRefinanced(false)}
                 >
-                    <DarkTextLogo />
+                    <Text style={[
+                        styles.toggleText,
+                        !showRefinanced && styles.toggleTextActive
+                    ]}>Initial Monthly Costs</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                    style={[
+                        styles.toggleButton, 
+                        showRefinanced && styles.toggleButtonActive
+                    ]}
+                    onPress={() => setShowRefinanced(true)}
+                >
+                    <Text style={[
+                        styles.toggleText,
+                        showRefinanced && styles.toggleTextActive
+                    ]}>Post-Refinance Monthly Costs</Text>
                 </TouchableOpacity>
             </View>
-            <ScrollView style={styles.contentContainer}>
-                <View style={styles.mainResultContainer}>
-                    <View style={styles.mainLabelContainer}>
-                        <Text style={styles.mainLabel}>Annual Cashflow (post-refinance)</Text>
-                        <TouchableOpacity onPress={() => setInfoModalVisible(true)}>
-                            <Ionicons name="information-circle-outline" size={16} color={colors.primaryGrey} />
-                        </TouchableOpacity>
-                    </View>
-                    <Text style={[
-                        styles.mainValue,
-                        { color: Number(results.BRRAnnualCashflow) >= 0 ? colors.primaryGreen : colors.quaternaryRed }
-                    ]}>
-                        {formatDollar(results.BRRAnnualCashflow)}
-                    </Text>
-                </View>
-                <View style={styles.resultsGrid}>
-                    {resultDisplayArray.map((item, index) => (
-                        <ResultDisplay 
-                            key={index}
-                            {...item}
-                        />
-                    ))}
-                    {fullWidthDisplays.map((item, index) => (
-                        <ResultDisplay 
-                            key={`full-${index}`}
-                            {...item}
-                        />
-                    ))}
-                </View>
-                <View style={styles.toggleContainer}>
-                    <TouchableOpacity 
-                        style={[
-                            styles.toggleButton, 
-                            !showRefinanced && styles.toggleButtonActive
-                        ]}
-                        onPress={() => setShowRefinanced(false)}
-                    >
-                        <Text style={[
-                            styles.toggleText,
-                            !showRefinanced && styles.toggleTextActive
-                        ]}>Initial Monthly Costs</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                        style={[
-                            styles.toggleButton, 
-                            showRefinanced && styles.toggleButtonActive
-                        ]}
-                        onPress={() => setShowRefinanced(true)}
-                    >
-                        <Text style={[
-                            styles.toggleText,
-                            showRefinanced && styles.toggleTextActive
-                        ]}>Post-Refinance Monthly Costs</Text>
-                    </TouchableOpacity>
-                </View>
-                <ExpensePieChart
-                    chartData={showRefinanced ? BRRexpenseChartData : expenseChartData}
-                    chartTitle={showRefinanced ? 
-                        "Total Monthly Expenses\n(Post-Refinance)" : 
-                        "Total Monthly Expenses\n(Initial)"
-                    }
-                />
-            </ScrollView>
+            <ExpensePieChart
+                chartData={showRefinanced ? BRRexpenseChartData : expenseChartData}
+                chartTitle={showRefinanced ? 
+                    "Total Monthly Expenses\n(Post-Refinance)" : 
+                    "Total Monthly Expenses\n(Initial)"
+                }
+            />
 
             <InfoComponent
                 visible={infoModalVisible}
@@ -203,41 +211,22 @@ function BRRCalcOut(props) {
                 title={calculatorInfo.calculator_output.annual_cashflow_refi.title}
                 description={calculatorInfo.calculator_output.annual_cashflow_refi.description}
             />
-        </SafeAreaView>
+        </ScreenLayout>
     );
 }
 
 const styles = StyleSheet.create({
-    masterBackground: {
-        flex: 1,
-        backgroundColor: colors.iconWhite,
-        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-    },
     logoContainer: {
         flexDirection: 'row',
-        height: 32,
         alignItems: 'center',
-        backgroundColor: colors.iconWhite,
         justifyContent: 'space-between',
-        paddingHorizontal: 16,
+        width: '100%',
     },
     logoWrapper: {
         position: 'absolute',
         left: 0,
         right: 0,
         alignItems: 'center',
-    },
-    contentContainer: {
-        backgroundColor: colors.iconWhite,
-    },
-    headerTitle: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: colors.primaryBlack,
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        textAlign: 'center',
     },
     mainResultContainer: {
         alignItems: 'center',
@@ -268,7 +257,6 @@ const styles = StyleSheet.create({
     toggleContainer: {
         flexDirection: 'row',
         marginHorizontal: 16,
-        // marginTop: 16,
         borderRadius: 12,
         backgroundColor: colors.secondaryGrey,
         padding: 4,

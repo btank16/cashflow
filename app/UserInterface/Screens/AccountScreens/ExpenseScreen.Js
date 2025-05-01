@@ -6,19 +6,17 @@ import {
   TouchableOpacity, 
   StyleSheet, 
   Keyboard,
-  SafeAreaView,
   ScrollView,
-  Platform,
-  StatusBar,
   Modal
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { ChevronLeftIcon } from 'react-native-heroicons/outline';
 import ExpenseLogo from '../../../assets/icons/ExpenseLogo.jsx';
 import colors from '../../Colors/colors.Js';
-import CalcButton from '../../Components/CalcButton.Js';
+import PrimaryButton from '../../Components/PrimaryButton.Js';
 import NumericInput from '../../Components/NumericInputBox.Js';
 import ExpenseItem from '../../Components/ExpenseItem.Js';
+import ScreenLayoutWithFooter from '../../UtilScreens/ScreenLayoutWithFooter.Js';
 import { useDatabase } from '../../../../database/cashflowDatabase.Js';
 
 const ExpenseScreen = () => {
@@ -167,18 +165,32 @@ const ExpenseScreen = () => {
     </TouchableOpacity>
   );
 
-  return (
-    <SafeAreaView style={styles.masterBackground}>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          onPress={() => navigation.navigate('UserScreen')}
-          style={styles.backButton}
-        >
-          <ChevronLeftIcon size={24} color={colors.primaryBlack} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Default operating expenses</Text>
-      </View>
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <TouchableOpacity 
+        onPress={() => navigation.navigate('UserScreen')}
+        style={styles.backButton}
+      >
+        <ChevronLeftIcon size={24} color={colors.primaryBlack} />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>Default operating expenses</Text>
+    </View>
+  );
 
+  const renderFooter = () => (
+    <PrimaryButton
+      label="+  Add Operating Expenses"
+      isActive={true}
+      onPress={() => navigation.navigate('FirstAddExpense')}
+    />
+  );
+
+  return (
+    <ScreenLayoutWithFooter
+      header={renderHeader()}
+      footer={renderFooter()}
+      headerHeight={32}
+    >
       <View style={styles.filterContainer}>
         <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
           {calculatorTypes.map((type) => (
@@ -187,62 +199,46 @@ const ExpenseScreen = () => {
         </ScrollView>
       </View>
 
-      <ScrollView 
-        style={styles.contentContainer}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {expenses.length > 0 ? (
-          expenses.map((expense) => (
+      {expenses.length > 0 ? (
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {expenses.map((expense) => (
             <ExpenseItem
               key={expense.id}
               expense={expense}
               onDelete={handleDeleteExpense}
             />
-          ))
-        ) : (
-          <View style={styles.centerContent}>
-            <View style={styles.logoWrapper}>
-              <ExpenseLogo />
-            </View>
-            <Text style={styles.title}>
-              You don't have any{'\n'}Operating Expenses
-            </Text>
-            <Text style={styles.description}>
-              Add expenses that you regularly use for each calculator. This may include property insurance, maintenance, utilities, management fees, etc.
-            </Text>
+          ))}
+        </ScrollView>
+      ) : (
+        <View style={styles.centerContent}>
+          <View style={styles.logoWrapper}>
+            <ExpenseLogo />
           </View>
-        )}
-      </ScrollView>
-
-      <View style={styles.menuContainer}>
-        <CalcButton
-          title="+  Add Operating Expenses"
-          onPress={() => navigation.navigate('FirstAddExpense')}
-        />
-      </View>
+          <Text style={styles.title}>
+            You don't have any{'\n'}Operating Expenses
+          </Text>
+          <Text style={styles.description}>
+            Add expenses that you regularly use for each calculator. This may include property insurance, maintenance, utilities, management fees, etc.
+          </Text>
+        </View>
+      )}
 
       <AddExpenseModal />
-    </SafeAreaView>
+    </ScreenLayoutWithFooter>
   );
 };
 
 const styles = StyleSheet.create({
-  masterBackground: {
-    flex: 1,
-    backgroundColor: colors.iconWhite,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 32,
-    paddingHorizontal: 16,
+    width: '100%',
+    height: '100%',
     position: 'relative',
   },
   backButton: {
     padding: 8,
     position: 'absolute',
-    left: 8,
     zIndex: 1,
   },
   headerTitle: {
@@ -251,10 +247,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: colors.primaryBlack,
-  },
-  contentContainer: {
-    flex: 1,
-    paddingHorizontal: 16,
   },
   scrollContent: {
     flexGrow: 1,
@@ -282,112 +274,31 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
   },
-  menuContainer: {
-    height: 56,
-    backgroundColor: colors.iconWhite,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  sheetContainer: {
-    flex: 1,
-    padding: 20,
-  },
-  closeButton: {
-    alignSelf: 'flex-start',
-    padding: 10,
-  },
-  closeButtonText: {
-    fontSize: 24,
-    color: colors.primaryBlack,
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  sheetTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 30,
-    color: colors.primaryBlack,
-  },
-  inputsContainer: {
-    gap: 20,
-  },
-  inputWrapper: {
-    gap: 8,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.primaryGrey,
-  },
-  inputContainer: {
+  filterContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    height: 50,
-    backgroundColor: colors.tertiaryGrey,
+    paddingVertical: 12,
+    backgroundColor: colors.iconWhite,
+  },
+  filterButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderRadius: 10,
+    backgroundColor: colors.tertiaryGrey,
     borderWidth: 1,
     borderColor: colors.quaternaryGrey,
+    marginRight: 4,
   },
-  inputFocused: {
-    backgroundColor: colors.iconWhite,
+  activeFilterButton: {
+    backgroundColor: colors.primaryGreen,
     borderColor: colors.primaryGreen,
   },
-  input: {
-    flex: 1,
-    height: '100%',
-    paddingHorizontal: 16,
-    fontSize: 16,
+  filterButtonText: {
     color: colors.primaryBlack,
+    fontSize: 14,
   },
-  row: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  flex1: {
-    flex: 1,
-  },
-  frequencySelector: {
-    height: 50,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    backgroundColor: colors.tertiaryGrey,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.quaternaryGrey,
-  },
-  frequencyText: {
-    fontSize: 16,
-    color: colors.primaryBlack,
-  },
-  currencyContainer: {
-    backgroundColor: colors.secondaryGrey,
-    height: '85%',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
-    marginRight: 4,
-    borderRadius: 10,
-  },
-  currencyText: {
-    fontSize: 16,
-    color: colors.fifthGrey,
-  },
-  nextButton: {
-    backgroundColor: colors.primaryGreen,
-    height: 56,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 'auto',
-  },
-  nextButtonText: {
+  activeFilterButtonText: {
     color: colors.iconWhite,
-    fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
   modalContainer: {
     flex: 1,
@@ -400,6 +311,14 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: 20,
     height: '90%',
+  },
+  closeButton: {
+    alignSelf: 'flex-start',
+    padding: 10,
+  },
+  closeButtonText: {
+    fontSize: 24,
+    color: colors.primaryBlack,
   },
   modalTitle: {
     fontSize: 24,
@@ -440,32 +359,18 @@ const styles = StyleSheet.create({
   costInput: {
     flex: 1,
   },
-  filterContainer: {
-    flexDirection: 'row',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: colors.iconWhite,
-  },
-  filterButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    backgroundColor: colors.tertiaryGrey,
-    borderWidth: 1,
-    borderColor: colors.quaternaryGrey,
-    marginRight: 4,
-  },
-  activeFilterButton: {
+  nextButton: {
     backgroundColor: colors.primaryGreen,
-    borderColor: colors.primaryGreen,
+    height: 56,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 'auto',
   },
-  filterButtonText: {
-    color: colors.primaryBlack,
-    fontSize: 14,
-  },
-  activeFilterButtonText: {
+  nextButtonText: {
     color: colors.iconWhite,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

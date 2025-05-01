@@ -122,11 +122,11 @@
   "calculator_output": {
     "annual_cashflow": {
       "title": "Annual Cashflow",
-      "description": "The net profit from the property on an annual basis after all expenses are paid."
+      "description": "The net profit from the property on an annual basis after all expenses are paid. Note that Annual Cashflow coounts for vacancy."
     },
     "monthly_cashflow": {
       "title": "Monthly Cashflow",
-      "description": "The net profit from the property on a monthly basis after all expenses are paid."
+      "description": "The net profit from the property on a monthly basis after all expenses are paid. Note that Monthly Cashflow does not account for vacancy (see Annual Cashflow)."
     },
     "cash_on_cash": {
       "title": "Cash on Cash Return",
@@ -166,11 +166,11 @@
     },
     "annual_cashflow_refi": {
       "title": "Annual Cashflow After Refinance",
-      "description": "The net profit from the property on an annual basis after all expenses are paid. It is assumed that cashflow will not begin until after the property is refinanced."
+      "description": "The net profit from the property on an annual basis after all expenses are paid. It is assumed that cashflow will not begin until after the property is refinanced. Note that Annual Cashflow coounts for vacancy."
     },
     "monthly_cashflow_refi": {
       "title": "Monthly Cashflow After Refinance",
-      "description": "The net profit from the property on a monthly basis after all expenses are paid. It is assumed that cashflow will not begin until after the property is refinanced."
+      "description": "The net profit from the property on a monthly basis after all expenses are paid. It is assumed that cashflow will not begin until after the property is refinanced. Note that Monthly Cashflow does not account for vacancy (see Annual Cashflow)."
     },
     "equity_roi": {
       "title": "Return on Equity (ROE)",

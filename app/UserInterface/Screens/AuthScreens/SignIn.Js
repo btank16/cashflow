@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform, StatusBar, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { signIn, fetchAuthSession } from '@aws-amplify/auth';
 import colors from '../../Colors/colors.Js';
@@ -10,6 +10,7 @@ import PasswordBox from '../../Components/PasswordBox.Js';
 import SocialSignInButton from '../../Components/SocialSignInButton.Js';
 import { handleOAuthRedirect, forceCheckAuthAndRedirect, hasActiveSession } from '../../Utils/AuthUtils.Js';
 import PrimaryButton from '../../Components/PrimaryButton.Js';
+import ScreenLayout from '../../UtilScreens/ScreenLayout.Js';
 
 const SignIn = () => {
   const navigation = useNavigation();
@@ -114,101 +115,93 @@ const SignIn = () => {
     }
   };
 
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <BackButton destinationScreen="IntroScreen" />
+    </View>
+  );
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <BackButton destinationScreen="IntroScreen" />
-        </View>
-
-        <View style={styles.logoContainer}>
-          <GreenLogo />
-        </View>
-
-        <Text style={styles.welcomeText}>Welcome back!</Text>
-        
-        <View style={styles.signUpContainer}>
-          <Text style={styles.noAccountText}>Don't have an account? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('SignUpFirst')}>
-            <Text style={styles.signUpText}>Sign Up</Text>
-          </TouchableOpacity>
-        </View>
-
-        <NormTextbox
-          label="Email"
-          value={email}
-          onChangeText={setEmail}
-          placeholder="example@gmail.com"
-          keyboardType="email-address"
-          isFocused={emailFocused}
-          onFocus={() => setEmailFocused(true)}
-          onBlur={() => setEmailFocused(false)}
-        />
-
-        <PasswordBox
-          label="Password"
-          value={password}
-          onChangeText={setPassword}
-          isFocused={passwordFocused}
-          onFocus={() => setPasswordFocused(true)}
-          onBlur={() => setPasswordFocused(false)}
-          showPassword={showPassword}
-          onTogglePassword={() => setShowPassword(!showPassword)}
-        />
-
-        <TouchableOpacity 
-          onPress={() => navigation.navigate('ForgetPassFirst')}
-          style={styles.forgotPasswordContainer}
-        >
-          <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-        </TouchableOpacity>
-
-        <PrimaryButton
-          label="Sign In"
-          loadingLabel="Signing In..."
-          isActive={isButtonActive}
-          isLoading={isLoading}
-          onPress={handleSignIn}
-          disabled={checkingAuth}
-          style={{ marginBottom: 24 }}
-        />
-
-        <View style={styles.dividerContainer}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>or</Text>
-          <View style={styles.dividerLine} />
-        </View>
-
-        <View style={styles.socialButtonsContainer}>
-          <SocialSignInButton 
-            provider="google" 
-            onSignInStart={(loading = true) => setIsSocialSignInLoading(loading)}
-            style={isSocialSignInLoading || checkingAuth ? styles.loadingButton : null}
-          />
-          <SocialSignInButton 
-            provider="apple" 
-            onSignInStart={(loading = true) => setIsSocialSignInLoading(loading)}
-            style={isSocialSignInLoading || checkingAuth ? styles.loadingButton : null}
-          />
-        </View>
+    <ScreenLayout
+      header={renderHeader()}
+    >
+      <View style={styles.logoContainer}>
+        <GreenLogo />
       </View>
-    </SafeAreaView>
+
+      <Text style={styles.welcomeText}>Welcome back!</Text>
+      
+      <View style={styles.signUpContainer}>
+        <Text style={styles.noAccountText}>Don't have an account? </Text>
+        <TouchableOpacity onPress={() => navigation.navigate('SignUpFirst')}>
+          <Text style={styles.signUpText}>Sign Up</Text>
+        </TouchableOpacity>
+      </View>
+
+      <NormTextbox
+        label="Email"
+        value={email}
+        onChangeText={setEmail}
+        placeholder="example@gmail.com"
+        keyboardType="email-address"
+        isFocused={emailFocused}
+        onFocus={() => setEmailFocused(true)}
+        onBlur={() => setEmailFocused(false)}
+      />
+
+      <PasswordBox
+        label="Password"
+        value={password}
+        onChangeText={setPassword}
+        isFocused={passwordFocused}
+        onFocus={() => setPasswordFocused(true)}
+        onBlur={() => setPasswordFocused(false)}
+        showPassword={showPassword}
+        onTogglePassword={() => setShowPassword(!showPassword)}
+      />
+
+      <TouchableOpacity 
+        onPress={() => navigation.navigate('ForgetPassFirst')}
+        style={styles.forgotPasswordContainer}
+      >
+        <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+      </TouchableOpacity>
+
+      <PrimaryButton
+        label="Sign In"
+        loadingLabel="Signing In..."
+        isActive={isButtonActive}
+        isLoading={isLoading}
+        onPress={handleSignIn}
+        disabled={checkingAuth}
+        style={{ marginBottom: 24 }}
+      />
+
+      <View style={styles.dividerContainer}>
+        <View style={styles.dividerLine} />
+        <Text style={styles.dividerText}>or</Text>
+        <View style={styles.dividerLine} />
+      </View>
+
+      <View style={styles.socialButtonsContainer}>
+        <SocialSignInButton 
+          provider="google" 
+          onSignInStart={(loading = true) => setIsSocialSignInLoading(loading)}
+          style={isSocialSignInLoading || checkingAuth ? styles.loadingButton : null}
+        />
+        <SocialSignInButton 
+          provider="apple" 
+          onSignInStart={(loading = true) => setIsSocialSignInLoading(loading)}
+          style={isSocialSignInLoading || checkingAuth ? styles.loadingButton : null}
+        />
+      </View>
+    </ScreenLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.iconWhite,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
   header: {
-    height: 56,
-    justifyContent: 'center',
+    width: '100%',
   },
   logoContainer: {
     alignItems: 'center',

@@ -190,7 +190,6 @@ function FlipCalcIn(props) {
             afterRev: toNumber(afterRev),
             rehabTime: toNumber(rehabTime),
             agentCommish: switchableInputs.agentCommish,
-            propertyInsurance: 0,
             capexEst: { value: '0', isDollar: false },
             monthRent: 0,
             operatingExpenseArray: {
@@ -206,7 +205,6 @@ function FlipCalcIn(props) {
             inputValues.interestRate,
             inputValues.loanTerm,
             inputValues.propertyTax,
-            inputValues.propertyInsurance,
             inputValues.capexEst,
             inputValues.rehabCost,
             inputValues.closingCost,
@@ -223,7 +221,8 @@ function FlipCalcIn(props) {
             inputValues.purchasePrice,
             expenseResults[2],
             expenseResults[1],
-            '0'
+            '0',
+            expenseResults[4]
         );
 
         const results = {
@@ -466,7 +465,6 @@ const styles = StyleSheet.create({
     masterBackground: {
         flex: 1,
         backgroundColor: colors.iconWhite,
-        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     logoContainer: {
         flexDirection: 'row',
@@ -487,8 +485,8 @@ const styles = StyleSheet.create({
         height: 56,
         backgroundColor: colors.iconWhite,
         paddingHorizontal: 16,
-        paddingTop: 12,
-        paddingBottom: 8,
+        paddingTop: 8,
+        marginBottom: Platform.OS === "android" ? 16 : 0,
     },
     title: {
         fontSize: 32,

@@ -28,7 +28,6 @@ function CommercialCalcIn(props) {
         closingCost: { value: '', isDollar: false },
         propertyTax: { value: '', isDollar: false },
         capexEst: { value: '', isDollar: false },
-        vacancyLoss: { value: '', isDollar: false }
     });
     const { saveCalculation, saveExpense } = useDatabase();
     const [calculationId, setCalculationId] = useState(null);
@@ -44,6 +43,7 @@ function CommercialCalcIn(props) {
     const [operatingExpensesActive, setOperatingExpensesActive] = useState(true);
     const [operatingExpenses, setOperatingExpenses] = useState([]);
     const [saveNewExpenses, setSaveNewExpenses] = useState(false);
+    const [vacancyRate, setVacancyRate] = useState('');
 
     useEffect(() => {
         checkFormValidity();
@@ -96,7 +96,8 @@ function CommercialCalcIn(props) {
             setGrossRent(grossRent?.toString() || '');
             setGrossFees(rentFees?.toString() || '');
             setCapitalReserve(capitalReserve?.toString() || '');
-            
+            setVacancyRate(vacancy?.toString() || '');
+
             setSwitchableInputs(prevInputs => ({
                 ...prevInputs,
                 downPayment: downPayment || { value: '', isDollar: false },
@@ -104,7 +105,6 @@ function CommercialCalcIn(props) {
                 closingCost: closingCost || { value: '', isDollar: false },
                 propertyTax: propertyTax || { value: '', isDollar: false },
                 capexEst: capEx || { value: '', isDollar: false },
-                vacancyLoss: vacancy || { value: '', isDollar: false }
             }));
 
             if (operatingExpenseArray) {
@@ -181,7 +181,7 @@ function CommercialCalcIn(props) {
             loanTerm: toNumber(loanTerm),
             grossRent: toNumber(grossRent),
             rentFees: toNumber(grossFees),
-            vacancy: switchableInputs.vacancyLoss,
+            vacancy: toNumber(vacancyRate) || '0',
             capEx: switchableInputs.capexEst,
             propertyTax: switchableInputs.propertyTax,
             operatingExpenseArray: {
@@ -201,7 +201,7 @@ function CommercialCalcIn(props) {
                 toNumber(loanTerm),
                 toNumber(grossRent),
                 toNumber(grossFees),
-                switchableInputs.vacancyLoss,
+                toNumber(vacancyRate),
                 switchableInputs.capexEst,
                 switchableInputs.propertyTax,
                 inputValues.operatingExpenseArray
@@ -216,11 +216,10 @@ function CommercialCalcIn(props) {
                 monthlyPropTax: funcResults[5],
                 monthlyCapEx: funcResults[6],
                 monthlyOpEx: funcResults[7],
-                monthlyVacancy: funcResults[8],
-                cashOnCash: funcResults[9],
-                capRate: funcResults[10],
-                monthsTillEven: funcResults[11],
-                annualCashflow: funcResults[12]
+                cashOnCash: funcResults[8],
+                capRate: funcResults[9],
+                monthsTillEven: funcResults[10],
+                annualCashflow: funcResults[11]
             };
 
             const savedId = await saveCalculation('commercial', inputValues, results, calculationId);
@@ -283,6 +282,15 @@ function CommercialCalcIn(props) {
             infoTitle: calculatorInfo.calculator_input.gross_fees.title,
             infoDescription: calculatorInfo.calculator_input.gross_fees.description
         },
+        {
+            label: "Vacancy Rate",
+            value: vacancyRate,
+            onChangeText: setVacancyRate,
+            placeholder: "ex. 5%",
+            type: "%",
+            infoTitle: calculatorInfo.calculator_input.vacancy_rate.title,
+            infoDescription: calculatorInfo.calculator_input.vacancy_rate.description
+        },
     ];
 
     const switchableInputsArray = [
@@ -337,16 +345,6 @@ function CommercialCalcIn(props) {
             placeholder: switchableInputs.capexEst.isDollar ? "ex. $3,000" : "ex. 5%",
             infoTitle: calculatorInfo.calculator_input.capex.title,
             infoDescription: calculatorInfo.calculator_input.capex.description
-        },
-        {
-            label: "Annual Vacancy Loss",
-            value: switchableInputs.vacancyLoss.value,
-            isDollar: switchableInputs.vacancyLoss.isDollar,
-            onChangeValue: (value) => handleSwitchableInputChange('vacancyLoss', value),
-            onToggleMode: (newIsDollar) => handleSwitchableInputToggle('vacancyLoss', newIsDollar),
-            placeholder: switchableInputs.vacancyLoss.isDollar ? "ex. $3,000" : "ex. 5%",
-            infoTitle: calculatorInfo.calculator_input.vacancy_rate.title,
-            infoDescription: calculatorInfo.calculator_input.vacancy_rate.description
         }
     ];
 
@@ -424,7 +422,7 @@ function CommercialCalcIn(props) {
                     <Text style={styles.secondaryTitle}>Property Expenses</Text>
                     <SwitchableNumericInput {...switchableInputsArray[3]} />
                     <SwitchableNumericInput {...switchableInputsArray[4]} />
-                    <SwitchableNumericInput {...switchableInputsArray[5]} />
+                    <NumericInput {...numericInputsArray[5]} />
                     <OperatingExpenses
                         calculatorType="commercial"
                         onActiveChange={setOperatingExpensesActive}
@@ -451,7 +449,6 @@ const styles = StyleSheet.create({
     masterBackground: {
         flex: 1,
         backgroundColor: colors.iconWhite,
-        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     logoContainer: {
         flexDirection: 'row',
@@ -472,8 +469,8 @@ const styles = StyleSheet.create({
         height: 56,
         backgroundColor: colors.iconWhite,
         paddingHorizontal: 16,
-        paddingTop: 12,
-        paddingBottom: 8,
+        paddingTop: 8,
+        marginBottom: Platform.OS === "android" ? 16 : 0,
     },
     title: {
         fontSize: 32,

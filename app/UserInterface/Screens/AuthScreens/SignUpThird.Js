@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform, StatusBar, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { signUp, updateUserAttributes, fetchUserAttributes } from '@aws-amplify/auth';
 import colors from '../../Colors/colors.Js';
@@ -9,6 +9,7 @@ import StateMultiselect from '../../Components/StateMultiselect.Js';
 import InvestmentStrategyMultiselect from '../../Components/InvestmentStrategyMultiselect.Js';
 import InterestCheckbox from '../../Components/InterestCheckbox.Js';
 import PrimaryButton from '../../Components/PrimaryButton.Js';
+import ScreenLayoutWithFooter from '../../UtilScreens/ScreenLayoutWithFooter.Js';
 
 const SignUpThird = () => {
   const navigation = useNavigation();
@@ -141,108 +142,102 @@ const SignUpThird = () => {
     );
   };
 
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <View style={styles.progressContainer}>
-            <View style={styles.progressLineActive} />
-            <View style={styles.progressLineActive} />
-            <View style={styles.progressLineActive} />
-          </View>
-        </View>
-
-        <View style={styles.mainContent}>
-          <View>
-            <Text style={styles.title}>Let's get to know you</Text>
-
-            <NormTextbox
-              label="First Name"
-              value={firstName}
-              onChangeText={setFirstName}
-              placeholder="First name"
-              isFocused={firstNameFocused}
-              onFocus={() => setFirstNameFocused(true)}
-              onBlur={() => setFirstNameFocused(false)}
-              autoCapitalize="words"
-            />
-
-            <NormTextbox
-              label="Last Name"
-              value={lastName}
-              onChangeText={setLastName}
-              placeholder="Last name"
-              isFocused={lastNameFocused}
-              onFocus={() => setLastNameFocused(true)}
-              onBlur={() => setLastNameFocused(false)}
-              autoCapitalize="words"
-            />
-
-            <StateDropdown
-              label="Home State"
-              value={state}
-              onValueChange={setState}
-              placeholder="Select your home state"
-            />
-
-            <StateMultiselect
-              label="Target Investment State(s)"
-              value={targetStates}
-              onValueChange={setTargetStates}
-              placeholder="Select your target market"
-            />
-
-            <InvestmentStrategyMultiselect
-              label="Investment Strategy"
-              value={investmentStrategies}
-              onValueChange={setInvestmentStrategies}
-              placeholder="Select your investment strategies"
-            />
-          </View>
-
-          <View style={styles.bottomSection}>
-            <View style={styles.agreementSection}>
-              <InterestCheckbox
-                label="Do you want opt into our email?"
-                value={optInEmail}
-                onValueChange={setOptInEmail}
-              />
-              {renderTermsText()}
-            </View>
-
-            <PrimaryButton
-              label="Continue"
-              loadingLabel={isOAuthUser ? 'Saving Profile...' : 'Creating Account...'}
-              isActive={isButtonActive}
-              isLoading={isLoading}
-              onPress={handleSignUp}
-              style={{ marginBottom: 16 }}
-            />
-          </View>
-        </View>
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <View style={styles.progressContainer}>
+        <View style={styles.progressLineActive} />
+        <View style={styles.progressLineActive} />
+        <View style={styles.progressLineActive} />
       </View>
-    </SafeAreaView>
+    </View>
+  );
+
+  const renderFooter = () => (
+    <View style={styles.bottomSection}>
+      <View style={styles.agreementSection}>
+        <InterestCheckbox
+          label="Yes, I want to receive email updates"
+          value={optInEmail}
+          onValueChange={setOptInEmail}
+        />
+        {renderTermsText()}
+      </View>
+
+      <PrimaryButton
+        label="Continue"
+        loadingLabel={isOAuthUser ? 'Saving Profile...' : 'Creating Account...'}
+        isActive={isButtonActive}
+        isLoading={isLoading}
+        onPress={handleSignUp}
+      />
+    </View>
+  );
+
+  return (
+    <ScreenLayoutWithFooter
+      header={renderHeader()}
+      footer={renderFooter()}
+    >
+      <View style={styles.mainContent}>
+        <Text style={styles.title}>Let's get to know you</Text>
+
+        <NormTextbox
+          label="First Name"
+          value={firstName}
+          onChangeText={setFirstName}
+          placeholder="First name"
+          isFocused={firstNameFocused}
+          onFocus={() => setFirstNameFocused(true)}
+          onBlur={() => setFirstNameFocused(false)}
+          autoCapitalize="words"
+        />
+
+        <NormTextbox
+          label="Last Name"
+          value={lastName}
+          onChangeText={setLastName}
+          placeholder="Last name"
+          isFocused={lastNameFocused}
+          onFocus={() => setLastNameFocused(true)}
+          onBlur={() => setLastNameFocused(false)}
+          autoCapitalize="words"
+        />
+
+        <StateDropdown
+          label="Home State"
+          value={state}
+          onValueChange={setState}
+          placeholder="Select your home state"
+        />
+
+        <StateMultiselect
+          label="Target Investment State(s)"
+          value={targetStates}
+          onValueChange={setTargetStates}
+          placeholder="Select your target market"
+        />
+
+        <InvestmentStrategyMultiselect
+          label="Investment Strategy"
+          value={investmentStrategies}
+          onValueChange={setInvestmentStrategies}
+          placeholder="Select your investment strategies"
+        />
+      </View>
+    </ScreenLayoutWithFooter>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.iconWhite,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
   header: {
-    height: 56,
     justifyContent: 'center',
+    width: '100%',
+    height: '100%',
   },
   progressContainer: {
     flexDirection: 'row',
     position: 'absolute',
-    top: 28,
+    alignItems: 'center',
     left: 16,
     right: 16,
     gap: 4,
@@ -255,7 +250,7 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-    justifyContent: 'space-between',
+    paddingTop: 8,
   },
   title: {
     fontSize: 28,
@@ -266,7 +261,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   bottomSection: {
-    marginTop: 16, 
+    width: '100%',
   },
   agreementSection: {
     marginBottom: 16,

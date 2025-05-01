@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Platform, StatusBar } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../../Colors/colors.Js';
 import BackButton from '../../Components/BackButton.Js';
 import LockIcon from '../../../assets/icons/LockIcon.jsx';
 import PasswordBox from '../../Components/PasswordBox.Js';
 import PrimaryButton from '../../Components/PrimaryButton.Js';
+import ScreenLayoutWithFooter from '../../UtilScreens/ScreenLayoutWithFooter.Js';
 
 const SignUpSec = () => {
   const navigation = useNavigation();
@@ -35,81 +36,75 @@ const SignUpSec = () => {
     }
   };
 
-  return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <BackButton destinationScreen="SignUpFirst" />
-          <View style={styles.progressContainer}>
-            <View style={styles.progressLineActive} />
-            <View style={styles.progressLineActive} />
-            <View style={styles.progressLine} />
-          </View>
-        </View>
-
-        <View style={styles.mainContent}>
-          <View>
-            <View style={styles.iconContainer}>
-              <View style={styles.iconCircle}>
-                <LockIcon width={24} height={24} color={colors.primaryGreen} />
-              </View>
-            </View>
-
-            <Text style={styles.title}>Create password</Text>
-
-            <PasswordBox
-              label="Password"
-              value={password}
-              onChangeText={setPassword}
-              isFocused={passwordFocused}
-              onFocus={() => setPasswordFocused(true)}
-              onBlur={() => setPasswordFocused(false)}
-              showPassword={showPassword}
-              onTogglePassword={() => setShowPassword(!showPassword)}
-            />
-
-            <PasswordBox
-              label="Confirm Password"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              isFocused={confirmPasswordFocused}
-              onFocus={() => setConfirmPasswordFocused(true)}
-              onBlur={() => setConfirmPasswordFocused(false)}
-              showPassword={showConfirmPassword}
-              onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
-            />
-          </View>
-
-          <PrimaryButton
-            label="Continue"
-            isActive={isButtonActive}
-            onPress={handleContinue}
-            style={{ marginBottom: 16 }}
-          />
-        </View>
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <BackButton destinationScreen="SignUpFirst" />
+      <View style={styles.progressContainer}>
+        <View style={styles.progressLineActive} />
+        <View style={styles.progressLineActive} />
+        <View style={styles.progressLine} />
       </View>
-    </SafeAreaView>
+    </View>
+  );
+
+  const renderFooter = () => (
+    <PrimaryButton
+      label="Continue"
+      isActive={isButtonActive}
+      onPress={handleContinue}
+    />
+  );
+
+  return (
+    <ScreenLayoutWithFooter
+      header={renderHeader()}
+      footer={renderFooter()}
+    >
+      <View style={styles.mainContent}>
+        <View style={styles.iconContainer}>
+          <View style={styles.iconCircle}>
+            <LockIcon width={24} height={24} color={colors.primaryGreen} />
+          </View>
+        </View>
+
+        <Text style={styles.title}>Create password</Text>
+
+        <PasswordBox
+          label="Password"
+          value={password}
+          onChangeText={setPassword}
+          isFocused={passwordFocused}
+          onFocus={() => setPasswordFocused(true)}
+          onBlur={() => setPasswordFocused(false)}
+          showPassword={showPassword}
+          onTogglePassword={() => setShowPassword(!showPassword)}
+        />
+
+        <PasswordBox
+          label="Confirm Password"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          isFocused={confirmPasswordFocused}
+          onFocus={() => setConfirmPasswordFocused(true)}
+          onBlur={() => setConfirmPasswordFocused(false)}
+          showPassword={showConfirmPassword}
+          onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
+        />
+      </View>
+    </ScreenLayoutWithFooter>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.iconWhite,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
   header: {
-    height: 56,
     justifyContent: 'center',
+    width: '100%',
+    height: '100%',
   },
   progressContainer: {
     flexDirection: 'row',
     position: 'absolute',
-    top: 28,
+    alignItems: 'center',
     left: 48,
     right: 16,
     gap: 4,
@@ -128,11 +123,10 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-    justifyContent: 'space-between',
+    paddingTop: 24,
   },
   iconContainer: {
     alignItems: 'center',
-    marginTop: 24,
     marginBottom: 24,
   },
   iconCircle: {

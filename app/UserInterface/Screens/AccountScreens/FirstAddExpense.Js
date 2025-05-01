@@ -5,9 +5,6 @@ import {
   TextInput, 
   TouchableOpacity, 
   StyleSheet, 
-  SafeAreaView,
-  Platform,
-  StatusBar,
   TouchableWithoutFeedback,
   Keyboard
 } from 'react-native';
@@ -16,6 +13,8 @@ import { XMarkIcon } from 'react-native-heroicons/outline';
 import { Ionicons } from '@expo/vector-icons';
 import ExpenseLogo from '../../../assets/icons/ExpenseLogo.jsx';
 import colors from '../../Colors/colors.Js';
+import PrimaryButton from '../../Components/PrimaryButton.Js';
+import ScreenLayoutWithFooter from '../../UtilScreens/ScreenLayoutWithFooter.Js';
 
 const FirstAddExpense = () => {
   const navigation = useNavigation();
@@ -52,18 +51,29 @@ const FirstAddExpense = () => {
     });
   };
 
+  const renderHeader = () => (
+    <TouchableOpacity 
+      style={styles.closeButton}
+      onPress={() => navigation.goBack()}
+    >
+      <XMarkIcon size={24} color={colors.primaryBlack} />
+    </TouchableOpacity>
+  );
+
+  const renderFooter = () => (
+    <PrimaryButton
+      label="Next"
+      isActive={true}
+      onPress={handleNext}
+    />
+  );
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <SafeAreaView style={styles.container}>
-        {/* Header */}
-        <TouchableOpacity 
-          style={styles.closeButton}
-          onPress={() => navigation.goBack()}
-        >
-          <XMarkIcon size={24} color={colors.primaryBlack} />
-        </TouchableOpacity>
-
-        {/* Content */}
+      <ScreenLayoutWithFooter
+        header={renderHeader()}
+        footer={renderFooter()}
+      >
         <View style={styles.content}>
           <ExpenseLogo style={styles.logo} />
           <Text style={styles.title}>Add your{'\n'}operating expenses</Text>
@@ -149,31 +159,17 @@ const FirstAddExpense = () => {
             </View>
           </View>
         </View>
-
-        {/* Next Button */}
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={handleNext}
-        >
-          <Text style={styles.addButtonText}>Next</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
+      </ScreenLayoutWithFooter>
     </TouchableWithoutFeedback>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.iconWhite,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
   closeButton: {
     padding: 16,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 16,
   },
   logo: {
     alignSelf: 'center',
@@ -270,21 +266,7 @@ const styles = StyleSheet.create({
   },
   costWrapper: {
     flex: 1,
-  },
-  addButton: {
-    height: 56,
-    backgroundColor: colors.primaryGreen,
-    borderRadius: 10,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addButtonText: {
-    color: colors.iconWhite,
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  }
 });
 
 export default FirstAddExpense;

@@ -3,10 +3,7 @@ import {
   View, 
   Text, 
   TouchableOpacity, 
-  StyleSheet, 
-  SafeAreaView,
-  Platform,
-  StatusBar,
+  StyleSheet,
   ScrollView
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -19,6 +16,8 @@ import WholesaleIcon from '../../../assets/icons/WholesaleIcon.jsx';
 import TargetIcon from '../../../assets/icons/TargetIcon.jsx';
 import CommercialIcon from '../../../assets/icons/CommercialIcon.jsx';
 import colors from '../../Colors/colors.Js';
+import PrimaryButton from '../../Components/PrimaryButton.Js';
+import ScreenLayoutWithFooter from '../../UtilScreens/ScreenLayoutWithFooter.Js';
 import { useDatabase } from '../../../../database/cashflowDatabase.Js';
 
 const calculatorData = [
@@ -152,16 +151,29 @@ const SecondAddExpense = () => {
     </TouchableOpacity>
   );
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <TouchableOpacity 
-        style={styles.closeButton}
-        onPress={() => navigation.navigate('ExpenseScreen')}
-      >
-        <XMarkIcon size={24} color={colors.primaryBlack} />
-      </TouchableOpacity>
+  const renderHeader = () => (
+    <TouchableOpacity 
+      style={styles.closeButton}
+      onPress={() => navigation.navigate('ExpenseScreen')}
+    >
+      <XMarkIcon size={24} color={colors.primaryBlack} />
+    </TouchableOpacity>
+  );
 
-      <ScrollView style={styles.content}>
+  const renderFooter = () => (
+    <PrimaryButton
+      label="Add operating expense"
+      isActive={true}
+      onPress={handleAddExpense}
+    />
+  );
+
+  return (
+    <ScreenLayoutWithFooter
+      header={renderHeader()}
+      footer={renderFooter()}
+    >
+      <View style={styles.content}>
         <ExpenseLogo style={styles.logo} />
         <Text style={styles.title}>
           Where would you like to{'\n'}add the operating{'\n'}expenses?
@@ -176,30 +188,17 @@ const SecondAddExpense = () => {
             />
           ))}
         </View>
-      </ScrollView>
-
-      <TouchableOpacity 
-        style={styles.addButton}
-        onPress={handleAddExpense}
-      >
-        <Text style={styles.addButtonText}>Add operating expense</Text>
-      </TouchableOpacity>
-    </SafeAreaView>
+      </View>
+    </ScreenLayoutWithFooter>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.iconWhite,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
   closeButton: {
     padding: 16,
   },
   content: {
     flex: 1,
-    paddingHorizontal: 16,
   },
   logo: {
     alignSelf: 'center',
@@ -262,20 +261,6 @@ const styles = StyleSheet.create({
   inactiveCheckbox: {
     backgroundColor: colors.iconWhite,
     borderColor: colors.secondaryGrey,
-  },
-  addButton: {
-    height: 56,
-    backgroundColor: colors.primaryGreen,
-    borderRadius: 10,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addButtonText: {
-    color: colors.iconWhite,
-    fontSize: 16,
-    fontWeight: '600',
   },
 });
 

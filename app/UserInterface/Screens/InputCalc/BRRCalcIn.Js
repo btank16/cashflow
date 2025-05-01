@@ -547,7 +547,6 @@ const styles = StyleSheet.create({
     masterBackground: {
         flex: 1,
         backgroundColor: colors.iconWhite,
-        paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
     },
     logoContainer: {
         flexDirection: 'row',
@@ -568,8 +567,8 @@ const styles = StyleSheet.create({
         height: 56,
         backgroundColor: colors.iconWhite,
         paddingHorizontal: 16,
-        paddingTop: 12,
-        paddingBottom: 8,
+        paddingTop: 8,
+        marginBottom: Platform.OS === "android" ? 16 : 0,
     },
     title: {
         fontSize: 32,

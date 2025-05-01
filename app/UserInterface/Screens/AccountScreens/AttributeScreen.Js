@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Platform, StatusBar, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronLeftIcon } from "react-native-heroicons/outline";
 import colors from '../../Colors/colors.Js';
@@ -8,6 +8,8 @@ import StateDropdown from '../../Components/StateDropdown.Js';
 import StateMultiselect from '../../Components/StateMultiselect.Js';
 import InvestmentStrategyMultiselect from '../../Components/InvestmentStrategyMultiselect.Js';
 import InterestCheckbox from '../../Components/InterestCheckbox.Js';
+import PrimaryButton from '../../Components/PrimaryButton.Js';
+import ScreenLayoutWithFooter from '../../UtilScreens/ScreenLayoutWithFooter.Js';
 import { getUserAttributes, updateUserAttributesWithCache } from '../../Utils/UserAttributesCache.Js';
 
 // State and strategy mapping constants
@@ -280,110 +282,95 @@ const AttributeScreen = () => {
     }
   };
 
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <TouchableOpacity 
+        style={styles.backButton}
+        onPress={() => navigation.navigate('UserScreen')}
+      >
+        <ChevronLeftIcon size={28} color={colors.primaryBlack} />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>Edit Profile</Text>
+      <View style={styles.backButton} />
+    </View>
+  );
+
+  const renderFooter = () => (
+    <View style={styles.agreementSection}>
+      <InterestCheckbox
+        label="Yes, I want to receive email updates"
+        value={optInEmail}
+        onValueChange={setOptInEmail}
+      />
+      <PrimaryButton
+        label={isLoading ? 'Saving...' : 'Save'}
+        isActive={isButtonActive}
+        isLoading={isLoading}
+        onPress={handleSave}
+      />
+    </View>
+  );
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => navigation.navigate('UserScreen')}
-          >
-            <ChevronLeftIcon size={28} color={colors.primaryBlack} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Edit Profile</Text>
-          <View style={styles.backButton} />
-        </View>
+    <ScreenLayoutWithFooter
+      header={renderHeader()}
+      footer={renderFooter()}
+    >
+      <View style={styles.mainContent}>
+        <NormTextbox
+          label="First Name"
+          value={firstName}
+          onChangeText={setFirstName}
+          placeholder="First name"
+          isFocused={firstNameFocused}
+          onFocus={() => setFirstNameFocused(true)}
+          onBlur={() => setFirstNameFocused(false)}
+          autoCapitalize="words"
+        />
 
-        <View style={styles.mainContent}>
-          <View>
-            <NormTextbox
-              label="First Name"
-              value={firstName}
-              onChangeText={setFirstName}
-              placeholder="First name"
-              isFocused={firstNameFocused}
-              onFocus={() => setFirstNameFocused(true)}
-              onBlur={() => setFirstNameFocused(false)}
-              autoCapitalize="words"
-            />
+        <NormTextbox
+          label="Last Name"
+          value={lastName}
+          onChangeText={setLastName}
+          placeholder="Last name"
+          isFocused={lastNameFocused}
+          onFocus={() => setLastNameFocused(true)}
+          onBlur={() => setLastNameFocused(false)}
+          autoCapitalize="words"
+        />
 
-            <NormTextbox
-              label="Last Name"
-              value={lastName}
-              onChangeText={setLastName}
-              placeholder="Last name"
-              isFocused={lastNameFocused}
-              onFocus={() => setLastNameFocused(true)}
-              onBlur={() => setLastNameFocused(false)}
-              autoCapitalize="words"
-            />
+        <StateDropdown
+          label="Home State"
+          value={state}
+          onValueChange={setState}
+          placeholder="Select your home state"
+        />
 
-            <StateDropdown
-              label="Home State"
-              value={state}
-              onValueChange={setState}
-              placeholder="Select your home state"
-            />
+        <StateMultiselect
+          label="Target Investment State(s)"
+          value={targetStates}
+          onValueChange={setTargetStates}
+          placeholder="Select your target market"
+        />
 
-            <StateMultiselect
-              label="Target Investment State(s)"
-              value={targetStates}
-              onValueChange={setTargetStates}
-              placeholder="Select your target market"
-            />
-
-            <InvestmentStrategyMultiselect
-              label="Investment Strategy"
-              value={investmentStrategies}
-              onValueChange={setInvestmentStrategies}
-              placeholder="Select your investment strategies"
-            />
-          </View>
-
-          <View style={styles.bottomSection}>
-            <View style={styles.agreementSection}>
-              <InterestCheckbox
-                label="Do you want opt into our email?"
-                value={optInEmail}
-                onValueChange={setOptInEmail}
-              />
-            </View>
-
-            <TouchableOpacity 
-              style={[
-                styles.saveButton,
-                isButtonActive ? styles.activeButton : styles.inactiveButton,
-                isLoading && styles.loadingButton
-              ]}
-              onPress={handleSave}
-              disabled={!isButtonActive || isLoading}
-            >
-              <Text style={styles.saveButtonText}>
-                {isLoading ? 'Saving...' : 'Save'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <InvestmentStrategyMultiselect
+          label="Investment Strategy"
+          value={investmentStrategies}
+          onValueChange={setInvestmentStrategies}
+          placeholder="Select your investment strategies"
+        />
       </View>
-    </SafeAreaView>
+    </ScreenLayoutWithFooter>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.iconWhite,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
   header: {
-    height: 56,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    width: '100%',
+    height: '100%',
   },
   headerTitle: {
     fontSize: 18,
@@ -398,35 +385,11 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-    justifyContent: 'space-between',
-  },
-  bottomSection: {
-    marginTop: 16,
-    marginBottom: 24,
+    paddingTop: 16,
   },
   agreementSection: {
-    marginBottom: 16,
-  },
-  saveButton: {
-    height: 56,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  activeButton: {
-    backgroundColor: colors.primaryGreen,
-  },
-  inactiveButton: {
-    backgroundColor: colors.tertiaryGreen,
-  },
-  saveButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.iconWhite,
-  },
-  loadingButton: {
-    opacity: 0.8,
+    width: '100%',
+    paddingVertical: 8,
   },
 });
 

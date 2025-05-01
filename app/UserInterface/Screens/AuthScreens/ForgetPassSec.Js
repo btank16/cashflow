@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Platform, StatusBar, Alert } from 'react-native';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { confirmResetPassword } from '@aws-amplify/auth';
 import colors from '../../Colors/colors.Js';
@@ -8,6 +8,7 @@ import LockIcon from '../../../assets/icons/LockIcon.jsx';
 import NormTextbox from '../../Components/NormTextbox.Js';
 import PasswordBox from '../../Components/PasswordBox.Js';
 import PrimaryButton from '../../Components/PrimaryButton.Js';
+import ScreenLayoutWithFooter from '../../UtilScreens/ScreenLayoutWithFooter.Js';
 
 const ForgetPassSec = () => {
   const navigation = useNavigation();
@@ -72,97 +73,89 @@ const ForgetPassSec = () => {
     }
   };
 
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <BackButton destinationScreen="ForgetPassFirst" />
+    </View>
+  );
+
+  const renderFooter = () => (
+    <PrimaryButton
+      label="Reset Password"
+      loadingLabel="Resetting..."
+      isActive={isButtonActive}
+      isLoading={isLoading}
+      onPress={handleConfirmResetPassword}
+    />
+  );
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <BackButton destinationScreen="ForgetPassFirst" />
-        </View>
-
-        <View style={styles.mainContent}>
-          <View>
-            <View style={styles.iconContainer}>
-              <View style={styles.iconCircle}>
-                <LockIcon width={24} height={24} color={colors.primaryGreen} />
-              </View>
-            </View>
-
-            <Text style={styles.title}>Reset password</Text>
-            
-            <Text style={styles.description}>
-              {`We've sent a verification code to your ${codeDeliveryDetails?.deliveryMedium?.toLowerCase() || 'email'}. Please enter the code below and create a new password.`}
-            </Text>
-
-            <NormTextbox
-              label="Verification Code"
-              value={code}
-              onChangeText={setCode}
-              placeholder="Enter verification code"
-              keyboardType="number-pad"
-              isFocused={codeFocused}
-              onFocus={() => setCodeFocused(true)}
-              onBlur={() => setCodeFocused(false)}
-            />
-
-            <PasswordBox
-              label="New Password"
-              value={newPassword}
-              onChangeText={setNewPassword}
-              isFocused={newPasswordFocused}
-              onFocus={() => setNewPasswordFocused(true)}
-              onBlur={() => setNewPasswordFocused(false)}
-              showPassword={showPassword}
-              onTogglePassword={() => setShowPassword(!showPassword)}
-            />
-
-            <PasswordBox
-              label="Confirm Password"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              isFocused={confirmPasswordFocused}
-              onFocus={() => setConfirmPasswordFocused(true)}
-              onBlur={() => setConfirmPasswordFocused(false)}
-              showPassword={showConfirmPassword}
-              onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
-            />
+    <ScreenLayoutWithFooter
+      header={renderHeader()}
+      footer={renderFooter()}
+    >
+      <View style={styles.mainContent}>
+        <View style={styles.iconContainer}>
+          <View style={styles.iconCircle}>
+            <LockIcon width={24} height={24} color={colors.primaryGreen} />
           </View>
-
-          <PrimaryButton
-            label="Reset Password"
-            loadingLabel="Resetting..."
-            isActive={isButtonActive}
-            isLoading={isLoading}
-            onPress={handleConfirmResetPassword}
-            style={{ marginTop: 24 }}
-          />
         </View>
+
+        <Text style={styles.title}>Reset password</Text>
+        
+        <Text style={styles.description}>
+          {`We've sent a verification code to your ${codeDeliveryDetails?.deliveryMedium?.toLowerCase() || 'email'}. Please enter the code below and create a new password.`}
+        </Text>
+
+        <NormTextbox
+          label="Verification Code"
+          value={code}
+          onChangeText={setCode}
+          placeholder="Enter verification code"
+          keyboardType="number-pad"
+          isFocused={codeFocused}
+          onFocus={() => setCodeFocused(true)}
+          onBlur={() => setCodeFocused(false)}
+        />
+
+        <PasswordBox
+          label="New Password"
+          value={newPassword}
+          onChangeText={setNewPassword}
+          isFocused={newPasswordFocused}
+          onFocus={() => setNewPasswordFocused(true)}
+          onBlur={() => setNewPasswordFocused(false)}
+          showPassword={showPassword}
+          onTogglePassword={() => setShowPassword(!showPassword)}
+        />
+
+        <PasswordBox
+          label="Confirm Password"
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+          isFocused={confirmPasswordFocused}
+          onFocus={() => setConfirmPasswordFocused(true)}
+          onBlur={() => setConfirmPasswordFocused(false)}
+          showPassword={showConfirmPassword}
+          onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
+        />
       </View>
-    </SafeAreaView>
+    </ScreenLayoutWithFooter>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: colors.iconWhite,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
   header: {
-    height: 56,
     justifyContent: 'center',
+    width: '100%',
+    height: '100%',
   },
   mainContent: {
     flex: 1,
-    justifyContent: 'space-between',
-    paddingBottom: 24,
+    paddingTop: 24,
   },
   iconContainer: {
     alignItems: 'center',
-    marginTop: 24,
     marginBottom: 24,
   },
   iconCircle: {

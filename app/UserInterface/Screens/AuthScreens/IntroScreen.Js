@@ -1,11 +1,25 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, StatusBar, Platform, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import colors from '../../Colors/colors.Js';
 import WhiteTextLogo from '../../../assets/icons/WhiteTextLogo.jsx';
+import ScreenLayoutWithFooter from '../../UtilScreens/ScreenLayoutWithFooter.Js';
 
 // Get screen dimensions
-const { width: screenWidth } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
+// Calculate responsive font sizes
+const calculateFontSize = (baseSize) => {
+  // Use a reference screen width (iPhone 11 Pro - 375)
+  const baseWidth = 375;
+  const scaleFactor = screenWidth / baseWidth;
+  
+  // Apply a minimum and maximum constraint to ensure readability
+  return Math.max(baseSize * 0.8, Math.min(baseSize * 1.2, baseSize * scaleFactor));
+};
+
+const titleFontSize = calculateFontSize(32);
+const subtitleFontSize = calculateFontSize(20);
 
 const IntroScreen = () => {
   const navigation = useNavigation();
@@ -14,14 +28,39 @@ const IntroScreen = () => {
   const imageWidth = screenWidth; // Full screen width
   const imageHeight = (screenWidth * 347) / 375; // maintain original aspect ratio
 
-  return (
-    <SafeAreaView style={styles.masterBackground}>
-      <View style={styles.logoContainer}>
-        <View style={styles.logoWrapper}>
-          <WhiteTextLogo />
-        </View>
+  const renderHeader = () => (
+    <View style={styles.logoContainer}>
+      <View style={styles.logoWrapper}>
+        <WhiteTextLogo />
       </View>
+    </View>
+  );
 
+  const renderFooter = () => (
+    <View style={styles.buttonContainer}>
+      <TouchableOpacity 
+        style={styles.signInButton}
+        onPress={() => navigation.navigate('SignIn')}
+      >
+        <Text style={styles.signInText}>Sign In</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity 
+        style={styles.signUpButton}
+        onPress={() => navigation.navigate('SignUpFirst')}
+      >
+        <Text style={styles.signUpText}>Sign Up</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  return (
+    <ScreenLayoutWithFooter
+      header={renderHeader()}
+      footer={renderFooter()}
+      backgroundColor={colors.darkGreenPrimary}
+      scrollable={false}
+    >
       <View style={styles.contentContainer}>
         <View style={styles.imageContainer}>
           <Image
@@ -32,51 +71,27 @@ const IntroScreen = () => {
         </View>
 
         <View style={styles.textContainer}>
-          <Text style={styles.title}>
-            Accurate & Mobile-Friendly Real Estate Calculator
+          <Text style={[styles.title, { fontSize: titleFontSize }]}>
+            Accurate & Mobile Friendly Real Estate Underwriting
           </Text>
-          <Text style={styles.subtitle}>
-            Intuitive Tools to Master Cashflow and Maximize Returns
+          <Text style={[styles.subtitle, { fontSize: subtitleFontSize }]}>
+            Trust the numbers. Maximize Cashflow.
           </Text>
-        </View>
-
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity 
-            style={styles.signInButton}
-            onPress={() => navigation.navigate('SignIn')}
-          >
-            <Text style={styles.signInText}>Sign In</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.signUpButton}
-            onPress={() => navigation.navigate('SignUpFirst')}
-          >
-            <Text style={styles.signUpText}>Sign Up</Text>
-          </TouchableOpacity>
         </View>
       </View>
-    </SafeAreaView>
+    </ScreenLayoutWithFooter>
   );
 };
 
 const styles = StyleSheet.create({
-  masterBackground: {
-    flex: 1,
-    backgroundColor: colors.darkGreenPrimary,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
   logoContainer: {
     flexDirection: 'row',
-    height: 32,
+    justifyContent: 'center',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    width: '100%',
+    height: '100%',
   },
   logoWrapper: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
     alignItems: 'center',
   },
   contentContainer: {
@@ -95,29 +110,25 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     width: '100%',
-    paddingHorizontal: 16,
     marginTop: 'auto',
     marginBottom: 'auto',
     alignItems: 'flex-start',
   },
   title: {
-    fontSize: 32,
     fontWeight: 'bold',
     color: colors.iconWhite,
     textAlign: 'left',
     marginBottom: 16,
   },
   subtitle: {
-    fontSize: 16,
     color: colors.sixthGrey,
     textAlign: 'left',
     lineHeight: 24,
+    marginRight: Platform.OS === 'android' ? -10 : 0,
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 'auto',
-    marginBottom: 16,
     width: '100%',
   },
   signInButton: {

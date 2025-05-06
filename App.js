@@ -10,6 +10,7 @@ import awsconfig from './amplify_outputs.json';
 import { forceCheckAuthAndRedirect, hasActiveSession, checkIsFirstTimeUser } from './app/UserInterface/Utils/AuthUtils.Js';
 import { initWebBrowserConfig } from './app/UserInterface/Utils/WebBrowserConfig.Js';
 import { initUserAttributesCache, clearUserAttributesCache } from './app/UserInterface/Utils/UserAttributesCache.Js';
+import { initDataCache, clearDataCache } from './app/UserInterface/Utils/DataCache.Js';
 import LottieView from 'lottie-react-native';
 import colors from './app/UserInterface/Colors/colors.Js';
 import AnimationLoader from './app/UserInterface/Components/AnimationLoader.Js';
@@ -59,6 +60,14 @@ Amplify.configure({
     }
   },
   // Correct format for Data API (using Gen 2 notation)
+  API: {
+    GraphQL: {
+      endpoint: awsconfig.data.url,
+      region: awsconfig.data.aws_region,
+      defaultAuthMode: 'userPool'
+    }
+  },
+  // Keep the Data configuration for backward compatibility
   Data: {
     endpoint: awsconfig.data.url,
     region: awsconfig.data.aws_region,
@@ -86,6 +95,7 @@ function App() {
   const [isAnimationReady, setIsAnimationReady] = useState(false);
   const [fadeOutAnimation, setFadeOutAnimation] = useState(false);
   const [userAttributesLoaded, setUserAttributesLoaded] = useState(false);
+  const [dataCacheLoaded, setDataCacheLoaded] = useState(false);
 
   // Check for any deep links or handle authentication at startup
   useEffect(() => {
@@ -98,6 +108,10 @@ function App() {
           // Initialize user attributes cache if session is active
           const attributes = await initUserAttributesCache();
           setUserAttributesLoaded(!!attributes);
+          
+          // Initialize data caches if session is active
+          const cacheData = await initDataCache();
+          setDataCacheLoaded(!!cacheData && (cacheData.expenses || cacheData.calculations));
           
           // If session is active, get user status
           const userStatus = await checkIsFirstTimeUser();
@@ -118,19 +132,23 @@ function App() {
             setInitialRoute('Auth');
             // Clear attributes cache if not authenticated
             clearUserAttributesCache();
+            clearDataCache();
           }
         } else {
           setIsAuthenticated(false);
           setInitialRoute('Auth');
           // Clear attributes cache if no session
           clearUserAttributesCache();
+          clearDataCache();
           setUserAttributesLoaded(false);
+          setDataCacheLoaded(false);
         }
       } catch (error) {
         console.log('Error checking authentication status:', error);
         setIsAuthenticated(false);
         setInitialRoute('Auth');
         setUserAttributesLoaded(false);
+        setDataCacheLoaded(false);
       } finally {
         setAuthCheckComplete(true);
       }

@@ -8,40 +8,40 @@ export const wholesalefunction = (
     OperatingExpense
 ) => {
     // Calculate total expenses for the wholesaler
-    // let totalMonthlyExpenses = 0;
-    // let totalFixedExpenses = 0;
+    let totalMonthlyExpenses = 0;
+    let totalFixedExpenses = 0;
     
-    // if (OperatingExpense.isActive && OperatingExpense.expenses) {
-    //   OperatingExpense.expenses.forEach(expense => {
-    //     const cost = Number(expense.cost);
+    if (OperatingExpense.isActive && OperatingExpense.expenses) {
+      OperatingExpense.expenses.forEach(expense => {
+        const cost = Number(expense.cost);
         
-    //     if (expense.frequency === 'Annually') {
-    //       totalMonthlyExpenses += cost / 12;
-    //     } else if (expense.frequency === 'Monthly') {
-    //       totalMonthlyExpenses += cost;
-    //     } else if (expense.frequency === 'Non-recurring') {
-    //       totalFixedExpenses += cost;
-    //     }
-    //   });
-    // }
-    const {totalMonthlyExpenses, totalFixedExpenses} = operatingExpense(OperatingExpense);
+        if (expense.frequency === 'Annually') {
+          totalMonthlyExpenses += cost / 12;
+        } else if (expense.frequency === 'Monthly') {
+          totalMonthlyExpenses += cost;
+        } else if (expense.frequency === 'Non-recurring') {
+          totalFixedExpenses += cost;
+        }
+      });
+    }
+    // const {totalMonthlyExpenses, totalFixedExpenses} = operatingExpense(OperatingExpense);
     
     const totalExpenses = (totalMonthlyExpenses * monthsHeld) + totalFixedExpenses;
 
     // Calculate Maximum Allowable Offer (MAO)
-    // const maximumAllowableOffer = (afterRepairValue * 0.7) - rehabCost;
-    const {MAO} = maximumAllowableOffer(afterRepairValue, rehabCost);
+    const MAO = (afterRepairValue * 0.7) - rehabCost;
+    // const {MAO} = maximumAllowableOffer(afterRepairValue, rehabCost);
   
     // Calculate fees
-    // const fee5Percent = afterRepairValue * 0.05;
-    // const fee15Percent = afterRepairValue * 0.15;
-    const {fee5Percent, salePrice5Percent} = wholesalingFees(afterRepairValue, contractPrice, 0.05);
-    const {fee15Percent, salePrice15Percent} = wholesalingFees(afterRepairValue, contractPrice, 0.15);
+    const fee5Percent = afterRepairValue * 0.05;
+    const fee15Percent = afterRepairValue * 0.15;
+    // const {fee5Percent, salePrice5Percent} = wholesalingFees(afterRepairValue, contractPrice, 0.05);
+    // const {fee15Percent, salePrice15Percent} = wholesalingFees(afterRepairValue, contractPrice, 0.15);
 
   
     // Calculate sale prices
-    // const salePrice5Percent = contractPrice + fee5Percent;
-    // const salePrice15Percent = contractPrice + fee15Percent;
+    const salePrice5Percent = contractPrice + fee5Percent;
+    const salePrice15Percent = contractPrice + fee15Percent;
   
     return [
       MAO.toFixed(2),

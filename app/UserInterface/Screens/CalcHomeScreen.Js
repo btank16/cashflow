@@ -4,7 +4,8 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { InformationCircleIcon, ChevronRightIcon } from 'react-native-heroicons/outline';
 import { getUserAttribute } from '../Utils/UserAttributesCache.Js';
 import colors from '../Colors/colors.Js';
-import { useDatabase } from '../../../database/cashflowDatabase.Js';
+import { useCalculations } from '../Utils/DataCache.Js';
+import { deleteCalculation as deleteCalculationFromAPI } from '../Utils/AmplifyDataUtils.Js';
 import RentalIcon from '../../assets/icons/RentalIcon.jsx';
 import FlipIcon from '../../assets/icons/FlipIcon.jsx';
 import BRRRRIcon from '../../assets/icons/BRRRIcon.jsx';
@@ -84,49 +85,76 @@ const ArticleItem = ({ item, onPress }) => (
 
 function CalcHomeScreen() {
   const navigation = useNavigation();
-  const { getAllCalculations, deleteCalculation } = useDatabase();
+  const { calculations, isLoading, refreshCalculations } = useCalculations(null, true);
   const [history, setHistory] = useState([]);
   const [firstName, setFirstName] = useState('');
   const [markdownModalVisible, setMarkdownModalVisible] = useState(false);
   const [currentMarkdownContent, setCurrentMarkdownContent] = useState('');
 
-  const loadHistory = useCallback(async () => {
-    const allCalculations = await getAllCalculations();
-    setHistory(allCalculations.slice(0, 3)); // Get only the 3 most recent calculations
-  }, [getAllCalculations]);
+  // Update history when calculations change
+  useEffect(() => {
+    if (calculations && calculations.length > 0) {
+      // Take the 3 most recent calculations
+      setHistory(calculations.slice(0, 3));
+    } else {
+      setHistory([]);
+    }
+  }, [calculations]);
 
   // Fetch user attributes when component mounts
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchUserData = async () => {
       try {
         // Use the cached user attributes instead of making a direct API call
         const firstNameValue = await getUserAttribute('custom:firstName');
+        if (!isMounted) return;
+        
         if (firstNameValue) {
           setFirstName(firstNameValue);
         } else {
           // Fallback to get given_name if custom:firstName is not available
           const givenName = await getUserAttribute('given_name');
+          if (!isMounted) return;
           setFirstName(givenName || 'User');
         }
       } catch (error) {
         console.error('Error fetching user attributes:', error);
+        if (!isMounted) return;
         setFirstName('User');
       }
     };
 
     fetchUserData();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
+  // Make sure to limit the number of refreshes when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      loadHistory();
-    }, [loadHistory])
+      // Refresh calculations when screen comes into focus
+      // Only get from cache by default - no need to hit the cloud each time
+      let isMounted = true;
+      
+      if (isMounted) {
+        refreshCalculations(false);
+      }
+      
+      return () => {
+        isMounted = false;
+      };
+    }, [refreshCalculations])
   );
 
   const handleDeleteCalculation = async (id) => {
     try {
-      await deleteCalculation(id);
-      await loadHistory(); // Reload the history after deletion
+      await deleteCalculationFromAPI(id);
+      // After deletion, force refresh to ensure we're showing accurate data
+      refreshCalculations(false);
     } catch (error) {
       console.error('Error deleting calculation:', error);
       // Optionally, you can show an error message to the user here
@@ -201,7 +229,9 @@ function CalcHomeScreen() {
         <Text style={styles.sectionTitle}>Recent Calculations</Text>
         <ChevronRightIcon color={colors.iconWhite} size={24} />
       </TouchableOpacity>
-      {history.length > 0 ? (
+      {isLoading ? (
+        <Text style={styles.emptyHistoryText}>Loading calculations...</Text>
+      ) : history.length > 0 ? (
         history.map((item) => (
           <HistoryItem
             key={item.id}

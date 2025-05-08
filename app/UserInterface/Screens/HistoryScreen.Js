@@ -2,17 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { View, FlatList, StyleSheet, TouchableOpacity, Text, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronLeftIcon } from 'react-native-heroicons/outline';
-import { useDatabase } from '../../../database/cashflowDatabase.Js';
 import colors from '../Colors/colors.Js';
 import HistoryItem from '../Components/HistoryItem.Js';
 import FeedbackIcon from '../../assets/icons/FeedbackIcon.jsx';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import ScreenLayout from '../UtilScreens/ScreenLayout.Js';
+import { useCalculations } from '../Utils/DataCache.Js';
+import { deleteCalculation as deleteCalculationFromAPI } from '../Utils/AmplifyDataUtils.Js';
 
 function HistoryScreen() {
-  const [calculations, setCalculations] = useState([]);
   const [filter, setFilter] = useState('All');
-  const { getAllCalculations, getCalculationsByType, deleteCalculation } = useDatabase();
+  const { calculations, isLoading, refreshCalculations } = useCalculations(null, true);
+  const [filteredCalculations, setFilteredCalculations] = useState([]);
   const navigation = useNavigation();
 
   const calculatorTypes = [
@@ -26,23 +27,18 @@ function HistoryScreen() {
   ];
 
   useEffect(() => {
-    loadCalculations();
-  }, [filter]);
-
-  const loadCalculations = async () => {
     if (filter === 'All') {
-      const allCalculations = await getAllCalculations();
-      setCalculations(allCalculations);
+      setFilteredCalculations(calculations);
     } else {
-      const filteredCalculations = await getCalculationsByType(filter);
-      setCalculations(filteredCalculations);
+      setFilteredCalculations(calculations.filter(calc => calc.calculator_type.toLowerCase() === filter));
     }
-  };
+  }, [filter, calculations]);
 
   const handleDeleteCalculation = async (id) => {
     try {
-      await deleteCalculation(id);
-      loadCalculations(); // Reload the list after deletion
+      await deleteCalculationFromAPI(id);
+      // Refresh calculations after deletion
+      refreshCalculations(false);
     } catch (error) {
       console.error('Error deleting calculation:', error);
     }
@@ -94,11 +90,17 @@ function HistoryScreen() {
           ))}
         </ScrollView>
       </View>
-      <FlatList
-        data={calculations}
-        renderItem={renderItem}
-        keyExtractor={item => item.id.toString()}
-      />
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading calculations...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredCalculations}
+          renderItem={renderItem}
+          keyExtractor={item => item.id.toString()}
+        />
+      )}
     </>
   );
 
@@ -151,6 +153,15 @@ const styles = StyleSheet.create({
   },
   activeFilterButtonText: {
     fontWeight: 'bold',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: colors.iconWhite,
+    fontSize: 16,
   },
 });
 

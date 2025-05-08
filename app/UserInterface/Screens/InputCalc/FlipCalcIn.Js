@@ -13,6 +13,8 @@ import { outputs } from '../../../Calculations/CoreOutputs.Js';
 import Checkbox from '../../Components/InterestCheckbox.Js';
 import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 import calculatorInfo from '../../../assets/text/info.json';
+import { createCalculation, updateCalculation } from '../../Utils/AmplifyDataUtils.Js';
+
 function FlipCalcIn(props) {
     const navigation = useNavigation();
     const route = useRoute();
@@ -245,8 +247,31 @@ function FlipCalcIn(props) {
         };
 
         try {
-            const savedId = await saveCalculation('flip', inputValues, results, calculationId);
+            let savedData;
             
+            if (calculationId) {
+                // Update existing calculation
+                savedData = await updateCalculation(
+                    calculationId,
+                    'flip',
+                    inputValues,
+                    results
+                );
+            } else {
+                // Create new calculation
+                savedData = await createCalculation(
+                    'flip',
+                    inputValues,
+                    results
+                );
+            }
+            
+            let savedId = calculationId;
+            if (savedData && savedData.id) {
+                savedId = savedData.id;
+            }
+            
+            // Navigate to the result screen
             navigation.navigate(resultScreen, {
                 inputValues: {...inputValues, id: savedId},
                 ...results

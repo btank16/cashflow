@@ -9,7 +9,7 @@ import { useDatabase } from '../../../../database/cashflowDatabase.Js';
 import { wholesalefunction } from '../../../Calculations/WholesalingFunction.Js';
 import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 import calculatorInfo from '../../../assets/text/info.json';
-import { createCalculation } from '../../Utils/AmplifyDataUtils.Js';
+import { createCalculation, updateCalculation } from '../../Utils/AmplifyDataUtils.Js';
 
 function WholesaleCalcIn(props) {
     const navigation = useNavigation();
@@ -142,18 +142,30 @@ function WholesaleCalcIn(props) {
         };
 
         try {
-            // Use the new Amplify createCalculation function
-            const savedData = await createCalculation(
-                'wholesale',
-                inputValues,
-                results
-            );
+            let savedData;
+            
+            if (calculationId) {
+                // Update existing calculation
+                savedData = await updateCalculation(
+                    calculationId,
+                    'wholesale',
+                    inputValues,
+                    results
+                );
+            } else {
+                // Create new calculation
+                savedData = await createCalculation(
+                    'wholesale',
+                    inputValues,
+                    results
+                );
+            }
             
             let savedId = calculationId;
             if (savedData && savedData.id) {
                 savedId = savedData.id;
             }
-            console.log('savedId', savedId);
+            
             // Navigate to the result screen
             navigation.navigate(resultScreen, {
                 inputValues: {...inputValues, id: savedId},
@@ -161,19 +173,6 @@ function WholesaleCalcIn(props) {
             });
         } catch (error) {
             console.error('Error saving calculation to database:', error);
-            
-            // Fallback to legacy database save if Amplify save fails
-            try {
-                const savedId = await saveCalculation('wholesale', inputValues, results, calculationId);
-                
-                // Navigate to the result screen
-                navigation.navigate(resultScreen, {
-                    inputValues: {...inputValues, id: savedId},
-                    ...results
-                });
-            } catch (legacyError) {
-                console.error('Error saving to legacy database:', legacyError);
-            }
         }
     };
 

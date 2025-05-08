@@ -12,6 +12,7 @@ import Checkbox from '../../Components/InterestCheckbox.Js';
 import { CommercialCalc } from '../../../Calculations/CommercialCalc.Js';
 import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 import calculatorInfo from '../../../assets/text/info.json';
+import { createCalculation, updateCalculation } from '../../Utils/AmplifyDataUtils.Js';
 
 function CommercialCalcIn(props) {
     const navigation = useNavigation();
@@ -191,45 +192,68 @@ function CommercialCalcIn(props) {
             }
         };
 
+        const funcResults = CommercialCalc(
+            toNumber(purchasePrice),
+            switchableInputs.downPayment,
+            switchableInputs.acquisitionCosts,
+            interestRateInput,
+            switchableInputs.closingCost,
+            toNumber(loanTerm),
+            toNumber(grossRent),
+            toNumber(grossFees),
+            toNumber(vacancyRate),
+            switchableInputs.capexEst,
+            switchableInputs.propertyTax,
+            inputValues.operatingExpenseArray
+        );
+
+        const results = {
+            mortgageCost: funcResults[0],
+            monthlyCost: funcResults[1],
+            totalAcquisitionCosts: funcResults[2],
+            monthEx: funcResults[3],
+            DSCR: funcResults[4],
+            monthlyPropTax: funcResults[5],
+            monthlyCapEx: funcResults[6],
+            monthlyOpEx: funcResults[7],
+            cashOnCash: funcResults[8],
+            capRate: funcResults[9],
+            monthsTillEven: funcResults[10],
+            annualCashflow: funcResults[11]
+        };
+
         try {
-            const funcResults = CommercialCalc(
-                toNumber(purchasePrice),
-                switchableInputs.downPayment,
-                switchableInputs.acquisitionCosts,
-                interestRateInput,
-                switchableInputs.closingCost,
-                toNumber(loanTerm),
-                toNumber(grossRent),
-                toNumber(grossFees),
-                toNumber(vacancyRate),
-                switchableInputs.capexEst,
-                switchableInputs.propertyTax,
-                inputValues.operatingExpenseArray
-            );
-
-            const results = {
-                mortgageCost: funcResults[0],
-                monthlyCost: funcResults[1],
-                totalAcquisitionCosts: funcResults[2],
-                monthEx: funcResults[3],
-                DSCR: funcResults[4],
-                monthlyPropTax: funcResults[5],
-                monthlyCapEx: funcResults[6],
-                monthlyOpEx: funcResults[7],
-                cashOnCash: funcResults[8],
-                capRate: funcResults[9],
-                monthsTillEven: funcResults[10],
-                annualCashflow: funcResults[11]
-            };
-
-            const savedId = await saveCalculation('commercial', inputValues, results, calculationId);
+            let savedData;
             
+            if (calculationId) {
+                // Update existing calculation
+                savedData = await updateCalculation(
+                    calculationId,
+                    'commercial',
+                    inputValues,
+                    results
+                );
+            } else {
+                // Create new calculation
+                savedData = await createCalculation(
+                    'commercial',
+                    inputValues,
+                    results
+                );
+            }
+            
+            let savedId = calculationId;
+            if (savedData && savedData.id) {
+                savedId = savedData.id;
+            }
+            
+            // Navigate to the result screen
             navigation.navigate(resultScreen, {
-                inputValues: { ...inputValues, id: savedId },
+                inputValues: {...inputValues, id: savedId},
                 ...results
             });
         } catch (error) {
-            console.error('Error in calculation:', error);
+            console.error('Error saving calculation to database:', error);
         }
     };
 

@@ -9,11 +9,11 @@ import { BuyRefi } from '../../../Calculations/BRRROutput.Js';
 import LoanTerm from '../../Components/LoanTerm.Js';
 import HomeButton from '../../Components/HomeButton.Js';
 import SwitchableNumericInput from '../../Components/SwitchableNumericInput.Js';
-import { useDatabase } from '../../../../database/cashflowDatabase.Js';
 import Checkbox from '../../Components/InterestCheckbox.Js';
 import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 import calculatorInfo from '../../../assets/text/info.json';
-import { createCalculation, updateCalculation } from '../../Utils/AmplifyDataUtils.Js';
+import { createCalculation, updateCalculation, createExpense, updateExpense } from '../../Utils/AmplifyDataUtils.Js';
+import { getExpenses } from '../../Utils/DataCache.Js';
 
 function BRRCalcIn(props) {
     const navigation = useNavigation();
@@ -39,7 +39,6 @@ function BRRCalcIn(props) {
         propertyTax: { value: '', isDollar: false },
         BRRcapexEst: { value: '', isDollar: false }
     });
-    const { saveCalculation, saveExpense } = useDatabase();
     const [interestRateInput, setInterestRateInput] = useState({
         initialInterest: { value: '', isInterestOnly: false },
         newInterest: { value: '', isInterestOnly: false }
@@ -165,25 +164,63 @@ function BRRCalcIn(props) {
         }));
     };
 
+    const toTitleCase = (str) => {
+        return str
+            .toLowerCase()
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    };
+
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
         if (saveNewExpenses && operatingExpenses.length > 0) {
             try {
+                // Get all existing expenses from DataCache
+                const existingExpenses = await getExpenses();
+                
                 for (const expense of operatingExpenses) {
                     if (expense.category && expense.cost) {
-                        const formattedCategory = expense.category
-                            .toLowerCase()
-                            .split(' ')
-                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                            .join(' ');
+                        const formattedCategory = toTitleCase(expense.category);
 
-                        await saveExpense(
-                            formattedCategory,
-                            expense.cost,
-                            expense.frequency,
-                            ['brrrr']
+                        // Check if this expense already exists
+                        const matchingExpense = existingExpenses.find(existing => 
+                            existing.category === formattedCategory && 
+                            parseFloat(existing.cost) === parseFloat(expense.cost) && 
+                            existing.frequency === expense.frequency
                         );
+
+                        if (matchingExpense) {
+                            // Update existing expense
+                            try {
+                                // Parse existing applicable calculators
+                                const existingCalculators = JSON.parse(matchingExpense.applicable_calculators || '[]');
+                                
+                                // Only add 'rental' if it's not already in the list
+                                if (!existingCalculators.includes('brrrr')) {
+                                    const updatedCalculators = [...existingCalculators, 'brrrr'];
+                                    
+                                    await updateExpense(
+                                        matchingExpense.id,
+                                        formattedCategory,
+                                        expense.cost,
+                                        expense.frequency,
+                                        updatedCalculators
+                                    );
+                                }
+                            } catch (error) {
+                                console.error('Error updating existing expense:', error);
+                            }
+                        } else {
+                            // Create new expense
+                            await createExpense(
+                                formattedCategory,
+                                expense.cost,
+                                expense.frequency,
+                                ['brrrr']
+                            );
+                        }
                     }
                 }
             } catch (error) {

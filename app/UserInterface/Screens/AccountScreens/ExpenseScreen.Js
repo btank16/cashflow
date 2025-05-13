@@ -2,37 +2,25 @@ import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react'
 import { 
   View, 
   Text, 
-  TextInput, 
   TouchableOpacity, 
   StyleSheet, 
-  Keyboard,
-  ScrollView,
-  Modal
+  ScrollView
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { ChevronLeftIcon } from 'react-native-heroicons/outline';
 import ExpenseLogo from '../../../assets/icons/ExpenseLogo.jsx';
 import colors from '../../Colors/colors.Js';
 import PrimaryButton from '../../Components/PrimaryButton.Js';
-import NumericInput from '../../Components/NumericInputBox.Js';
 import ExpenseItem from '../../Components/ExpenseItem.Js';
 import ScreenLayoutWithFooter from '../../UtilScreens/ScreenLayoutWithFooter.Js';
-import { useDatabase } from '../../../../database/cashflowDatabase.Js';
+import { useExpenses } from '../../Utils/DataCache.Js';
+import { deleteExpense as deleteExpenseFromAPI } from '../../Utils/AmplifyDataUtils.Js';
 
 const ExpenseScreen = () => {
   const navigation = useNavigation();
-  const bottomSheetRef = useRef(null);
-  const [isCategoryFocused, setIsCategoryFocused] = useState(false);
-  const [isCostFocused, setIsCostFocused] = useState(false);
-  const [category, setCategory] = useState('');
-  const [cost, setCost] = useState('');
-  const [frequency, setFrequency] = useState('Monthly');
-  const [showFrequencyOptions, setShowFrequencyOptions] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [expenseAmount, setExpenseAmount] = useState('');
-  const [expenses, setExpenses] = useState([]);
   const [filter, setFilter] = useState('All');
-  const db = useDatabase();
+  const { expenses, isLoading, refreshExpenses } = useExpenses(null, true);
+  const [filteredExpenses, setFilteredExpenses] = useState([]);
 
   const calculatorTypes = [
     'All',
@@ -44,105 +32,45 @@ const ExpenseScreen = () => {
     'commercial'
   ];
 
-  const snapPoints = useMemo(() => ['90%'], []);
+  // Update filtered expenses when expenses or filter changes
+  useEffect(() => {
+    loadExpenses();
+  }, [expenses, filter]);
 
-  const formatNumber = (value) => {
-    if (!value) return '';
-    return value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  };
-
-  const unformatNumber = (value) => {
-    return value.replace(/,/g, '');
-  };
-
-  const AddExpenseModal = () => (
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={isModalVisible}
-      onRequestClose={() => setIsModalVisible(false)}
-    >
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-          <TouchableOpacity 
-            style={styles.closeButton}
-            onPress={() => setIsModalVisible(false)}
-          >
-            <Text style={styles.closeButtonText}>×</Text>
-          </TouchableOpacity>
-
-          <Text style={styles.modalTitle}>Add your{'\n'}operating expenses</Text>
-
-          <View style={styles.inputSection}>
-            <View style={styles.categoryInput}>
-              <Text style={styles.inputLabel}>Expense category</Text>
-              <TouchableOpacity style={styles.selectButton}>
-                <Text style={styles.selectButtonText}>Select category</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.frequencyAndCost}>
-              <View style={styles.frequencyInput}>
-                <Text style={styles.inputLabel}>Frequency</Text>
-                <TouchableOpacity style={styles.selectButton}>
-                  <Text style={styles.selectButtonText}>Monthly</Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.costInput}>
-                <NumericInput
-                  label="Cost"
-                  value={expenseAmount}
-                  onChangeText={setExpenseAmount}
-                  placeholder="0"
-                  type="$"
-                  isRequired={true}
-                />
-              </View>
-            </View>
-          </View>
-
-          <TouchableOpacity 
-            style={styles.nextButton}
-            onPress={() => {
-              // Handle saving the expense
-              setIsModalVisible(false);
-            }}
-          >
-            <Text style={styles.nextButtonText}>Next</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      loadExpenses();
-    }, [filter])
-  );
-
-  const loadExpenses = async () => {
+  const loadExpenses = () => {
     try {
-      const savedExpenses = await db.getSavedExpenses();
       if (filter === 'All') {
-        setExpenses(savedExpenses);
+        setFilteredExpenses(expenses);
       } else {
-        const filteredExpenses = savedExpenses.filter(expense => {
-          const calculators = JSON.parse(expense.applicable_calculators);
-          return calculators.includes(filter.toLowerCase());
+        const filtered = expenses.filter(expense => {
+          try {
+            const calculators = JSON.parse(expense.applicable_calculators || '[]');
+            return calculators.includes(filter.toLowerCase());
+          } catch (error) {
+            console.error('Error parsing applicable_calculators:', error);
+            return false;
+          }
         });
-        setExpenses(filteredExpenses);
+        setFilteredExpenses(filtered);
       }
     } catch (error) {
-      console.error('Error loading expenses:', error);
+      console.error('Error filtering expenses:', error);
+      setFilteredExpenses([]);
     }
   };
 
+  // Refresh expenses from API when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      refreshExpenses(false);
+    }, [refreshExpenses])
+  );
+
   const handleDeleteExpense = async (id) => {
     try {
-      await db.deleteExpense(id);
-      loadExpenses();
+      await deleteExpenseFromAPI(id);
+      // Refresh expenses after deletion
+      refreshExpenses(false);
     } catch (error) {
       console.error('Error deleting expense:', error);
     }
@@ -173,7 +101,7 @@ const ExpenseScreen = () => {
       >
         <ChevronLeftIcon size={24} color={colors.primaryBlack} />
       </TouchableOpacity>
-      <Text style={styles.headerTitle}>Default operating expenses</Text>
+      <Text style={styles.headerTitle}>Default Operating Expenses</Text>
     </View>
   );
 
@@ -199,9 +127,13 @@ const ExpenseScreen = () => {
         </ScrollView>
       </View>
 
-      {expenses.length > 0 ? (
+      {isLoading ? (
+        <View style={styles.centerContent}>
+          <Text style={styles.loadingText}>Loading expenses...</Text>
+        </View>
+      ) : filteredExpenses.length > 0 ? (
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          {expenses.map((expense) => (
+          {filteredExpenses.map((expense) => (
             <ExpenseItem
               key={expense.id}
               expense={expense}
@@ -222,8 +154,6 @@ const ExpenseScreen = () => {
           </Text>
         </View>
       )}
-
-      <AddExpenseModal />
     </ScreenLayoutWithFooter>
   );
 };
@@ -274,6 +204,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
   },
+  loadingText: {
+    fontSize: 16,
+    color: colors.primaryGrey,
+    textAlign: 'center',
+  },
   filterContainer: {
     flexDirection: 'row',
     paddingVertical: 12,
@@ -299,79 +234,7 @@ const styles = StyleSheet.create({
   activeFilterButtonText: {
     color: colors.iconWhite,
     fontWeight: 'bold',
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: colors.iconWhite,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    height: '90%',
-  },
-  closeButton: {
-    alignSelf: 'flex-start',
-    padding: 10,
-  },
-  closeButtonText: {
-    fontSize: 24,
-    color: colors.primaryBlack,
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginVertical: 20,
-  },
-  inputSection: {
-    marginTop: 20,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.primaryGrey,
-    marginBottom: 8,
-  },
-  selectButton: {
-    height: 50,
-    backgroundColor: colors.tertiaryGrey,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.quaternaryGrey,
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-  },
-  selectButtonText: {
-    color: colors.primaryBlack,
-    fontSize: 16,
-  },
-  frequencyAndCost: {
-    flexDirection: 'row',
-    marginTop: 20,
-    gap: 16,
-  },
-  frequencyInput: {
-    flex: 1,
-  },
-  costInput: {
-    flex: 1,
-  },
-  nextButton: {
-    backgroundColor: colors.primaryGreen,
-    height: 56,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 'auto',
-  },
-  nextButtonText: {
-    color: colors.iconWhite,
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  }
 });
 
 export default ExpenseScreen;

@@ -6,6 +6,7 @@ import NumericInput from '../../Components/NumericInputBox.Js';
 import CalcButton from '../../Components/CalcButton.Js';
 import { expenses } from '../../../Calculations/ExpenseFunction.Js';
 import { outputs } from '../../../Calculations/CoreOutputs.Js';
+import { rentalFunction } from '../../../Calculations/RentalFunction.Js';
 import HomeButton from '../../Components/HomeButton.Js';
 import SwitchableNumericInput from '../../Components/SwitchableNumericInput.Js';
 import LoanTerm from '../../Components/LoanTerm.Js';
@@ -229,9 +230,9 @@ function RentalCalcIn(props) {
             capexEst: switchableInputs.capexEst,
             rehabCost: toNumber(rehabCost),
             monthRent: toNumber(monthRent),
-            afterRev: 0,
-            rehabTime: 0,
-            agentCommish: { value: '0', isDollar: false },
+            // afterRev: 0,
+            // rehabTime: 0,
+            // agentCommish: { value: '0', isDollar: false },
             operatingExpenseArray: {
                 isActive: operatingExpensesActive,
                 expenses: operatingExpenses,
@@ -240,50 +241,64 @@ function RentalCalcIn(props) {
             vacancyRate: toNumber(vacancyRate) || '0'
         };
 
-        const expenseResults = expenses(
+        const rentalResults = rentalFunction(
             inputValues.purchasePrice,
             inputValues.downPayment,
             inputValues.interestRate,
             inputValues.loanTerm,
             inputValues.propertyTax,
+            inputValues.closingCost,
             inputValues.capexEst,
             inputValues.rehabCost,
-            inputValues.closingCost,
             inputValues.monthRent,
-            inputValues.rehabTime,
+            inputValues.vacancyRate,
             inputValues.operatingExpenseArray
         );
 
-        const outputResults = outputs(
-            inputValues.afterRev,
-            inputValues.rehabTime,
-            inputValues.agentCommish,
-            inputValues.monthRent,
-            inputValues.purchasePrice,
-            expenseResults[2],
-            expenseResults[1],
-            inputValues.vacancyRate,
-            expenseResults[4]
-        );
+        // const expenseResults = expenses(
+        //     inputValues.purchasePrice,
+        //     inputValues.downPayment,
+        //     inputValues.interestRate,
+        //     inputValues.loanTerm,
+        //     inputValues.propertyTax,
+        //     inputValues.capexEst,
+        //     inputValues.rehabCost,
+        //     inputValues.closingCost,
+        //     inputValues.monthRent,
+        //     inputValues.rehabTime,
+        //     inputValues.operatingExpenseArray
+        // );
+
+        // const outputResults = outputs(
+        //     inputValues.afterRev,
+        //     inputValues.rehabTime,
+        //     inputValues.agentCommish,
+        //     inputValues.monthRent,
+        //     inputValues.purchasePrice,
+        //     expenseResults[2],
+        //     expenseResults[1],
+        //     inputValues.vacancyRate,
+        //     expenseResults[4]
+        // );
 
         const results = {
-            mortgageCost: expenseResults[0],
-            monthlyCost: expenseResults[1],
-            cashDown: expenseResults[2],
-            monthEx: expenseResults[3],
-            DSCR: expenseResults[5],
-            monthlyPropTax: expenseResults[6],
-            monthlyCapEx: expenseResults[7],
-            monthlyOpEx: expenseResults[8],
-            totalProfit: outputResults[0],
-            returnPerc: outputResults[1],
-            cashROI: outputResults[2],
-            cashflow: outputResults[3],
-            annualCashflow: outputResults[4],
-            cashOnCash: outputResults[5],
-            capRate: outputResults[6],
-            monthsTillEven: outputResults[7],
-            totalCashCost: outputResults[8],
+            mortgageCost: rentalResults[0],
+            // monthlyCost: expenseResults[1],
+            cashDown: rentalResults[1],
+            // monthEx: expenseResults[3],
+            DSCR: rentalResults[2],
+            monthlyPropTax: rentalResults[3],
+            monthlyCapEx: rentalResults[4],
+            monthlyOpEx: rentalResults[5],
+            // totalProfit: outputResults[0],
+            // returnPerc: outputResults[1],
+            // cashROI: outputResults[2],
+            cashflow: rentalResults[6],
+            annualCashflow: rentalResults[7],
+            cashOnCash: rentalResults[8],
+            capRate: rentalResults[9],
+            monthsTillEven: rentalResults[10],
+            // totalCashCost: outputResults[8],
         };
 
         try {

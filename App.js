@@ -72,6 +72,13 @@ Amplify.configure({
     endpoint: awsconfig.data.url,
     region: awsconfig.data.aws_region,
     authMode: 'userPool'
+  },
+  // Add Storage configuration from amplify_outputs
+  Storage: {
+    S3: {
+      bucket: awsconfig.storage.bucket_name,
+      region: awsconfig.storage.aws_region
+    }
   }
 });
 

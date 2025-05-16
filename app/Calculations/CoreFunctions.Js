@@ -135,7 +135,7 @@ export const sum = (...numbers) => {
 };
 
 //Calculates annual NOI
-export const NOI = (monthRent, operatingExpense, vacancy) => {
+export const NOICalc = (monthRent, operatingExpense, vacancy) => {
     //monthRent is a number
     //operatingExpense a number
     //vacancy is a number
@@ -148,7 +148,7 @@ export const NOI = (monthRent, operatingExpense, vacancy) => {
 };
 
 //Ensure to use annual values and vacancy for DSCR (use NOI)
-export const DSCR = (purchasePrice, NOI, mortgageCost) => {
+export const DSCRCalc = (purchasePrice, NOI, mortgageCost) => {
     //purchasePrice is an object with a value and a isCashPurchase boolean
     //NOI is a number
     //mortgageCost is a number
@@ -201,7 +201,7 @@ export const holdingExpenses = (monthsHeld, monthlyExpenses) => {
     return{totalHoldingExpenses}
 };
 
-export const totalProfit = (purchasePrice, ARV, totalExpense, agentCommission, principalAmt) => {
+export const totalProfitCalc = (purchasePrice, ARV, totalExpense, agentCommission, principalAmt) => {
     //purchasePrice is an object with a value and a isCashPurchase boolean
     //ARV is a number
     //totalExpense is a number
@@ -235,34 +235,34 @@ export const cashFlow = (monthRent, monthlyCost, vacancy) => {
     const annualExpenses = Number(monthlyCost) * 12;
     const annualVacancy = (Number(vacancy) / 100) * annualRent;
     //Only apply vacancy loss to annual cashflow
-    const annualCashFlow = annualRent - (annualExpenses + annualVacancy);
-    const monthlyCashFlow = Number(monthRent) - Number(monthlyCost);
+    const annualCashflow = annualRent - (annualExpenses + annualVacancy);
+    const monthlyCashflow = Number(monthRent) - Number(monthlyCost);
     
-    return{monthlyCashFlow, annualCashFlow}
+    return{monthlyCashflow, annualCashflow}
 };
 
-export const cashOnCash = (annualCashFlow, cashDown) => {
+export const cashOnCashCalc = (annualCashFlow, cashDown) => {
     //annualCashFlow is a number
     //cashDown is a number
     const cashOnCash = ((annualCashFlow / cashDown) * 100);
     return{cashOnCash}
 };
 
-export const capRate = (annualCashFlow, purchasePrice) => {
+export const capRateCalc = (annualCashFlow, purchasePrice) => {
     //annualCashFlow is a number
     //purchasePrice is an object with a value and a isCashPurchase boolean
     const capRate = ((annualCashFlow / Number(purchasePrice.value)) * 100);
     return{capRate}
 };
 
-export const monthsToEven = (cashDown, monthlyCashFlow) => {
+export const monthsToEvenCalc = (cashDown, monthlyCashFlow) => {
     //cashDown is a number
     //monthlyCashFlow is a number
     const monthsToEven = Math.ceil(cashDown / monthlyCashFlow);
     return{monthsToEven}
 };
 
-export const maxEquity = (purchasePrice, ARV, principalAmt) => {
+export const maxEquityCalc = (purchasePrice, ARV, principalAmt) => {
     //purchasePrice is an object with a value and a isCashPurchase boolean
     //ARV is a number
     //principalAmt is a number
@@ -277,7 +277,7 @@ export const maxEquity = (purchasePrice, ARV, principalAmt) => {
     return{maxEquity}
 };
 
-export const equityReturn = (maxEquity, totalInvestment) => {
+export const equityReturnCalc = (maxEquity, totalInvestment) => {
     //maxEquity is a number
     //totalInvestment is a number
     const equityReturn = maxEquity - totalInvestment;

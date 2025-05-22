@@ -4,8 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../../Colors/colors.Js';
 import NumericInput from '../../Components/NumericInputBox.Js';
 import CalcButton from '../../Components/CalcButton.Js';
-import { expenses } from '../../../Calculations/ExpenseFunction.Js';
-import { BuyRefi } from '../../../Calculations/BRRROutput.Js';
+import { BRRRRFunction } from '../../../Calculations/BRRRFunction.Js';
 import LoanTerm from '../../Components/LoanTerm.Js';
 import HomeButton from '../../Components/HomeButton.Js';
 import SwitchableNumericInput from '../../Components/SwitchableNumericInput.Js';
@@ -257,57 +256,38 @@ function BRRCalcIn(props) {
             vacancyRate: toNumber(vacancyRate) || '0'
         };
 
-        const initialExpenseResults = expenses(
+        const BRRRresults = BRRRRFunction(
             inputValues.purchasePrice,
             inputValues.downPayment,
             inputValues.interestRate,
             inputValues.loanTerm,
             inputValues.propertyTax,
+            inputValues.closingCost,
             inputValues.BRRcapexEst,
             inputValues.rehabCost,
-            inputValues.closingCost,
-            0,
             inputValues.rehabTime,
+            inputValues.refinanceCost,
+            inputValues.newInterest,
+            inputValues.newloanTerm,
+            inputValues.afterRev,
+            inputValues.BRRmonthRent,
+            inputValues.vacancyRate,
             inputValues.operatingExpenseArray
         );
 
-        const buyRefiResults = BuyRefi(
-            inputValues.purchasePrice,
-            inputValues.refinanceCost,
-            inputValues.newInterest,
-            inputValues.afterRev,
-            inputValues.rehabTime,
-            inputValues.BRRmonthRent,
-            inputValues.BRRcapexEst,
-            initialExpenseResults[2],
-            initialExpenseResults[0],
-            initialExpenseResults[1],
-            initialExpenseResults[3],
-            inputValues.newloanTerm,
-            initialExpenseResults[4],
-            inputValues.propertyTax,
-            initialExpenseResults[8],
-            inputValues.vacancyRate
-        );
-
         const results = {
-            mortgageCost: initialExpenseResults[0],
-            monthlyCost: initialExpenseResults[1],
-            cashDown: initialExpenseResults[2],
-            monthEx: initialExpenseResults[3],
-            monthlyPropTax: initialExpenseResults[6],
-            monthlyCapEx: 0,
-            monthlyOpEx: initialExpenseResults[8],
-            BRRMortgageCost: buyRefiResults[0],
-            BRRMonthlyCost: buyRefiResults[1],
-            BRRCashflow: buyRefiResults[2],
-            BRRAnnualCashflow: buyRefiResults[3],
-            MaxEquity: buyRefiResults[4],
-            EquityReturn: buyRefiResults[5],
-            EquityReturnPerc: buyRefiResults[6],
-            BRRCapEx: buyRefiResults[7],
-            BRRPropTax: buyRefiResults[8],
-            CashOnCash: buyRefiResults[9]
+            mortgageCost: BRRRresults[0],
+            cashDown: BRRRresults[6],
+            monthlyPropTax: BRRRresults[1],
+            monthlyOpEx: BRRRresults[2],
+            BRRMortgageCost: BRRRresults[3],
+            BRRCashflow: BRRRresults[7],
+            BRRAnnualCashflow: BRRRresults[8],
+            MaxEquity: BRRRresults[10],
+            EquityReturnPerc: BRRRresults[11],
+            BRRCapEx: BRRRresults[5],
+            BRRPropTax: BRRRresults[4],
+            CashOnCash: BRRRresults[9]
         };
 
         try {

@@ -7,8 +7,7 @@ import CalcButton from '../../Components/CalcButton.Js';
 import HomeButton from '../../Components/HomeButton.Js';
 import SwitchableNumericInput from '../../Components/SwitchableNumericInput.Js';
 import LoanTerm from '../../Components/LoanTerm.Js';
-import { expenses } from '../../../Calculations/ExpenseFunction.Js';
-import { outputs } from '../../../Calculations/CoreOutputs.Js';
+import { flipFunction } from '../../../Calculations/FlipFunction.Js';
 import Checkbox from '../../Components/InterestCheckbox.Js';
 import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 import calculatorInfo from '../../../assets/text/info.json';
@@ -229,8 +228,6 @@ function FlipCalcIn(props) {
             afterRev: toNumber(afterRev),
             rehabTime: toNumber(rehabTime),
             agentCommish: switchableInputs.agentCommish,
-            capexEst: { value: '0', isDollar: false },
-            monthRent: 0,
             operatingExpenseArray: {
                 isActive: operatingExpensesActive,
                 expenses: operatingExpenses,
@@ -238,49 +235,29 @@ function FlipCalcIn(props) {
             }
         };
 
-        const expenseResults = expenses(
+        const flipResults = flipFunction(
             inputValues.purchasePrice,
             inputValues.downPayment,
             inputValues.interestRate,
             inputValues.loanTerm,
             inputValues.propertyTax,
-            inputValues.capexEst,
-            inputValues.rehabCost,
             inputValues.closingCost,
-            inputValues.monthRent,
-            inputValues.rehabTime,
-            inputValues.operatingExpenseArray
-        );
-
-        const outputResults = outputs(
+            inputValues.rehabCost,
             inputValues.afterRev,
             inputValues.rehabTime,
             inputValues.agentCommish,
-            inputValues.monthRent,
-            inputValues.purchasePrice,
-            expenseResults[2],
-            expenseResults[1],
-            '0',
-            expenseResults[4]
-        );
+            inputValues.operatingExpenseArray
+        )
 
         const results = {
-            mortgageCost: expenseResults[0],
-            monthlyCost: expenseResults[1],
-            cashDown: expenseResults[2],
-            monthEx: expenseResults[3],
-            DSCR: expenseResults[5],
-            monthlyPropTax: expenseResults[6],
-            monthlyOpEx: expenseResults[8],
-            totalProfit: outputResults[0],
-            returnPerc: outputResults[1],
-            cashROI: outputResults[2],
-            cashflow: outputResults[3],
-            annualCashflow: outputResults[4],
-            cashOnCash: outputResults[5],
-            capRate: outputResults[6],
-            monthsTillEven: outputResults[7],
-            totalCashCost: outputResults[8],
+            mortgageCost: flipResults[0],
+            cashDown: flipResults[1],
+            monthlyPropTax: flipResults[2],
+            monthlyOpEx: flipResults[3],
+            totalProfit: flipResults[7],
+            returnPerc: flipResults[5],
+            cashROI: flipResults[6],
+            totalCashCost: flipResults[4],
         };
 
         try {

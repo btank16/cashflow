@@ -27,7 +27,7 @@ const SignUpThird = () => {
   const [targetStates, setTargetStates] = useState([]);
   const [investmentStrategies, setInvestmentStrategies] = useState([]);
   const [optInEmail, setOptInEmail] = useState(true);
-  const [acceptTerms, setAcceptTerms] = useState(true);
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [firstNameFocused, setFirstNameFocused] = useState(false);
   const [lastNameFocused, setLastNameFocused] = useState(false);
   const [dateOfBirthFocused, setDateOfBirthFocused] = useState(false);
@@ -154,9 +154,10 @@ const SignUpThird = () => {
       isDateValid &&
       state.length > 0 && 
       targetStates.length > 0 &&
-      investmentStrategies.length > 0
+      investmentStrategies.length > 0 &&
+      acceptTerms // Require terms acceptance to enable button
     );
-  }, [firstName, lastName, dateOfBirth, dateOfBirthError, state, targetStates, investmentStrategies]);
+  }, [firstName, lastName, dateOfBirth, dateOfBirthError, state, targetStates, investmentStrategies, acceptTerms]);
 
   const handleSignUp = async () => {
     if (!isButtonActive || isLoading) return;
@@ -225,20 +226,29 @@ const SignUpThird = () => {
     }
   };
 
-  // Helper function to render terms with colored parts
+  // Helper function to render terms with colored parts and checkbox
   const renderTermsText = () => {
     return (
       <View style={styles.termsContainer}>
-        <Text style={styles.termsText}>
-          By clicking Continue you accept our{' '}
-        </Text>
-        <TouchableOpacity onPress={handleTermsPress} activeOpacity={0.7}>
-          <Text style={[styles.termsText, styles.highlightedText]}>Terms & Conditions</Text>
-        </TouchableOpacity>
-        <Text style={styles.termsText}> and </Text>
-        <TouchableOpacity onPress={handlePrivacyPress} activeOpacity={0.7}>
-          <Text style={[styles.termsText, styles.highlightedText]}>Privacy Policy</Text>
-        </TouchableOpacity>
+        <View style={styles.termsCheckboxRow}>
+          <InterestCheckbox
+            value={acceptTerms}
+            onValueChange={setAcceptTerms}
+            style={styles.termsCheckbox}
+          />
+          <View style={styles.termsTextContainer}>
+            <Text style={styles.termsText}>
+              I accept the{' '}
+            </Text>
+            <TouchableOpacity onPress={handleTermsPress} activeOpacity={0.7}>
+              <Text style={[styles.termsText, styles.highlightedText]}>Terms of Use</Text>
+            </TouchableOpacity>
+            <Text style={styles.termsText}> and </Text>
+            <TouchableOpacity onPress={handlePrivacyPress} activeOpacity={0.7}>
+              <Text style={[styles.termsText, styles.highlightedText]}>Privacy Policy</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
     );
   };
@@ -255,15 +265,6 @@ const SignUpThird = () => {
 
   const renderFooter = () => (
     <View style={styles.bottomSection}>
-      <View style={styles.agreementSection}>
-        <InterestCheckbox
-          label="Yes, I want to receive email updates"
-          value={optInEmail}
-          onValueChange={setOptInEmail}
-        />
-        {renderTermsText()}
-      </View>
-
       <PrimaryButton
         label="Continue"
         loadingLabel={isOAuthUser ? 'Saving Profile...' : 'Creating Account...'}
@@ -344,6 +345,14 @@ const SignUpThird = () => {
           onValueChange={setInvestmentStrategies}
           placeholder="Select your investment strategies"
         />
+        <View style={styles.agreementSection}>
+          <InterestCheckbox
+            label="Yes, I want to receive email updates"
+            value={optInEmail}
+            onValueChange={setOptInEmail}
+          />
+          {renderTermsText()}
+        </View>
       </View>
 
       <PDFViewer 
@@ -400,17 +409,25 @@ const styles = StyleSheet.create({
   agreementSection: {
     marginBottom: 16,
   },
+  termsContainer: {
+    marginTop: 8,
+  },
+  termsCheckboxRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  termsCheckbox: {
+    marginTop: 1,
+    marginRight: 8,
+  },
+  termsTextContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
   termsText: {
     color: colors.primaryBlack,
     fontSize: 14,
-  },
-  termsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    marginTop: 8,
   },
   highlightedText: {
     color: colors.primaryGreen,

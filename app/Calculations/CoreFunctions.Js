@@ -274,7 +274,7 @@ export const maxEquityCalc = (purchasePrice, ARV, principalAmt) => {
       maxEquity = (newLoanAmount-principalAmt);
     }
 
-    return{maxEquity}
+    return{newLoanAmount, maxEquity}
 };
 
 export const equityReturnCalc = (maxEquity, totalInvestment) => {

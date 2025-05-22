@@ -79,11 +79,6 @@ function BRRCalcOut(props) {
             value: results.monthlyOpEx,
             color: colors.primaryOrange,
         },
-        {
-            name: 'Capital Expenditure',
-            value: results.monthlyCapEx,
-            color: colors.brightGreen,
-        },
     ];
 
     const BRRexpenseChartData = [

@@ -8,7 +8,7 @@ import HomeButton from '../../Components/HomeButton.Js';
 import SwitchableNumericInput from '../../Components/SwitchableNumericInput.Js';
 import LoanTerm from '../../Components/LoanTerm.Js';
 import Checkbox from '../../Components/InterestCheckbox.Js';
-import { CommercialCalc } from '../../../Calculations/CommercialCalc.Js';
+import { CommercialCalc } from '../../../Calculations/CommercialFunction.Js';
 import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 import calculatorInfo from '../../../assets/text/info.json';
 import { createCalculation, updateCalculation, createExpense, updateExpense } from '../../Utils/AmplifyDataUtils.Js';
@@ -246,17 +246,15 @@ function CommercialCalcIn(props) {
 
         const results = {
             mortgageCost: funcResults[0],
-            monthlyCost: funcResults[1],
-            totalAcquisitionCosts: funcResults[2],
-            monthEx: funcResults[3],
-            DSCR: funcResults[4],
-            monthlyPropTax: funcResults[5],
-            monthlyCapEx: funcResults[6],
-            monthlyOpEx: funcResults[7],
-            cashOnCash: funcResults[8],
-            capRate: funcResults[9],
-            monthsTillEven: funcResults[10],
-            annualCashflow: funcResults[11]
+            totalAcquisitionCosts: funcResults[1],
+            DSCR: funcResults[2],
+            monthlyPropTax: funcResults[3],
+            monthlyCapEx: funcResults[4],
+            monthlyOpEx: funcResults[5],
+            cashOnCash: funcResults[6],
+            capRate: funcResults[7],
+            monthsTillEven: funcResults[8],
+            annualCashflow: funcResults[9]
         };
 
         try {

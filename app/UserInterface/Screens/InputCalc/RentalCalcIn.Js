@@ -4,8 +4,6 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../../Colors/colors.Js';
 import NumericInput from '../../Components/NumericInputBox.Js';
 import CalcButton from '../../Components/CalcButton.Js';
-import { expenses } from '../../../Calculations/ExpenseFunction.Js';
-import { outputs } from '../../../Calculations/CoreOutputs.Js';
 import { rentalFunction } from '../../../Calculations/RentalFunction.Js';
 import HomeButton from '../../Components/HomeButton.Js';
 import SwitchableNumericInput from '../../Components/SwitchableNumericInput.Js';
@@ -255,50 +253,18 @@ function RentalCalcIn(props) {
             inputValues.operatingExpenseArray
         );
 
-        // const expenseResults = expenses(
-        //     inputValues.purchasePrice,
-        //     inputValues.downPayment,
-        //     inputValues.interestRate,
-        //     inputValues.loanTerm,
-        //     inputValues.propertyTax,
-        //     inputValues.capexEst,
-        //     inputValues.rehabCost,
-        //     inputValues.closingCost,
-        //     inputValues.monthRent,
-        //     inputValues.rehabTime,
-        //     inputValues.operatingExpenseArray
-        // );
-
-        // const outputResults = outputs(
-        //     inputValues.afterRev,
-        //     inputValues.rehabTime,
-        //     inputValues.agentCommish,
-        //     inputValues.monthRent,
-        //     inputValues.purchasePrice,
-        //     expenseResults[2],
-        //     expenseResults[1],
-        //     inputValues.vacancyRate,
-        //     expenseResults[4]
-        // );
-
         const results = {
             mortgageCost: rentalResults[0],
-            // monthlyCost: expenseResults[1],
             cashDown: rentalResults[1],
-            // monthEx: expenseResults[3],
             DSCR: rentalResults[2],
             monthlyPropTax: rentalResults[3],
             monthlyCapEx: rentalResults[4],
             monthlyOpEx: rentalResults[5],
-            // totalProfit: outputResults[0],
-            // returnPerc: outputResults[1],
-            // cashROI: outputResults[2],
             cashflow: rentalResults[6],
             annualCashflow: rentalResults[7],
             cashOnCash: rentalResults[8],
             capRate: rentalResults[9],
             monthsTillEven: rentalResults[10],
-            // totalCashCost: outputResults[8],
         };
 
         try {

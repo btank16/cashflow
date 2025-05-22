@@ -62,6 +62,7 @@ function CommercialCalcOut(props) {
             label: "Total Acquisition Costs",
             value: results.totalAcquisitionCosts,
             type: "dollar",
+            textColor: colors.primaryBlack,
             infoTitle: calculatorInfo.calculator_output.acquisition_cost.title,
             infoDescription: calculatorInfo.calculator_output.acquisition_cost.description
         },

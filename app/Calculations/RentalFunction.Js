@@ -4,11 +4,11 @@
 //Outputs: annualCashflow, monthlyCashflow, cashDown, cashOnCash, capRate, monthsTillEven, DSCR
 //Output Expenses: mortgageCost, monthlyPropTax, monthlyOpEx, monthlyCapEx
 
-import { downPayment, mortgageCalculation, propertyTax, capEx, operatingExpense, sum, NOICalc, DSCRCalc, closingCosts,
+const { downPayment, mortgageCalculation, propertyTax, capEx, operatingExpense, sum, NOICalc, DSCRCalc, closingCosts,
     cashFlow, cashOnCashCalc, capRateCalc, monthsToEvenCalc
-} from './CoreFunctions.Js';
+} = require('./CoreFunctions.Js');
 
-export const rentalFunction = (
+const rentalFunction = (
     purchasePrice,
     downPay,
     interestRate,
@@ -67,6 +67,8 @@ export const rentalFunction = (
         annualCashflow.toFixed(2),
         cashOnCash.toFixed(2),
         capRate.toFixed(2),
-        monthsToEven.toFixed(2)
+        monthsToEven
     ];
 }
+
+module.exports = { rentalFunction };

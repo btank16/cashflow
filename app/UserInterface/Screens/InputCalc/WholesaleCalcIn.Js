@@ -5,7 +5,7 @@ import colors from '../../Colors/colors.Js';
 import NumericInput from '../../Components/NumericInputBox.Js';
 import CalcButton from '../../Components/CalcButton.Js';
 import HomeButton from '../../Components/HomeButton.Js';
-import { wholesalefunction } from '../../../Calculations/WholesalingFunction.Js';
+const { wholesalefunction } = require('../../../Calculations/WholesalingFunction.Js');
 import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 import calculatorInfo from '../../../assets/text/info.json';
 import { createCalculation, updateCalculation, createExpense, updateExpense } from '../../Utils/AmplifyDataUtils.Js';

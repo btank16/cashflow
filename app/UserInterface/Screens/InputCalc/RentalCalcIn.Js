@@ -4,7 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../../Colors/colors.Js';
 import NumericInput from '../../Components/NumericInputBox.Js';
 import CalcButton from '../../Components/CalcButton.Js';
-import { rentalFunction } from '../../../Calculations/RentalFunction.Js';
+const { rentalFunction } = require('../../../Calculations/RentalFunction.Js');
 import HomeButton from '../../Components/HomeButton.Js';
 import SwitchableNumericInput from '../../Components/SwitchableNumericInput.Js';
 import LoanTerm from '../../Components/LoanTerm.Js';

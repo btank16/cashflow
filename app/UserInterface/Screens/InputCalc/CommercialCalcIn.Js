@@ -8,7 +8,7 @@ import HomeButton from '../../Components/HomeButton.Js';
 import SwitchableNumericInput from '../../Components/SwitchableNumericInput.Js';
 import LoanTerm from '../../Components/LoanTerm.Js';
 import Checkbox from '../../Components/InterestCheckbox.Js';
-import { CommercialCalc } from '../../../Calculations/CommercialFunction.Js';
+const { CommercialCalc } = require('../../../Calculations/CommercialFunction.Js');
 import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 import calculatorInfo from '../../../assets/text/info.json';
 import { createCalculation, updateCalculation, createExpense, updateExpense } from '../../Utils/AmplifyDataUtils.Js';

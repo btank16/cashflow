@@ -1,6 +1,6 @@
-import { operatingExpense, maximumAllowableOffer, wholesalingFees } from './CoreFunctions.Js';
+const { operatingExpense, maximumAllowableOffer, wholesalingFees } = require('./CoreFunctions.Js');
 
-export const wholesalefunction = (
+const wholesalefunction = (
     contractPrice,
     rehabCost,
     afterRepairValue,
@@ -38,4 +38,6 @@ export const wholesalefunction = (
       salePrice15Percent.toFixed(2)
     ];
   }
+  
+module.exports = { wholesalefunction };
   

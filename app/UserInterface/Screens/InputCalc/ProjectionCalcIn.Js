@@ -7,7 +7,7 @@ import LoanTerm from '../../Components/LoanTerm.Js';
 import CalcButton from '../../Components/CalcButton.Js';
 import HomeButton from '../../Components/HomeButton.Js';
 import SwitchableNumericInput from '../../Components/SwitchableNumericInput.Js';
-import { PriceSuggestion } from '../../../Calculations/SuggestPrice.Js';
+const { PriceSuggestion } = require('../../../Calculations/SuggestPrice.Js');
 import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 import calculatorInfo from '../../../assets/text/info.json';
 import { createCalculation, updateCalculation, createExpense, updateExpense } from '../../Utils/AmplifyDataUtils.Js';

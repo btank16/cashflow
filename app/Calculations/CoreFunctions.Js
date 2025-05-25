@@ -1,6 +1,6 @@
 // This file holds all the functions divided
 
-export const downPayment = (purchasePrice, downPayment) => {
+const downPayment = (purchasePrice, downPayment) => {
     //Purchase price is an object with a value and a isCashPurchase boolean
     //Down payment is an object with a value and a isDollar boolean
     let downPaymentPercent;
@@ -21,7 +21,7 @@ export const downPayment = (purchasePrice, downPayment) => {
     return{downPaymentCash, downPaymentPercent, loanAmount}
 };
 
-export const mortgageCalculation = (purchasePrice, loanAmount, downPaymentPercent, interestRate, loanTerm) => {
+const mortgageCalculation = (purchasePrice, loanAmount, downPaymentPercent, interestRate, loanTerm) => {
     //purchasePrice is an object with a value and a isCashPurchase boolean
     //loanAmount is a number
     //downPaymentPercent is a number
@@ -58,7 +58,7 @@ export const mortgageCalculation = (purchasePrice, loanAmount, downPaymentPercen
     return{mortgageCost}
 };
 
-export const principalLeft = (loanAmount, interestRate, monthsHeld, mortgageCost) => {
+const principalLeft = (loanAmount, interestRate, monthsHeld, mortgageCost) => {
     //loanAmount is a number
     //interestRate is an object with a value and a isInterestOnly boolean
     //monthsHeld is a number
@@ -77,7 +77,7 @@ export const principalLeft = (loanAmount, interestRate, monthsHeld, mortgageCost
     return{principalAmt}
 };
 
-export const propertyTax = (purchasePrice, propertyTax) => {
+const propertyTax = (purchasePrice, propertyTax) => {
     //purchasePrice is an object with a value and a isCashPurchase boolean
     //propertyTax is an object with a value and a isDollar boolean
 
@@ -91,7 +91,7 @@ export const propertyTax = (purchasePrice, propertyTax) => {
     return{monthlyPropTax}
 };
 
-export const capEx = (monthRent, capEx) => {
+const capEx = (monthRent, capEx) => {
     //monthRent is a number
     //capEx is an object with a value and a isDollar boolean
 
@@ -105,7 +105,7 @@ export const capEx = (monthRent, capEx) => {
     return{monthlyCapEx}
 };
 
-export const operatingExpense = (operatingExpense) => {
+const operatingExpense = (operatingExpense) => {
     //Accepts operatingExpense array which has a isActive boolean and an expenses array
     //Expense array has a name, cost, and frequency
     let totalMonthlyExpenses = 0;
@@ -129,13 +129,13 @@ export const operatingExpense = (operatingExpense) => {
 };
 
 //Used to sum expenses, cash down, etc.
-export const sum = (...numbers) => {
+const sum = (...numbers) => {
     const total = numbers.reduce((acc, current) => acc + current, 0);
     return { total };
 };
 
 //Calculates annual NOI
-export const NOICalc = (monthRent, operatingExpense, vacancy) => {
+const NOICalc = (monthRent, operatingExpense, vacancy) => {
     //monthRent is a number
     //operatingExpense a number
     //vacancy is a number
@@ -148,13 +148,15 @@ export const NOICalc = (monthRent, operatingExpense, vacancy) => {
 };
 
 //Ensure to use annual values and vacancy for DSCR (use NOI)
-export const DSCRCalc = (purchasePrice, NOI, mortgageCost) => {
+const DSCRCalc = (purchasePrice, NOI, mortgageCost) => {
     //purchasePrice is an object with a value and a isCashPurchase boolean
     //NOI is a number
     //mortgageCost is a number
     const annualMortgage = Number(mortgageCost) * 12;
     let DSCR;
     if (purchasePrice.isCashPurchase) {
+      DSCR = 'N/A';
+    } else if (annualMortgage === 0) {
       DSCR = 'N/A';
     } else {
       DSCR = (Number(NOI) / annualMortgage).toFixed(2);
@@ -163,7 +165,7 @@ export const DSCRCalc = (purchasePrice, NOI, mortgageCost) => {
     return{DSCR}
 };
 
-export const closingCosts = (purchasePrice, closingCost) => {
+const closingCosts = (purchasePrice, closingCost) => {
     //purchasePrice is an object with a value and a isCashPurchase boolean
     //closingCost is an object with a value and a isDollar boolean
 
@@ -177,7 +179,7 @@ export const closingCosts = (purchasePrice, closingCost) => {
     return{closingCostTotal}
 };
 
-export const agentCommission = (ARV, agentCommission) => {
+const agentCommission = (ARV, agentCommission) => {
     //ARV is a number
     //agentCommission is an object with a value and a isDollar boolean
 
@@ -192,7 +194,7 @@ export const agentCommission = (ARV, agentCommission) => {
 };
 
 //Use for other calculations!!!
-export const holdingExpenses = (monthsHeld, monthlyExpenses) => {
+const holdingExpenses = (monthsHeld, monthlyExpenses) => {
     //monthsHeld is a number
     //monthlyExpenses is a number
 
@@ -201,7 +203,7 @@ export const holdingExpenses = (monthsHeld, monthlyExpenses) => {
     return{totalHoldingExpenses}
 };
 
-export const totalProfitCalc = (purchasePrice, ARV, totalExpense, agentCommission, principalAmt) => {
+const totalProfitCalc = (purchasePrice, ARV, totalExpense, agentCommission, principalAmt) => {
     //purchasePrice is an object with a value and a isCashPurchase boolean
     //ARV is a number
     //totalExpense is a number
@@ -218,7 +220,7 @@ export const totalProfitCalc = (purchasePrice, ARV, totalExpense, agentCommissio
     return{totalProfit}
 };
 
-export const ROI = (totalProfit, purchasePrice, totalExpense) => {
+const ROI = (totalProfit, purchasePrice, totalExpense) => {
     //totalProfit is a number
     //purchasePrice is an object with a value and a isCashPurchase boolean
     //totalExpense is a number
@@ -227,7 +229,7 @@ export const ROI = (totalProfit, purchasePrice, totalExpense) => {
     return{PercROI, CashROI}
 };
 
-export const cashFlow = (monthRent, monthlyCost, vacancy) => {
+const cashFlow = (monthRent, monthlyCost, vacancy) => {
     //monthRent is a number
     //monthlyCost is a number
     //vacancy is a number
@@ -241,28 +243,33 @@ export const cashFlow = (monthRent, monthlyCost, vacancy) => {
     return{monthlyCashflow, annualCashflow}
 };
 
-export const cashOnCashCalc = (annualCashFlow, cashDown) => {
+const cashOnCashCalc = (annualCashFlow, cashDown) => {
     //annualCashFlow is a number
     //cashDown is a number
     const cashOnCash = ((annualCashFlow / cashDown) * 100);
     return{cashOnCash}
 };
 
-export const capRateCalc = (annualCashFlow, purchasePrice) => {
+const capRateCalc = (annualCashFlow, purchasePrice) => {
     //annualCashFlow is a number
     //purchasePrice is an object with a value and a isCashPurchase boolean
     const capRate = ((annualCashFlow / Number(purchasePrice.value)) * 100);
     return{capRate}
 };
 
-export const monthsToEvenCalc = (cashDown, monthlyCashFlow) => {
+const monthsToEvenCalc = (cashDown, monthlyCashFlow) => {
     //cashDown is a number
     //monthlyCashFlow is a number
-    const monthsToEven = Math.ceil(cashDown / monthlyCashFlow);
+    let monthsToEven;
+    if (monthlyCashFlow <= 0) {
+      monthsToEven = 'N/A';
+    } else {
+      monthsToEven = Math.ceil(cashDown / monthlyCashFlow);
+    }
     return{monthsToEven}
 };
 
-export const maxEquityCalc = (purchasePrice, ARV, principalAmt) => {
+const maxEquityCalc = (purchasePrice, ARV, principalAmt) => {
     //purchasePrice is an object with a value and a isCashPurchase boolean
     //ARV is a number
     //principalAmt is a number
@@ -277,7 +284,7 @@ export const maxEquityCalc = (purchasePrice, ARV, principalAmt) => {
     return{newLoanAmount, maxEquity}
 };
 
-export const equityReturnCalc = (maxEquity, totalInvestment) => {
+const equityReturnCalc = (maxEquity, totalInvestment) => {
     //maxEquity is a number
     //totalInvestment is a number
     const equityReturn = maxEquity - totalInvestment;
@@ -285,7 +292,7 @@ export const equityReturnCalc = (maxEquity, totalInvestment) => {
     return{equityReturn, equityReturnPerc}
 };
 
-export const acquisitionCosts = (purchasePrice, acquisitionCosts) => {
+const acquisitionCosts = (purchasePrice, acquisitionCosts) => {
     //purchasePrice is an object with a value and a isCashPurchase boolean
     //acquisitionCosts is an object with a value and a isDollar boolean
     let realAcquisitionCosts;
@@ -298,13 +305,13 @@ export const acquisitionCosts = (purchasePrice, acquisitionCosts) => {
     return{realAcquisitionCosts}
 };
 
-export const maximumAllowableOffer = (ARV, rehabCost) => {
+const maximumAllowableOffer = (ARV, rehabCost) => {
     //only accepts number inputs
     const MAO = (ARV * 0.7) - rehabCost;
     return{MAO}
 };
 
-export const wholesalingFees = (ARV, contractPrice, feePercent) => {
+const wholesalingFees = (ARV, contractPrice, feePercent) => {
     //only accepts number inputs
     const wholesaleFee = ARV * feePercent;
     const wholesaleSalePrice = contractPrice + wholesaleFee;
@@ -326,16 +333,45 @@ export const wholesalingFees = (ARV, contractPrice, feePercent) => {
 // Reverse to get Purchase Price:
 // P = M / [(1-D)*I*((1+I)^n / ((1+I)^n - 1))]
 
-export const reverseMortgage = (interestRate, DownPayPerc, LoanTerm) => {
+const reverseMortgage = (interestRate, DownPayPerc, LoanTerm) => {
     //Only accepts number inputs
     const MonthInt = interestRate / 100 / 12;
     const AdjustedInt = 1 + MonthInt;
-    const NormRate = (1-DownPayPerc) * ((MonthInt * Math.pow(AdjustedInt,LoanTerm) / (Math.pow(AdjustedInt,LoanTerm) - 1)));
+    const monthlyLoanTerm = LoanTerm * 12;
+    const downPayDecimal = DownPayPerc / 100;
+    const NormRate = (1-downPayDecimal) * ((MonthInt * Math.pow(AdjustedInt,monthlyLoanTerm) / (Math.pow(AdjustedInt,monthlyLoanTerm) - 1)));
     //Account for FHA and other PMI
-    const LowDPRate = DownPayPerc == 0.035
-      ? 1.0175 * (((1-DownPayPerc) * ((MonthInt * Math.pow(AdjustedInt,LoanTerm) / (Math.pow(AdjustedInt,LoanTerm) - 1)))) + (((1-DownPayPerc) * 0.0085) / 12))
-      : ((1-DownPayPerc) * ((MonthInt * Math.pow(AdjustedInt,LoanTerm) / (Math.pow(AdjustedInt,LoanTerm) - 1)))) + (((1-DownPayPerc) * 0.0085) / 12);
+    const LowDPRate = downPayDecimal <= 0.035
+      ? 1.0175 * (((1-downPayDecimal) * ((MonthInt * Math.pow(AdjustedInt,monthlyLoanTerm) / (Math.pow(AdjustedInt,monthlyLoanTerm) - 1)))) + (((1-downPayDecimal) * 0.0085) / 12))
+      : ((1-downPayDecimal) * ((MonthInt * Math.pow(AdjustedInt,monthlyLoanTerm) / (Math.pow(AdjustedInt,monthlyLoanTerm) - 1)))) + (((1-downPayDecimal) * 0.0085) / 12);
     return{NormRate, LowDPRate}
+};
+
+module.exports = {
+  downPayment,
+  mortgageCalculation,
+  principalLeft,
+  propertyTax,
+  capEx,
+  operatingExpense,
+  sum,
+  NOICalc,
+  DSCRCalc,
+  closingCosts,
+  agentCommission,
+  holdingExpenses,
+  totalProfitCalc,
+  ROI,
+  cashFlow,
+  cashOnCashCalc,
+  capRateCalc,
+  monthsToEvenCalc,
+  maxEquityCalc,
+  equityReturnCalc,
+  acquisitionCosts,
+  maximumAllowableOffer,
+  wholesalingFees,
+  reverseMortgage
 };
 
 

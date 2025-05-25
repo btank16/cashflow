@@ -1,8 +1,8 @@
-import { downPayment, mortgageCalculation, propertyTax, capEx, operatingExpense, sum, closingCosts,
+const { downPayment, mortgageCalculation, propertyTax, capEx, operatingExpense, sum, closingCosts,
     cashFlow, cashOnCashCalc, NOICalc, DSCRCalc, acquisitionCosts, capRateCalc, monthsToEvenCalc
-} from './CoreFunctions.Js';
+} = require('./CoreFunctions.Js');
 
-export const CommercialCalc = (
+const CommercialCalc = (
   purchasePrice,
   downPay,
   acquisitionCost,
@@ -78,6 +78,8 @@ export const CommercialCalc = (
   return [mortgageCost.toFixed(2), totalAcquisitionCosts.toFixed(2), 
     DSCR, monthlyPropTax.toFixed(2), monthlyCapEx.toFixed(2), 
     totalMonthlyExpenses.toFixed(2), cashOnCash.toFixed(2), 
-    capRate.toFixed(2), monthsToEven.toFixed(2), annualCashflow.toFixed(2)];
+    capRate.toFixed(2), monthsToEven, annualCashflow.toFixed(2)];
 };
+
+module.exports = { CommercialCalc };
 

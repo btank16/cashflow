@@ -4,11 +4,11 @@
 //Outputs: returnPerc, cashROI, cashDown, totalCashCost, totalProfit
 //Outputs Expenses: mortgageCost, monthlyPropTax, monthlyOpEx
 
-import { downPayment, mortgageCalculation, principalLeft, propertyTax, operatingExpense, sum, closingCosts,
+const { downPayment, mortgageCalculation, principalLeft, propertyTax, operatingExpense, sum, closingCosts,
     agentCommission, holdingExpenses, totalProfitCalc, ROI
-} from './CoreFunctions.Js';
+} = require('./CoreFunctions.Js');
 
-export const flipFunction = (
+const flipFunction = (
     purchasePrice,
     downPay,
     interestRate,
@@ -66,3 +66,5 @@ export const flipFunction = (
         totalProfit.toFixed(2)
     ];
 }
+
+module.exports = { flipFunction };

@@ -1,4 +1,4 @@
-export const PriceSuggestion = (
+const PriceSuggestion = (
   CashflowTarget,
   DownPayPerc,
   IntRate,
@@ -102,3 +102,5 @@ export const PriceSuggestion = (
     netZeroTax.toFixed(2), targetTax.toFixed(2), monthlyCapEx.toFixed(2), 
     totalMonthlyExpenses.toFixed(2), MaxZeroMortgage.toFixed(2), MaxCashflowMortgage.toFixed(2)];
 };
+
+module.exports = { PriceSuggestion };

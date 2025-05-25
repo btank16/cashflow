@@ -9,11 +9,11 @@
 //Outputs Expenses Pre-refinance: MortgageCost, PropTax, monthlyOpEx
 //Outputs Expenses Post-refinance: BRRMortgageCost, BRRPropTax, monthlyOpEx, BRRCapEx
 
-import { downPayment, mortgageCalculation, propertyTax, capEx, operatingExpense, sum, closingCosts,
+const { downPayment, mortgageCalculation, propertyTax, capEx, operatingExpense, sum, closingCosts,
     cashFlow, cashOnCashCalc, holdingExpenses, principalLeft, maxEquityCalc, equityReturnCalc
-} from './CoreFunctions.Js';
+} = require('./CoreFunctions.Js');
 
-export const BRRRRFunction = (
+const BRRRRFunction = (
     purchasePrice,
     downPay,
     interestRate,
@@ -98,3 +98,5 @@ export const BRRRRFunction = (
         equityReturnPerc.toFixed(2)
     ];
 }
+
+module.exports = { BRRRRFunction };

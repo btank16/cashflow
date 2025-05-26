@@ -1,3 +1,5 @@
+const { operatingExpense, capEx, reverseMortgage, closingCosts, sum } = require('./CoreFunctions.Js');
+
 const PriceSuggestion = (
   CashflowTarget,
   DownPayPerc,
@@ -12,40 +14,18 @@ const PriceSuggestion = (
 ) => {
   // Convert inputs to numbers
   CashflowTarget = Number(CashflowTarget);
-  DownPayPerc = Number(DownPayPerc) / 100;
-  IntRate = Number(IntRate) / 100; 
-  const MonthInt = IntRate / 12; // Monthly interest rate
-  LoanTerm = Number(LoanTerm) * 12; // Convert years to months
-  PropTaxPerc = Number(PropTaxPerc) / 100 / 12; // Monthly property tax rate
+  DownPayPerc = Number(DownPayPerc);
+  IntRate = Number(IntRate); 
+  LoanTerm = Number(LoanTerm);
+  PropTaxPerc = Number(PropTaxPerc);
   MonthRent = Number(MonthRent);
   rehabCost = Number(rehabCost);
-
-
-  // Calculate total monthly expenses
-  let totalMonthlyExpenses = 0;
-  let totalFixedExpenses = 0;
   
-  if (OperatingExpense.isActive && OperatingExpense.expenses) {
-    OperatingExpense.expenses.forEach(expense => {
-      const cost = Number(expense.cost);
-      
-      if (expense.frequency === 'Annually') {
-        totalMonthlyExpenses += cost / 12;
-      } else if (expense.frequency === 'Monthly') {
-        totalMonthlyExpenses += cost;
-      } else if (expense.frequency === 'Non-recurring') {
-        totalFixedExpenses += cost;
-      }
-    });
-  }
+  // Calculate operating expenses using CoreFunctions
+  const { totalMonthlyExpenses, totalFixedExpenses } = operatingExpense(OperatingExpense);
   
-  // Calculate monthly CapEx
-  let monthlyCapEx;
-  if (CapExEst.isDollar) {
-    monthlyCapEx = Number(CapExEst.value) / 12;
-  } else {
-    monthlyCapEx = (MonthRent * (Number(CapExEst.value) / 100));
-  }
+  // Calculate monthly CapEx using CoreFunctions
+  const { monthlyCapEx } = capEx(MonthRent, CapExEst);
 
   // Calculates the total expenses known without the purchase price
   const ExpNoProperty = monthlyCapEx + totalMonthlyExpenses;
@@ -56,46 +36,51 @@ const PriceSuggestion = (
   // Calculates the maximum monthly payment to net zero
   const MaxZeroMortgage = MonthRent - ExpNoProperty;
 
-  // Input to the interest rate equation
-  const AdjustedInt = 1 + MonthInt;
-  const NormRate = (1-DownPayPerc) * ((MonthInt * Math.pow(AdjustedInt,LoanTerm) / (Math.pow(AdjustedInt,LoanTerm) - 1)));
-  const LowDPRate = DownPayPerc == 0.035
-    ? 1.0175 * (((1-DownPayPerc) * ((MonthInt * Math.pow(AdjustedInt,LoanTerm) / (Math.pow(AdjustedInt,LoanTerm) - 1)))) + (((1-DownPayPerc) * 0.0085) / 12))
-    : ((1-DownPayPerc) * ((MonthInt * Math.pow(AdjustedInt,LoanTerm) / (Math.pow(AdjustedInt,LoanTerm) - 1)))) + (((1-DownPayPerc) * 0.0085) / 12);
-
+  // Use reverseMortgage to get the rates
+  const { NormRate, LowDPRate } = reverseMortgage(IntRate, DownPayPerc, LoanTerm);
+  
+  // Adjust property tax rate to monthly
+  const monthlyPropTaxRate = PropTaxPerc / 100 / 12;
 
   // Calculates target purchase price
-  const TargetPrice = DownPayPerc < 0.2
-    ? MaxCashflowMortgage / (LowDPRate + PropTaxPerc)
-    : MaxCashflowMortgage / (NormRate + PropTaxPerc);
+  const TargetPrice = DownPayPerc < 20
+    ? MaxCashflowMortgage / (LowDPRate + monthlyPropTaxRate)
+    : MaxCashflowMortgage / (NormRate + monthlyPropTaxRate);
 
-  // Calculates target purchase price
-  const NetZeroPrice = DownPayPerc < 0.2
-    ? MaxZeroMortgage / (LowDPRate + PropTaxPerc)
-    : MaxZeroMortgage / (NormRate + PropTaxPerc);
+  // Calculates net zero purchase price
+  const NetZeroPrice = DownPayPerc < 20
+    ? MaxZeroMortgage / (LowDPRate + monthlyPropTaxRate)
+    : MaxZeroMortgage / (NormRate + monthlyPropTaxRate);
 
-    // Calculates Closing Costs and Down Payment Sum (plus rehab)
-    let closingCostTarget;
-    let closingCostZero;
-    if (closingCost.isDollar) {
-      closingCostTarget = Number(closingCost.value);
-      closingCostZero = Number(closingCost.value);
-    } else {
-      closingCostTarget = (TargetPrice * (Number(closingCost.value) / 100));
-      closingCostZero = (NetZeroPrice * (Number(closingCost.value) / 100));
-    }
+  // Create purchase price objects to use with CoreFunctions
+  const targetPriceObj = { value: TargetPrice, isCashPurchase: false };
+  const netZeroPriceObj = { value: NetZeroPrice, isCashPurchase: false };
 
-    // Calculate the total cash down for each scenario
-    const netZeroCash = (NetZeroPrice * DownPayPerc) + closingCostZero + rehabCost + totalFixedExpenses;
-    const targetPriceCash = (TargetPrice * DownPayPerc) + closingCostTarget + rehabCost + totalFixedExpenses;
+  // Calculate closing costs using CoreFunctions
+  const targetClosingCosts = closingCosts(targetPriceObj, closingCost);
+  const netZeroClosingCosts = closingCosts(netZeroPriceObj, closingCost);
+  
+  const closingCostTarget = targetClosingCosts.closingCostTotal;
+  const closingCostZero = netZeroClosingCosts.closingCostTotal;
 
-    // Calculate Property Tax for each scenario
-    const netZeroTax = NetZeroPrice * PropTaxPerc;
-    const targetTax = TargetPrice * PropTaxPerc;
+  // Calculate down payment for each scenario
+  const downPaymentTarget = TargetPrice * (DownPayPerc / 100);
+  const downPaymentNetZero = NetZeroPrice * (DownPayPerc / 100);
 
-    // Calculate Monthly Expenses for Each Scenario
-    const netZeroExp = MaxZeroMortgage + netZeroTax + ExpNoProperty;
-    const targetExp = MaxCashflowMortgage + targetTax + ExpNoProperty;
+  // Calculate the total cash down for each scenario using sum function
+  const targetCashDownResult = sum(downPaymentTarget, closingCostTarget, rehabCost, totalFixedExpenses);
+  const netZeroCashDownResult = sum(downPaymentNetZero, closingCostZero, rehabCost, totalFixedExpenses);
+  
+  const targetPriceCash = targetCashDownResult.total;
+  const netZeroCash = netZeroCashDownResult.total;
+
+  // Calculate Property Tax for each scenario
+  const netZeroTax = NetZeroPrice * monthlyPropTaxRate;
+  const targetTax = TargetPrice * monthlyPropTaxRate;
+
+  // Calculate Monthly Expenses for Each Scenario
+  const netZeroExp = MaxZeroMortgage + netZeroTax + ExpNoProperty;
+  const targetExp = MaxCashflowMortgage + targetTax + ExpNoProperty;
 
   return [TargetPrice.toFixed(2), NetZeroPrice.toFixed(2), netZeroCash.toFixed(2), 
     targetPriceCash.toFixed(2), netZeroExp.toFixed(2), targetExp.toFixed(2), 

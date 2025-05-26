@@ -2,8 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { Linking, View, StyleSheet } from 'react-native';
 import AppNavigator from './AppNavigator.Js';
-import { SQLiteProvider } from 'expo-sqlite';
-import { initHistoryDB } from './database/cashflowDatabase.Js';
 import { Amplify } from 'aws-amplify';
 import awsconfig from './amplify_outputs.json';
 import { hasActiveSession, checkIsFirstTimeUser } from './app/UserInterface/Utils/AuthUtils.Js';
@@ -214,7 +212,6 @@ function App() {
 
   return (
     <View style={styles.mainContainer}>
-      <SQLiteProvider databaseName="cashflow.db" onInit={initHistoryDB}>
         <NavigationContainer
           ref={navigationRef}
           linking={{
@@ -237,7 +234,6 @@ function App() {
         >
           <AppNavigator initialRouteName={initialRoute} />
         </NavigationContainer>
-      </SQLiteProvider>
     </View>
   );
 }

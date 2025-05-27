@@ -303,7 +303,7 @@ const AttributeScreen = () => {
   const renderFooter = () => (
     <View style={styles.agreementSection}>
       <InterestCheckbox
-        label="Yes, I want to receive email updates"
+        label="Yes, I want to receive email updates from Cashflow"
         value={optInEmail}
         onValueChange={setOptInEmail}
       />

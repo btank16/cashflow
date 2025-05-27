@@ -15,5 +15,14 @@
     "production": {
       "channel": "production"
     }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "blaketanski@gmail.com",
+        "ascAppId": "6746049962",
+        "appleTeamId": "4UVPSXYMDV"
+      }
+    }
   }
 }

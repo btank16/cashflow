@@ -7,6 +7,7 @@ import colors from '../../Colors/colors.Js';
 import { getUserAttribute } from '../../Utils/UserAttributesCache.Js';
 import { clearUserAttributesCache } from '../../Utils/UserAttributesCache.Js';
 import ScreenLayout from '../../UtilScreens/ScreenLayout.Js';
+import { clearDataCache } from '../../Utils/DataCache.Js';
 
 // Import icons
 import UserIcon from '../../../assets/icons/UserIcon.jsx';
@@ -40,6 +41,8 @@ const UserScreen = () => {
     try {
       // Clear the user attributes cache when signing out
       clearUserAttributesCache();
+      // Clear the data cache when signing out
+      clearDataCache();
       await signOut();
       // Navigate to Auth stack after successful sign out
       navigation.reset({

@@ -4,15 +4,15 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../../Colors/colors.Js';
 import NumericInput from '../../Components/NumericInputBox.Js';
 import CalcButton from '../../Components/CalcButton.Js';
-import { expenses } from '../../../Calculations/ExpenseFunction.Js';
-import { BuyRefi } from '../../../Calculations/BRRROutput.Js';
+const { BRRRRFunction } = require('../../../Calculations/BRRRFunction.Js');
 import LoanTerm from '../../Components/LoanTerm.Js';
 import HomeButton from '../../Components/HomeButton.Js';
 import SwitchableNumericInput from '../../Components/SwitchableNumericInput.Js';
-import { useDatabase } from '../../../../database/cashflowDatabase.Js';
 import Checkbox from '../../Components/InterestCheckbox.Js';
 import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 import calculatorInfo from '../../../assets/text/info.json';
+import { createCalculation, updateCalculation, createExpense, updateExpense } from '../../Utils/AmplifyDataUtils.Js';
+import { getExpenses } from '../../Utils/DataCache.Js';
 
 function BRRCalcIn(props) {
     const navigation = useNavigation();
@@ -38,7 +38,6 @@ function BRRCalcIn(props) {
         propertyTax: { value: '', isDollar: false },
         BRRcapexEst: { value: '', isDollar: false }
     });
-    const { saveCalculation, saveExpense } = useDatabase();
     const [interestRateInput, setInterestRateInput] = useState({
         initialInterest: { value: '', isInterestOnly: false },
         newInterest: { value: '', isInterestOnly: false }
@@ -164,25 +163,63 @@ function BRRCalcIn(props) {
         }));
     };
 
+    const toTitleCase = (str) => {
+        return str
+            .toLowerCase()
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    };
+
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
         if (saveNewExpenses && operatingExpenses.length > 0) {
             try {
+                // Get all existing expenses from DataCache
+                const existingExpenses = await getExpenses();
+                
                 for (const expense of operatingExpenses) {
                     if (expense.category && expense.cost) {
-                        const formattedCategory = expense.category
-                            .toLowerCase()
-                            .split(' ')
-                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                            .join(' ');
+                        const formattedCategory = toTitleCase(expense.category);
 
-                        await saveExpense(
-                            formattedCategory,
-                            expense.cost,
-                            expense.frequency,
-                            ['brrrr']
+                        // Check if this expense already exists
+                        const matchingExpense = existingExpenses.find(existing => 
+                            existing.category === formattedCategory && 
+                            parseFloat(existing.cost) === parseFloat(expense.cost) && 
+                            existing.frequency === expense.frequency
                         );
+
+                        if (matchingExpense) {
+                            // Update existing expense
+                            try {
+                                // Parse existing applicable calculators
+                                const existingCalculators = JSON.parse(matchingExpense.applicable_calculators || '[]');
+                                
+                                // Only add 'rental' if it's not already in the list
+                                if (!existingCalculators.includes('brrrr')) {
+                                    const updatedCalculators = [...existingCalculators, 'brrrr'];
+                                    
+                                    await updateExpense(
+                                        matchingExpense.id,
+                                        formattedCategory,
+                                        expense.cost,
+                                        expense.frequency,
+                                        updatedCalculators
+                                    );
+                                }
+                            } catch (error) {
+                                console.error('Error updating existing expense:', error);
+                            }
+                        } else {
+                            // Create new expense
+                            await createExpense(
+                                formattedCategory,
+                                expense.cost,
+                                expense.frequency,
+                                ['brrrr']
+                            );
+                        }
                     }
                 }
             } catch (error) {
@@ -219,62 +256,66 @@ function BRRCalcIn(props) {
             vacancyRate: toNumber(vacancyRate) || '0'
         };
 
-        const initialExpenseResults = expenses(
+        const BRRRresults = BRRRRFunction(
             inputValues.purchasePrice,
             inputValues.downPayment,
             inputValues.interestRate,
             inputValues.loanTerm,
             inputValues.propertyTax,
+            inputValues.closingCost,
             inputValues.BRRcapexEst,
             inputValues.rehabCost,
-            inputValues.closingCost,
-            0,
             inputValues.rehabTime,
+            inputValues.refinanceCost,
+            inputValues.newInterest,
+            inputValues.newloanTerm,
+            inputValues.afterRev,
+            inputValues.BRRmonthRent,
+            inputValues.vacancyRate,
             inputValues.operatingExpenseArray
         );
 
-        const buyRefiResults = BuyRefi(
-            inputValues.purchasePrice,
-            inputValues.refinanceCost,
-            inputValues.newInterest,
-            inputValues.afterRev,
-            inputValues.rehabTime,
-            inputValues.BRRmonthRent,
-            inputValues.BRRcapexEst,
-            initialExpenseResults[2],
-            initialExpenseResults[0],
-            initialExpenseResults[1],
-            initialExpenseResults[3],
-            inputValues.newloanTerm,
-            initialExpenseResults[4],
-            inputValues.propertyTax,
-            initialExpenseResults[8],
-            inputValues.vacancyRate
-        );
-
         const results = {
-            mortgageCost: initialExpenseResults[0],
-            monthlyCost: initialExpenseResults[1],
-            cashDown: initialExpenseResults[2],
-            monthEx: initialExpenseResults[3],
-            monthlyPropTax: initialExpenseResults[6],
-            monthlyCapEx: 0,
-            monthlyOpEx: initialExpenseResults[8],
-            BRRMortgageCost: buyRefiResults[0],
-            BRRMonthlyCost: buyRefiResults[1],
-            BRRCashflow: buyRefiResults[2],
-            BRRAnnualCashflow: buyRefiResults[3],
-            MaxEquity: buyRefiResults[4],
-            EquityReturn: buyRefiResults[5],
-            EquityReturnPerc: buyRefiResults[6],
-            BRRCapEx: buyRefiResults[7],
-            BRRPropTax: buyRefiResults[8],
-            CashOnCash: buyRefiResults[9]
+            mortgageCost: BRRRresults[0],
+            cashDown: BRRRresults[6],
+            monthlyPropTax: BRRRresults[1],
+            monthlyOpEx: BRRRresults[2],
+            BRRMortgageCost: BRRRresults[3],
+            BRRCashflow: BRRRresults[7],
+            BRRAnnualCashflow: BRRRresults[8],
+            MaxEquity: BRRRresults[10],
+            EquityReturnPerc: BRRRresults[11],
+            BRRCapEx: BRRRresults[5],
+            BRRPropTax: BRRRresults[4],
+            CashOnCash: BRRRresults[9]
         };
 
         try {
-            const savedId = await saveCalculation('brrr', inputValues, results, calculationId);
+            let savedData;
             
+            if (calculationId) {
+                // Update existing calculation
+                savedData = await updateCalculation(
+                    calculationId,
+                    'brrr',
+                    inputValues,
+                    results
+                );
+            } else {
+                // Create new calculation
+                savedData = await createCalculation(
+                    'brrr',
+                    inputValues,
+                    results
+                );
+            }
+            
+            let savedId = calculationId;
+            if (savedData && savedData.id) {
+                savedId = savedData.id;
+            }
+            
+            // Navigate to the result screen
             navigation.navigate(resultScreen, {
                 inputValues: {...inputValues, id: savedId},
                 ...results

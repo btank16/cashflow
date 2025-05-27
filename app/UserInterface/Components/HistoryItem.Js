@@ -147,7 +147,7 @@ const getNavigationScreen = (calculatorType) => {
 
 const HistoryItem = ({ item, onDelete, navigation }) => {
   const { icon, details, name, primColor, secColor } = getCalculatorDetails(item);
-  const timeElapsed = getTimeElapsed(item.date);
+  const timeElapsed = getTimeElapsed(item.updatedAt);
 
   const renderRightActions = (progress, dragX) => {
     return (

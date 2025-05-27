@@ -7,12 +7,13 @@ import CalcButton from '../../Components/CalcButton.Js';
 import HomeButton from '../../Components/HomeButton.Js';
 import SwitchableNumericInput from '../../Components/SwitchableNumericInput.Js';
 import LoanTerm from '../../Components/LoanTerm.Js';
-import { useDatabase } from '../../../../database/cashflowDatabase.Js';
-import { expenses } from '../../../Calculations/ExpenseFunction.Js';
-import { outputs } from '../../../Calculations/CoreOutputs.Js';
+const { flipFunction } = require('../../../Calculations/FlipFunction.Js');
 import Checkbox from '../../Components/InterestCheckbox.Js';
 import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 import calculatorInfo from '../../../assets/text/info.json';
+import { createCalculation, updateCalculation, createExpense, updateExpense } from '../../Utils/AmplifyDataUtils.Js';
+import { getExpenses } from '../../Utils/DataCache.Js';
+
 function FlipCalcIn(props) {
     const navigation = useNavigation();
     const route = useRoute();
@@ -38,7 +39,6 @@ function FlipCalcIn(props) {
         value: '',
         isInterestOnly: false
     });
-    const { saveCalculation, saveExpense } = useDatabase();
     const [calculationId, setCalculationId] = useState(null);
     const [showHeaderTitle, setShowHeaderTitle] = useState(false);
     const scrollY = useRef(new Animated.Value(0)).current;
@@ -147,25 +147,63 @@ function FlipCalcIn(props) {
         }));
     };
 
+    const toTitleCase = (str) => {
+        return str
+            .toLowerCase()
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    };
+
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
         if (saveNewExpenses && operatingExpenses.length > 0) {
             try {
+                // Get all existing expenses from DataCache
+                const existingExpenses = await getExpenses();
+                
                 for (const expense of operatingExpenses) {
                     if (expense.category && expense.cost) {
-                        const formattedCategory = expense.category
-                            .toLowerCase()
-                            .split(' ')
-                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                            .join(' ');
+                        const formattedCategory = toTitleCase(expense.category);
 
-                        await saveExpense(
-                            formattedCategory,
-                            expense.cost,
-                            expense.frequency,
-                            ['flip']
+                        // Check if this expense already exists
+                        const matchingExpense = existingExpenses.find(existing => 
+                            existing.category === formattedCategory && 
+                            parseFloat(existing.cost) === parseFloat(expense.cost) && 
+                            existing.frequency === expense.frequency
                         );
+
+                        if (matchingExpense) {
+                            // Update existing expense
+                            try {
+                                // Parse existing applicable calculators
+                                const existingCalculators = JSON.parse(matchingExpense.applicable_calculators || '[]');
+                                
+                                // Only add 'rental' if it's not already in the list
+                                if (!existingCalculators.includes('flip')) {
+                                    const updatedCalculators = [...existingCalculators, 'flip'];
+                                    
+                                    await updateExpense(
+                                        matchingExpense.id,
+                                        formattedCategory,
+                                        expense.cost,
+                                        expense.frequency,
+                                        updatedCalculators
+                                    );
+                                }
+                            } catch (error) {
+                                console.error('Error updating existing expense:', error);
+                            }
+                        } else {
+                            // Create new expense
+                            await createExpense(
+                                formattedCategory,
+                                expense.cost,
+                                expense.frequency,
+                                ['flip']
+                            );
+                        }
                     }
                 }
             } catch (error) {
@@ -190,8 +228,6 @@ function FlipCalcIn(props) {
             afterRev: toNumber(afterRev),
             rehabTime: toNumber(rehabTime),
             agentCommish: switchableInputs.agentCommish,
-            capexEst: { value: '0', isDollar: false },
-            monthRent: 0,
             operatingExpenseArray: {
                 isActive: operatingExpensesActive,
                 expenses: operatingExpenses,
@@ -199,54 +235,57 @@ function FlipCalcIn(props) {
             }
         };
 
-        const expenseResults = expenses(
+        const flipResults = flipFunction(
             inputValues.purchasePrice,
             inputValues.downPayment,
             inputValues.interestRate,
             inputValues.loanTerm,
             inputValues.propertyTax,
-            inputValues.capexEst,
-            inputValues.rehabCost,
             inputValues.closingCost,
-            inputValues.monthRent,
-            inputValues.rehabTime,
-            inputValues.operatingExpenseArray
-        );
-
-        const outputResults = outputs(
+            inputValues.rehabCost,
             inputValues.afterRev,
             inputValues.rehabTime,
             inputValues.agentCommish,
-            inputValues.monthRent,
-            inputValues.purchasePrice,
-            expenseResults[2],
-            expenseResults[1],
-            '0',
-            expenseResults[4]
-        );
+            inputValues.operatingExpenseArray
+        )
 
         const results = {
-            mortgageCost: expenseResults[0],
-            monthlyCost: expenseResults[1],
-            cashDown: expenseResults[2],
-            monthEx: expenseResults[3],
-            DSCR: expenseResults[5],
-            monthlyPropTax: expenseResults[6],
-            monthlyOpEx: expenseResults[8],
-            totalProfit: outputResults[0],
-            returnPerc: outputResults[1],
-            cashROI: outputResults[2],
-            cashflow: outputResults[3],
-            annualCashflow: outputResults[4],
-            cashOnCash: outputResults[5],
-            capRate: outputResults[6],
-            monthsTillEven: outputResults[7],
-            totalCashCost: outputResults[8],
+            mortgageCost: flipResults[0],
+            cashDown: flipResults[1],
+            monthlyPropTax: flipResults[2],
+            monthlyOpEx: flipResults[3],
+            totalProfit: flipResults[7],
+            returnPerc: flipResults[5],
+            cashROI: flipResults[6],
+            totalCashCost: flipResults[4],
         };
 
         try {
-            const savedId = await saveCalculation('flip', inputValues, results, calculationId);
+            let savedData;
             
+            if (calculationId) {
+                // Update existing calculation
+                savedData = await updateCalculation(
+                    calculationId,
+                    'flip',
+                    inputValues,
+                    results
+                );
+            } else {
+                // Create new calculation
+                savedData = await createCalculation(
+                    'flip',
+                    inputValues,
+                    results
+                );
+            }
+            
+            let savedId = calculationId;
+            if (savedData && savedData.id) {
+                savedId = savedData.id;
+            }
+            
+            // Navigate to the result screen
             navigation.navigate(resultScreen, {
                 inputValues: {...inputValues, id: savedId},
                 ...results

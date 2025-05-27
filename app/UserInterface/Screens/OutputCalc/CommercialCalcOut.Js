@@ -46,14 +46,13 @@ function CommercialCalcOut(props) {
     };
 
     const breakEvenText = (breakEvenValue) => {
-        const number = parseFloat(breakEvenValue);
-        if (isNaN(number)) return '';
-        
-        
-        if (number >= 0) {
-            return `Monthly Cashflow will repay the Cash Down in ${number} months`;
+        if (breakEvenValue === 'N/A') {
+            return 'This property has negative cashflow';
+        } else if (isNaN(breakEvenValue)) {
+            return '';
         } else {
-            return `This property has negative cashflow`;
+            const number = parseFloat(breakEvenValue);
+            return `Monthly Cashflow will repay the Cash Down in ${number} months when all units are occupied`;
         }
     };
 
@@ -62,6 +61,7 @@ function CommercialCalcOut(props) {
             label: "Total Acquisition Costs",
             value: results.totalAcquisitionCosts,
             type: "dollar",
+            textColor: colors.primaryBlack,
             infoTitle: calculatorInfo.calculator_output.acquisition_cost.title,
             infoDescription: calculatorInfo.calculator_output.acquisition_cost.description
         },
@@ -103,7 +103,7 @@ function CommercialCalcOut(props) {
         },
         {
             label: "Months to Break Even",
-            value: results.monthsTillEven >= 0 ? Math.round(results.monthsTillEven) : "N/A",
+            value: results.monthsTillEven,
             type: "integer",
             additionalText: breakEvenText(results.monthsTillEven),
             textColor: colors.primaryBlack,

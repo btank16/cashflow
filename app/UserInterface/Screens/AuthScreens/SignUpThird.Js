@@ -10,6 +10,8 @@ import InvestmentStrategyMultiselect from '../../Components/InvestmentStrategyMu
 import InterestCheckbox from '../../Components/InterestCheckbox.Js';
 import PrimaryButton from '../../Components/PrimaryButton.Js';
 import ScreenLayoutWithFooter from '../../UtilScreens/ScreenLayoutWithFooter.Js';
+import PDFViewer from '../../Components/PDFViewer.Js';
+import secretKeys from '../../../../secretkeys.json';
 
 const SignUpThird = () => {
   const navigation = useNavigation();
@@ -18,16 +20,92 @@ const SignUpThird = () => {
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [dateOfBirthError, setDateOfBirthError] = useState('');
   const [userEmail, setUserEmail] = useState(email || '');
   const [state, setState] = useState('');
   const [targetStates, setTargetStates] = useState([]);
   const [investmentStrategies, setInvestmentStrategies] = useState([]);
   const [optInEmail, setOptInEmail] = useState(true);
-  const [acceptTerms, setAcceptTerms] = useState(true);
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [firstNameFocused, setFirstNameFocused] = useState(false);
   const [lastNameFocused, setLastNameFocused] = useState(false);
+  const [dateOfBirthFocused, setDateOfBirthFocused] = useState(false);
   const [isButtonActive, setIsButtonActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [termsVisible, setTermsVisible] = useState(false);
+  const [privacyVisible, setPrivacyVisible] = useState(false);
+  
+  // Use the direct PDF URLs from secretkeys.json
+  const termsSource = { uri: secretKeys.policy_links.termsOfUse };
+  const privacySource = { uri: secretKeys.policy_links.privacyPolicy };
+
+  // Validate date of birth
+  const validateDateOfBirth = (dob) => {
+    // Check if format is correct (mm/dd/yyyy)
+    const dateRegex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/;
+    if (!dateRegex.test(dob)) {
+      setDateOfBirthError('Please enter a valid date (mm/dd/yyyy)');
+      return false;
+    }
+
+    // Parse date and check if user is at least 18 years old
+    const parts = dob.split('/');
+    const birthDate = new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]));
+    
+    // Calculate age
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    if (age < 18) {
+      setDateOfBirthError('You must be at least 18 years old');
+      return false;
+    }
+    
+    // Valid date of birth
+    setDateOfBirthError('');
+    return true;
+  };
+
+  // Handle date of birth input change
+  const handleDateOfBirthChange = (text) => {
+    // Format input as mm/dd/yyyy
+    let formatted = text.replace(/\D/g, ''); // Remove non-digits
+    
+    if (formatted.length > 8) {
+      formatted = formatted.substring(0, 8);
+    }
+    
+    // Add slashes
+    if (formatted.length > 4) {
+      formatted = `${formatted.substring(0, 2)}/${formatted.substring(2, 4)}/${formatted.substring(4)}`;
+    } else if (formatted.length > 2) {
+      formatted = `${formatted.substring(0, 2)}/${formatted.substring(2)}`;
+    }
+    
+    setDateOfBirth(formatted);
+    
+    // Only validate if we have a complete date
+    if (formatted.length === 10) {
+      validateDateOfBirth(formatted);
+    } else {
+      setDateOfBirthError('');
+    }
+  };
+
+  // Add handler functions for Terms and Privacy
+  const handleTermsPress = () => {
+    setTermsVisible(true);
+  };
+
+  const handlePrivacyPress = () => {
+    setPrivacyVisible(true);
+  };
 
   // If user is coming from OAuth, try to prefill values
   useEffect(() => {
@@ -52,6 +130,11 @@ const SignUpThird = () => {
           } else if (userAttributes.family_name) {
             setLastName(userAttributes.family_name);
           }
+          // Check for date of birth
+          if (userAttributes['custom:date_of_birth']) {
+            setDateOfBirth(userAttributes['custom:date_of_birth']);
+            validateDateOfBirth(userAttributes['custom:date_of_birth']);
+          }
         } catch (error) {
           console.error('Auth error:', error);
         }
@@ -63,17 +146,26 @@ const SignUpThird = () => {
 
   // Check if all fields are filled
   React.useEffect(() => {
+    const isDateValid = dateOfBirth.length === 10 && dateOfBirthError === '';
+    
     setIsButtonActive(
       firstName.length > 0 && 
       lastName.length > 0 && 
+      isDateValid &&
       state.length > 0 && 
       targetStates.length > 0 &&
-      investmentStrategies.length > 0
+      investmentStrategies.length > 0 &&
+      acceptTerms // Require terms acceptance to enable button
     );
-  }, [firstName, lastName, state, targetStates, investmentStrategies]);
+  }, [firstName, lastName, dateOfBirth, dateOfBirthError, state, targetStates, investmentStrategies, acceptTerms]);
 
   const handleSignUp = async () => {
     if (!isButtonActive || isLoading) return;
+
+    // Validate date of birth again
+    if (!validateDateOfBirth(dateOfBirth)) {
+      return;
+    }
 
     setIsLoading(true);
     try {
@@ -85,6 +177,7 @@ const SignUpThird = () => {
         name: `${firstName} ${lastName}`,
         'custom:firstName': firstName,
         'custom:lastName': lastName,
+        'custom:date_of_birth': dateOfBirth,
         'custom:email_updates': String(optInEmail),
         'custom:terms': String(acceptTerms),
         'custom:origin_state': state,
@@ -133,12 +226,30 @@ const SignUpThird = () => {
     }
   };
 
-  // Helper function to render terms with colored parts
+  // Helper function to render terms with colored parts and checkbox
   const renderTermsText = () => {
     return (
-      <Text style={styles.termsText}>
-        By clicking Continue you accept our <Text style={styles.highlightedText}>Terms & Conditions</Text> and <Text style={styles.highlightedText}>Privacy Policy</Text>
-      </Text>
+      <View style={styles.termsContainer}>
+        <View style={styles.termsCheckboxRow}>
+          <InterestCheckbox
+            value={acceptTerms}
+            onValueChange={setAcceptTerms}
+            style={styles.termsCheckbox}
+          />
+          <View style={styles.termsTextContainer}>
+            <Text style={styles.termsText}>
+              I accept the{' '}
+            </Text>
+            <TouchableOpacity onPress={handleTermsPress} activeOpacity={0.7}>
+              <Text style={[styles.termsText, styles.highlightedText]}>Terms of Use</Text>
+            </TouchableOpacity>
+            <Text style={styles.termsText}> and </Text>
+            <TouchableOpacity onPress={handlePrivacyPress} activeOpacity={0.7}>
+              <Text style={[styles.termsText, styles.highlightedText]}>Privacy Policy</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
     );
   };
 
@@ -154,15 +265,6 @@ const SignUpThird = () => {
 
   const renderFooter = () => (
     <View style={styles.bottomSection}>
-      <View style={styles.agreementSection}>
-        <InterestCheckbox
-          label="Yes, I want to receive email updates"
-          value={optInEmail}
-          onValueChange={setOptInEmail}
-        />
-        {renderTermsText()}
-      </View>
-
       <PrimaryButton
         label="Continue"
         loadingLabel={isOAuthUser ? 'Saving Profile...' : 'Creating Account...'}
@@ -203,6 +305,26 @@ const SignUpThird = () => {
           autoCapitalize="words"
         />
 
+        <NormTextbox
+          label="Date of Birth"
+          value={dateOfBirth}
+          onChangeText={handleDateOfBirthChange}
+          placeholder="mm/dd/yyyy"
+          isFocused={dateOfBirthFocused}
+          onFocus={() => setDateOfBirthFocused(true)}
+          onBlur={() => {
+            setDateOfBirthFocused(false);
+            if (dateOfBirth.length > 0) {
+              validateDateOfBirth(dateOfBirth);
+            }
+          }}
+          keyboardType="numeric"
+          style={dateOfBirthError ? { borderColor: colors.errorRed } : {}}
+        />
+        {dateOfBirthError ? (
+          <Text style={styles.errorText}>{dateOfBirthError}</Text>
+        ) : null}
+
         <StateDropdown
           label="Home State"
           value={state}
@@ -223,7 +345,28 @@ const SignUpThird = () => {
           onValueChange={setInvestmentStrategies}
           placeholder="Select your investment strategies"
         />
+        <View style={styles.agreementSection}>
+          <InterestCheckbox
+            label="Yes, I want to receive email updates from Cashflow"
+            value={optInEmail}
+            onValueChange={setOptInEmail}
+          />
+          {renderTermsText()}
+        </View>
       </View>
+
+      <PDFViewer 
+        source={termsSource}
+        visible={termsVisible}
+        onClose={() => setTermsVisible(false)}
+      />
+      
+      <PDFViewer 
+        source={privacySource}
+        visible={privacyVisible}
+        onClose={() => setPrivacyVisible(false)}
+      />
+
     </ScreenLayoutWithFooter>
   );
 };
@@ -266,11 +409,25 @@ const styles = StyleSheet.create({
   agreementSection: {
     marginBottom: 16,
   },
+  termsContainer: {
+    marginTop: 8,
+  },
+  termsCheckboxRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  termsCheckbox: {
+    marginTop: 1,
+    marginRight: 8,
+  },
+  termsTextContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
   termsText: {
     color: colors.primaryBlack,
-    textAlign: 'center',
     fontSize: 14,
-    paddingHorizontal: 16,
   },
   highlightedText: {
     color: colors.primaryGreen,
@@ -278,6 +435,13 @@ const styles = StyleSheet.create({
   },
   loadingButton: {
     opacity: 0.8,
+  },
+  errorText: {
+    color: colors.errorRed,
+    fontSize: 12,
+    marginTop: -4,
+    marginBottom: 8,
+    marginLeft: 2,
   },
 });
 

@@ -18,7 +18,8 @@ import CommercialIcon from '../../../assets/icons/CommercialIcon.jsx';
 import colors from '../../Colors/colors.Js';
 import PrimaryButton from '../../Components/PrimaryButton.Js';
 import ScreenLayoutWithFooter from '../../UtilScreens/ScreenLayoutWithFooter.Js';
-import { useDatabase } from '../../../../database/cashflowDatabase.Js';
+import { useExpenses, getExpenses } from '../../Utils/DataCache.Js';
+import { createExpense, updateExpense } from '../../Utils/AmplifyDataUtils.Js';
 
 const calculatorData = [
   {
@@ -70,7 +71,8 @@ const SecondAddExpense = () => {
   const route = useRoute();
   const { category, frequency, cost } = route.params;
   const [activeCalculators, setActiveCalculators] = useState([]);
-  const db = useDatabase();
+  const [existingExpenseId, setExistingExpenseId] = useState(null);
+  const { expenses, refreshExpenses } = useExpenses(null, true);
 
   const toTitleCase = (str) => {
     return str
@@ -84,20 +86,34 @@ const SecondAddExpense = () => {
     const loadExistingExpense = async () => {
       try {
         const formattedCategory = toTitleCase(category);
-        const { calculators } = await db.checkExistingExpense(
-          formattedCategory,
-          cost,
-          frequency
+        // Get all expenses from cache
+        const allExpenses = await getExpenses();
+        
+        // Find existing expense with matching properties
+        const matchingExpense = allExpenses.find(expense => 
+          expense.category === formattedCategory && 
+          parseFloat(expense.cost) === parseFloat(cost) && 
+          expense.frequency === frequency
         );
-        setActiveCalculators(calculators);
+        
+        if (matchingExpense) {
+          // If found, set the existing calculators and save the ID
+          const calculators = JSON.parse(matchingExpense.applicable_calculators || '[]');
+          setActiveCalculators(calculators);
+          setExistingExpenseId(matchingExpense.id);
+        } else {
+          setActiveCalculators([]);
+          setExistingExpenseId(null);
+        }
       } catch (error) {
         console.error('Error loading existing expense:', error);
         setActiveCalculators([]);
+        setExistingExpenseId(null);
       }
     };
 
     loadExistingExpense();
-  }, [category, frequency, cost]);
+  }, [category, frequency, cost, expenses]);
 
   const toggleCalculator = (calculatorType) => {
     setActiveCalculators(prev => {
@@ -112,12 +128,28 @@ const SecondAddExpense = () => {
   const handleAddExpense = async () => {
     try {
       const formattedCategory = toTitleCase(category);
-      await db.saveExpense(
-        formattedCategory,
-        cost,
-        frequency,
-        activeCalculators
-      );
+      
+      if (existingExpenseId) {
+        // Update existing expense
+        await updateExpense(
+          existingExpenseId,
+          formattedCategory,
+          cost,
+          frequency,
+          activeCalculators
+        );
+      } else {
+        // Create new expense
+        await createExpense(
+          formattedCategory,
+          cost,
+          frequency,
+          activeCalculators
+        );
+      }
+      
+      // Refresh expenses cache and navigate back
+      await refreshExpenses(false);
       navigation.navigate('ExpenseScreen');
     } catch (error) {
       console.error('Error saving expense:', error);
@@ -162,7 +194,7 @@ const SecondAddExpense = () => {
 
   const renderFooter = () => (
     <PrimaryButton
-      label="Add operating expense"
+      label={existingExpenseId ? "Update operating expense" : "Add operating expense"}
       isActive={true}
       onPress={handleAddExpense}
     />

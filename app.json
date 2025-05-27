@@ -2,23 +2,22 @@
   "expo": {
     "name": "Cashflow",
     "slug": "cashflow",
-    "description": "This is a calculator for real estate investors to analyze properties. Note this is not financial advice.",
-    "version": "1.2.0",
+    "description": "This is a calculator for real estate investors to analyze properties.",
+    "version": "1.2.1",
     "orientation": "portrait",
     "icon": "./app/assets//images/CashflowAppIcon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./app/assets/images/CashflowSplash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "scheme": "cashflow",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.btanski.cashflow",
       "associatedDomains": [
+        "applinks:3f63ead00107678794a4.auth.us-east-1.amazoncognito.com",
         "applinks:3f63ead00107678794a4.auth.us-east-1.amazoncognito.com"
-      ]
+      ],
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -42,6 +41,7 @@
       ]
     },
     "web": {
+      "output": "static",
       "favicon": "./app/assets/images/CashflowAppIcon.png"
     },
     "extra": {
@@ -50,7 +50,7 @@
       }
     },
     "plugins": ["expo-asset"],
-    "runtimeVersion": "1.2.0",
+    "runtimeVersion": "1.2.1",
     "updates": {
       "url": "https://u.expo.dev/13cedaf9-9498-4cab-ad7a-81166055290b"
     }

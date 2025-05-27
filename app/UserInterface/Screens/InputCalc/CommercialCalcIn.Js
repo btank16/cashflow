@@ -7,11 +7,12 @@ import CalcButton from '../../Components/CalcButton.Js';
 import HomeButton from '../../Components/HomeButton.Js';
 import SwitchableNumericInput from '../../Components/SwitchableNumericInput.Js';
 import LoanTerm from '../../Components/LoanTerm.Js';
-import { useDatabase } from '../../../../database/cashflowDatabase.Js';
 import Checkbox from '../../Components/InterestCheckbox.Js';
-import { CommercialCalc } from '../../../Calculations/CommercialCalc.Js';
+const { CommercialCalc } = require('../../../Calculations/CommercialFunction.Js');
 import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 import calculatorInfo from '../../../assets/text/info.json';
+import { createCalculation, updateCalculation, createExpense, updateExpense } from '../../Utils/AmplifyDataUtils.Js';
+import { getExpenses } from '../../Utils/DataCache.Js';
 
 function CommercialCalcIn(props) {
     const navigation = useNavigation();
@@ -29,7 +30,6 @@ function CommercialCalcIn(props) {
         propertyTax: { value: '', isDollar: false },
         capexEst: { value: '', isDollar: false },
     });
-    const { saveCalculation, saveExpense } = useDatabase();
     const [calculationId, setCalculationId] = useState(null);
     const [showHeaderTitle, setShowHeaderTitle] = useState(false);
     const scrollY = useRef(new Animated.Value(0)).current;
@@ -145,25 +145,63 @@ function CommercialCalcIn(props) {
         }));
     };
 
+    const toTitleCase = (str) => {
+        return str
+            .toLowerCase()
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    };
+
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
         if (saveNewExpenses && operatingExpenses.length > 0) {
             try {
+                // Get all existing expenses from DataCache
+                const existingExpenses = await getExpenses();
+                
                 for (const expense of operatingExpenses) {
                     if (expense.category && expense.cost) {
-                        const formattedCategory = expense.category
-                            .toLowerCase()
-                            .split(' ')
-                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                            .join(' ');
+                        const formattedCategory = toTitleCase(expense.category);
 
-                        await saveExpense(
-                            formattedCategory,
-                            expense.cost,
-                            expense.frequency,
-                            ['commercial']
+                        // Check if this expense already exists
+                        const matchingExpense = existingExpenses.find(existing => 
+                            existing.category === formattedCategory && 
+                            parseFloat(existing.cost) === parseFloat(expense.cost) && 
+                            existing.frequency === expense.frequency
                         );
+
+                        if (matchingExpense) {
+                            // Update existing expense
+                            try {
+                                // Parse existing applicable calculators
+                                const existingCalculators = JSON.parse(matchingExpense.applicable_calculators || '[]');
+                                
+                                // Only add 'rental' if it's not already in the list
+                                if (!existingCalculators.includes('commercial')) {
+                                    const updatedCalculators = [...existingCalculators, 'commercial'];
+                                    
+                                    await updateExpense(
+                                        matchingExpense.id,
+                                        formattedCategory,
+                                        expense.cost,
+                                        expense.frequency,
+                                        updatedCalculators
+                                    );
+                                }
+                            } catch (error) {
+                                console.error('Error updating existing expense:', error);
+                            }
+                        } else {
+                            // Create new expense
+                            await createExpense(
+                                formattedCategory,
+                                expense.cost,
+                                expense.frequency,
+                                ['commercial']
+                            );
+                        }
                     }
                 }
             } catch (error) {
@@ -191,45 +229,66 @@ function CommercialCalcIn(props) {
             }
         };
 
+        const funcResults = CommercialCalc(
+            toNumber(purchasePrice),
+            switchableInputs.downPayment,
+            switchableInputs.acquisitionCosts,
+            interestRateInput,
+            switchableInputs.closingCost,
+            toNumber(loanTerm),
+            toNumber(grossRent),
+            toNumber(grossFees),
+            toNumber(vacancyRate),
+            switchableInputs.capexEst,
+            switchableInputs.propertyTax,
+            inputValues.operatingExpenseArray
+        );
+
+        const results = {
+            mortgageCost: funcResults[0],
+            totalAcquisitionCosts: funcResults[1],
+            DSCR: funcResults[2],
+            monthlyPropTax: funcResults[3],
+            monthlyCapEx: funcResults[4],
+            monthlyOpEx: funcResults[5],
+            cashOnCash: funcResults[6],
+            capRate: funcResults[7],
+            monthsTillEven: funcResults[8],
+            annualCashflow: funcResults[9]
+        };
+
         try {
-            const funcResults = CommercialCalc(
-                toNumber(purchasePrice),
-                switchableInputs.downPayment,
-                switchableInputs.acquisitionCosts,
-                interestRateInput,
-                switchableInputs.closingCost,
-                toNumber(loanTerm),
-                toNumber(grossRent),
-                toNumber(grossFees),
-                toNumber(vacancyRate),
-                switchableInputs.capexEst,
-                switchableInputs.propertyTax,
-                inputValues.operatingExpenseArray
-            );
-
-            const results = {
-                mortgageCost: funcResults[0],
-                monthlyCost: funcResults[1],
-                totalAcquisitionCosts: funcResults[2],
-                monthEx: funcResults[3],
-                DSCR: funcResults[4],
-                monthlyPropTax: funcResults[5],
-                monthlyCapEx: funcResults[6],
-                monthlyOpEx: funcResults[7],
-                cashOnCash: funcResults[8],
-                capRate: funcResults[9],
-                monthsTillEven: funcResults[10],
-                annualCashflow: funcResults[11]
-            };
-
-            const savedId = await saveCalculation('commercial', inputValues, results, calculationId);
+            let savedData;
             
+            if (calculationId) {
+                // Update existing calculation
+                savedData = await updateCalculation(
+                    calculationId,
+                    'commercial',
+                    inputValues,
+                    results
+                );
+            } else {
+                // Create new calculation
+                savedData = await createCalculation(
+                    'commercial',
+                    inputValues,
+                    results
+                );
+            }
+            
+            let savedId = calculationId;
+            if (savedData && savedData.id) {
+                savedId = savedData.id;
+            }
+            
+            // Navigate to the result screen
             navigation.navigate(resultScreen, {
-                inputValues: { ...inputValues, id: savedId },
+                inputValues: {...inputValues, id: savedId},
                 ...results
             });
         } catch (error) {
-            console.error('Error in calculation:', error);
+            console.error('Error saving calculation to database:', error);
         }
     };
 

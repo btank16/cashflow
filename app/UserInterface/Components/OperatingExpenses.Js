@@ -3,11 +3,11 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, TextInput
 import { PlusIcon, CheckIcon, TrashIcon, ArrowLongRightIcon, ChevronDownIcon } from 'react-native-heroicons/outline';
 import ExpenseLogo from '../../assets/icons/ExpenseLogo.jsx';
 import colors from '../Colors/colors.Js';
-import { useDatabase } from '../../../database/cashflowDatabase.Js';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import InfoComponent from './InfoComponent.Js';
+import { getExpenses } from '../Utils/DataCache.Js';
 
 const frequencies = [
   { label: 'Monthly', value: 'Monthly' },
@@ -35,7 +35,6 @@ const OperatingExpenses = ({
   }]);
   const [savedExpenses, setSavedExpenses] = useState([]);
   const [saveNewExpenses, setSaveNewExpenses] = useState(false);
-  const db = useDatabase();
   const [focusedInputs, setFocusedInputs] = useState({});
   const [removedSavedExpenses, setRemovedSavedExpenses] = useState([]);
   const navigation = useNavigation();
@@ -90,22 +89,31 @@ const OperatingExpenses = ({
 
   const loadSavedExpenses = async () => {
     try {
-      const expenses = await db.getSavedExpenses();
-      const filteredExpenses = expenses.filter(expense => {
-        const calculators = JSON.parse(expense.applicable_calculators);
-        
-        // Check if this saved expense is already in activeExpenses
-        const isAlreadyActive = activeExpenses.some(activeExp => 
-          activeExp.category === expense.category && 
-          activeExp.cost === expense.cost &&
-          activeExp.frequency === expense.frequency
-        );
-
-        return calculators.includes(calculatorType) && !isAlreadyActive;
+      // Get all expenses from DataCache
+      const allExpenses = await getExpenses();
+      
+      const filteredExpenses = allExpenses.filter(expense => {
+        try {
+          const calculators = JSON.parse(expense.applicable_calculators || '[]');
+          
+          // Check if this saved expense is already in activeExpenses
+          const isAlreadyActive = activeExpenses.some(activeExp => 
+            activeExp.category === expense.category && 
+            parseFloat(activeExp.cost) === parseFloat(expense.cost) &&
+            activeExp.frequency === expense.frequency
+          );
+  
+          return calculators.includes(calculatorType) && !isAlreadyActive;
+        } catch (error) {
+          console.error('Error parsing applicable_calculators:', error);
+          return false;
+        }
       });
+      
       setSavedExpenses(filteredExpenses);
     } catch (error) {
       console.error('Error loading expenses:', error);
+      setSavedExpenses([]);
     }
   };
 

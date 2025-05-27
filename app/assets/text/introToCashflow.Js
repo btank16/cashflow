@@ -6,51 +6,32 @@ Cashflow is a powerful real estate investment analysis tool designed to help inv
 
 ## Key Features
 
-### Multiple Calculator Types
+### Calculator Types for Various Investment Strategies
 
-- **Rental Property Calculator**: Analyze potential rental property investments
-- **Fix & Flip Calculator**: Estimate profits for renovation projects
+- **Rental Property Calculator**: Analyze potential long term residential rental properties
+- **Fix & Flip Calculator**: Estimate profits for fixer upper projects
 - **BRRRR Calculator**: Evaluate the Buy, Rehab, Rent, Refinance, Repeat strategy
 - **Wholesale Calculator**: Calculate potential profits from wholesale deals
 - **Price Target Calculator**: Determine ideal purchase prices based on your investment goals
-- **Commercial Multi-Family**: Analyze multi-family property investments
-
-### Intuitive Interface
-
-Our app features an intuitive, user-friendly interface that makes complex calculations simple. Save your calculations for future reference and track your investment strategy over time.
-
-### Accurate Analysis
-
-Get precise financial projections including:
-
-- Cash flow analysis
-- ROI calculations
-- Cash-on-cash return
-- Cap rate
-- Internal rate of return (IRR)
-- Net operating income (NOI)
+- **Commercial Multi-Family**: Analyze commercial multi-family properties
 
 ## Getting Started
 
-1. Create your account
-2. Choose a calculator type
-3. Input your property details
-4. Review the analysis
-5. Save your calculations for future reference
+1. Open the Calculator of your choice on the Home Screen
+2. Add your investment inputs and property details
+3. Add your operating expenses
+> You can either save the expenses input on the calculator screen or add them from your User Profile
+4. View your investment results and analyze your future deal!
+> All calculations are saved for you to review on the History Screen, with your most recent calculations displayed on the Home Screen
 
 ## Pro Tips
 
-> Always include a buffer for unexpected expenses when calculating renovation costs.
+> All investment inputs and outputs have an Info Button that will detail the variable under question
 
-> Pay close attention to your debt service coverage ratio (DSCR) when analyzing rental properties.
+> You may edit user account information from the User Profile Screen
 
-\`\`\`
-// Sample calculation for monthly cash flow
-Monthly Rental Income: $2,000
-- Monthly Expenses: $1,200
-= Monthly Cash Flow: $800
-\`\`\`
+> To provide feedback to Cashflow, please fill out the for on the Feedback Screen (accessable from the Home Screen)
 
-Happy investing!`;
+### Happy Investing!`;
 
 export default introToCashflow; 

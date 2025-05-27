@@ -40,6 +40,7 @@ const AttributeScreen = () => {
   // State for user attributes
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [state, setState] = useState('');
   const [targetStates, setTargetStates] = useState([]);
@@ -179,6 +180,7 @@ const AttributeScreen = () => {
         const originalData = {
           firstName: userAttributes['custom:firstName'] || '',
           lastName: userAttributes['custom:lastName'] || '',
+          dateOfBirth: userAttributes['custom:date_of_birth'] || '',
           email: userAttributes.email || '',
           state: userAttributes['custom:origin_state'] || '',
           targetStates: parsedTargetStates,
@@ -191,6 +193,7 @@ const AttributeScreen = () => {
         // Set current values
         setFirstName(originalData.firstName);
         setLastName(originalData.lastName);
+        setDateOfBirth(originalData.dateOfBirth);
         setUserEmail(originalData.email);
         setState(originalData.state);
         setTargetStates(originalData.targetStates);
@@ -256,6 +259,8 @@ const AttributeScreen = () => {
         'custom:invest_strategy': investmentStrategiesString,
       };
 
+      // Note: Not including dateOfBirth in updates since it's read-only
+
       // Update user attributes using the cache utility - updates both AWS and local cache
       const success = await updateUserAttributesWithCache(userAttributes);
       
@@ -298,7 +303,7 @@ const AttributeScreen = () => {
   const renderFooter = () => (
     <View style={styles.agreementSection}>
       <InterestCheckbox
-        label="Yes, I want to receive email updates"
+        label="Yes, I want to receive email updates from Cashflow"
         value={optInEmail}
         onValueChange={setOptInEmail}
       />
@@ -338,6 +343,13 @@ const AttributeScreen = () => {
           onBlur={() => setLastNameFocused(false)}
           autoCapitalize="words"
         />
+
+        <View style={styles.readOnlyField}>
+          <Text style={styles.fieldLabel}>Date of Birth</Text>
+          <View style={styles.fieldValueContainer}>
+            <Text style={styles.fieldValue}>{dateOfBirth || 'Not provided'}</Text>
+          </View>
+        </View>
 
         <StateDropdown
           label="Home State"
@@ -390,6 +402,28 @@ const styles = StyleSheet.create({
   agreementSection: {
     width: '100%',
     paddingVertical: 8,
+  },
+  readOnlyField: {
+    marginBottom: 16,
+  },
+  fieldLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.primaryGrey,
+    marginBottom: 8,
+  },
+  fieldValueContainer: {
+    height: 48,
+    backgroundColor: colors.tertiaryGrey,
+    borderWidth: 1,
+    borderColor: colors.tertiaryGrey,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+  },
+  fieldValue: {
+    fontSize: 16,
+    color: colors.primaryBlack,
   },
 });
 

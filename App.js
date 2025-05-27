@@ -2,38 +2,17 @@ import React, { useEffect, useRef, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { Linking, View, StyleSheet } from 'react-native';
 import AppNavigator from './AppNavigator.Js';
-import { SQLiteProvider } from 'expo-sqlite';
-import { initHistoryDB } from './database/cashflowDatabase.Js';
 import { Amplify } from 'aws-amplify';
-import * as WebBrowser from 'expo-web-browser';
 import awsconfig from './amplify_outputs.json';
-import { forceCheckAuthAndRedirect, hasActiveSession, checkIsFirstTimeUser } from './app/UserInterface/Utils/AuthUtils.Js';
+import { hasActiveSession, checkIsFirstTimeUser } from './app/UserInterface/Utils/AuthUtils.Js';
 import { initWebBrowserConfig } from './app/UserInterface/Utils/WebBrowserConfig.Js';
 import { initUserAttributesCache, clearUserAttributesCache } from './app/UserInterface/Utils/UserAttributesCache.Js';
-import LottieView from 'lottie-react-native';
+import { initDataCache, clearDataCache } from './app/UserInterface/Utils/DataCache.Js';
 import colors from './app/UserInterface/Colors/colors.Js';
 import AnimationLoader from './app/UserInterface/Components/AnimationLoader.Js';
 
 // Initialize WebBrowser configuration for OAuth
 initWebBrowserConfig();
-
-// URL opener for handling OAuth flows
-const urlOpener = async (url, redirectUrl) => {
-  try {
-    // On some mobile environments, a check for canOpenURL may be required
-    const canOpen = await Linking.canOpenURL(url);
-    if (!canOpen) {
-      console.warn('Cannot open URL:', url);
-      // Try to open anyway
-    }
-    
-    // Simply use the system browser to open the URL
-    // The redirect will be handled by the app's deep linking
-    await Linking.openURL(url);
-  } catch (error) {
-    console.error('Error opening URL:', error);
-  }
-};
 
 // Configure Amplify with Gen 2 format
 Amplify.configure({
@@ -59,19 +38,20 @@ Amplify.configure({
     }
   },
   // Correct format for Data API (using Gen 2 notation)
+  API: {
+    GraphQL: {
+      endpoint: awsconfig.data.url,
+      region: awsconfig.data.aws_region,
+      defaultAuthMode: 'userPool'
+    }
+  },
+  // Keep the Data configuration for backward compatibility
   Data: {
     endpoint: awsconfig.data.url,
     region: awsconfig.data.aws_region,
     authMode: 'userPool'
   }
 });
-
-// Handle deep links
-const handleDeepLink = (event) => {
-  const url = event.url;
-};
-
-Linking.addEventListener('url', handleDeepLink);
 
 function App() {
   const navigationRef = useRef(null);
@@ -85,7 +65,6 @@ function App() {
   const [animationDurationElapsed, setAnimationDurationElapsed] = useState(false);
   const [isAnimationReady, setIsAnimationReady] = useState(false);
   const [fadeOutAnimation, setFadeOutAnimation] = useState(false);
-  const [userAttributesLoaded, setUserAttributesLoaded] = useState(false);
 
   // Check for any deep links or handle authentication at startup
   useEffect(() => {
@@ -96,8 +75,10 @@ function App() {
         
         if (sessionActive) {
           // Initialize user attributes cache if session is active
-          const attributes = await initUserAttributesCache();
-          setUserAttributesLoaded(!!attributes);
+          await initUserAttributesCache();
+          
+          // Initialize data caches if session is active
+          await initDataCache();
           
           // If session is active, get user status
           const userStatus = await checkIsFirstTimeUser();
@@ -118,19 +99,19 @@ function App() {
             setInitialRoute('Auth');
             // Clear attributes cache if not authenticated
             clearUserAttributesCache();
+            clearDataCache();
           }
         } else {
           setIsAuthenticated(false);
           setInitialRoute('Auth');
           // Clear attributes cache if no session
           clearUserAttributesCache();
-          setUserAttributesLoaded(false);
+          clearDataCache();
         }
       } catch (error) {
         console.log('Error checking authentication status:', error);
         setIsAuthenticated(false);
         setInitialRoute('Auth');
-        setUserAttributesLoaded(false);
       } finally {
         setAuthCheckComplete(true);
       }
@@ -231,7 +212,6 @@ function App() {
 
   return (
     <View style={styles.mainContainer}>
-      <SQLiteProvider databaseName="cashflow.db" onInit={initHistoryDB}>
         <NavigationContainer
           ref={navigationRef}
           linking={{
@@ -254,7 +234,6 @@ function App() {
         >
           <AppNavigator initialRouteName={initialRoute} />
         </NavigationContainer>
-      </SQLiteProvider>
     </View>
   );
 }
@@ -267,5 +246,3 @@ const styles = StyleSheet.create({
     backgroundColor: colors.darkGreenPrimary, // Match animation background
   }
 });
-
-//   <SQLiteProvider databaseName="cashflow.db" onInit={async (db) => {await initHistoryDB(db); await logDatabasePath();}}>

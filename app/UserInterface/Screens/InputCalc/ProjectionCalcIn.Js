@@ -7,10 +7,12 @@ import LoanTerm from '../../Components/LoanTerm.Js';
 import CalcButton from '../../Components/CalcButton.Js';
 import HomeButton from '../../Components/HomeButton.Js';
 import SwitchableNumericInput from '../../Components/SwitchableNumericInput.Js';
-import { useDatabase } from '../../../../database/cashflowDatabase.Js';
-import { PriceSuggestion } from '../../../Calculations/SuggestPrice.Js';
+const { PriceSuggestion } = require('../../../Calculations/SuggestPrice.Js');
 import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 import calculatorInfo from '../../../assets/text/info.json';
+import { createCalculation, updateCalculation, createExpense, updateExpense } from '../../Utils/AmplifyDataUtils.Js';
+import { getExpenses } from '../../Utils/DataCache.Js';
+
 function ProjectionCalcIn(props) {
     const navigation = useNavigation();
     const route = useRoute();
@@ -30,7 +32,6 @@ function ProjectionCalcIn(props) {
         closingCost: { value: '', isDollar: false },
         capexEst: { value: '', isDollar: false }
     });
-    const { saveCalculation, saveExpense } = useDatabase();
     const [calculationId, setCalculationId] = useState(null);
     const [showHeaderTitle, setShowHeaderTitle] = useState(false);
     const scrollY = useRef(new Animated.Value(0)).current;
@@ -132,25 +133,63 @@ function ProjectionCalcIn(props) {
         }));
     };
 
+    const toTitleCase = (str) => {
+        return str
+            .toLowerCase()
+            .split(' ')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    };
+
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
         if (saveNewExpenses && operatingExpenses.length > 0) {
             try {
+                // Get all existing expenses from DataCache
+                const existingExpenses = await getExpenses();
+                
                 for (const expense of operatingExpenses) {
                     if (expense.category && expense.cost) {
-                        const formattedCategory = expense.category
-                            .toLowerCase()
-                            .split(' ')
-                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                            .join(' ');
+                        const formattedCategory = toTitleCase(expense.category);
 
-                        await saveExpense(
-                            formattedCategory,
-                            expense.cost,
-                            expense.frequency,
-                            ['target']
+                        // Check if this expense already exists
+                        const matchingExpense = existingExpenses.find(existing => 
+                            existing.category === formattedCategory && 
+                            parseFloat(existing.cost) === parseFloat(expense.cost) && 
+                            existing.frequency === expense.frequency
                         );
+
+                        if (matchingExpense) {
+                            // Update existing expense
+                            try {
+                                // Parse existing applicable calculators
+                                const existingCalculators = JSON.parse(matchingExpense.applicable_calculators || '[]');
+                                
+                                // Only add 'rental' if it's not already in the list
+                                if (!existingCalculators.includes('target')) {
+                                    const updatedCalculators = [...existingCalculators, 'target'];
+                                    
+                                    await updateExpense(
+                                        matchingExpense.id,
+                                        formattedCategory,
+                                        expense.cost,
+                                        expense.frequency,
+                                        updatedCalculators
+                                    );
+                                }
+                            } catch (error) {
+                                console.error('Error updating existing expense:', error);
+                            }
+                        } else {
+                            // Create new expense
+                            await createExpense(
+                                formattedCategory,
+                                expense.cost,
+                                expense.frequency,
+                                ['target']
+                            );
+                        }
                     }
                 }
             } catch (error) {
@@ -205,8 +244,31 @@ function ProjectionCalcIn(props) {
         };
 
         try {
-            const savedId = await saveCalculation('projection', inputValues, results, calculationId);
+            let savedData;
             
+            if (calculationId) {
+                // Update existing calculation
+                savedData = await updateCalculation(
+                    calculationId,
+                    'projection',
+                    inputValues,
+                    results
+                );
+            } else {
+                // Create new calculation
+                savedData = await createCalculation(
+                    'projection',
+                    inputValues,
+                    results
+                );
+            }
+            
+            let savedId = calculationId;
+            if (savedData && savedData.id) {
+                savedId = savedData.id;
+            }
+            
+            // Navigate to the result screen
             navigation.navigate(resultScreen, {
                 inputValues: {...inputValues, id: savedId},
                 ...results

@@ -18,16 +18,16 @@ const SignUpThird = () => {
   const route = useRoute();
   const { email, password, confirmPassword, isOAuthUser } = route.params || {};
 
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [given_name, setGiven_name] = useState('');
+  const [family_name, setFamily_name] = useState('');
   const [userEmail, setUserEmail] = useState(email || '');
   const [state, setState] = useState('');
   const [targetStates, setTargetStates] = useState([]);
   const [investmentStrategies, setInvestmentStrategies] = useState([]);
   const [optInEmail, setOptInEmail] = useState(true);
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const [firstNameFocused, setFirstNameFocused] = useState(false);
-  const [lastNameFocused, setLastNameFocused] = useState(false);
+  const [given_nameFocused, setGiven_nameFocused] = useState(false);
+  const [family_nameFocused, setFamily_nameFocused] = useState(false);
   const [isButtonActive, setIsButtonActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [termsVisible, setTermsVisible] = useState(false);
@@ -46,22 +46,6 @@ const SignUpThird = () => {
     setPrivacyVisible(true);
   };
 
-  // Helper function to extract first and last name from a full name
-  const extractNamesFromFullName = (fullName) => {
-    if (!fullName) return { firstName: '', lastName: '' };
-    
-    const parts = fullName.trim().split(/\s+/);
-    if (parts.length === 1) {
-      // Only one word, use it as the first name
-      return { firstName: parts[0], lastName: '' };
-    } else {
-      // First word is first name, everything else combined is last name
-      const firstName = parts[0];
-      const lastName = parts.slice(1).join(' ');
-      return { firstName, lastName };
-    }
-  };
-
   // If user is coming from OAuth, try to prefill values
   useEffect(() => {
     if (isOAuthUser) {
@@ -75,21 +59,13 @@ const SignUpThird = () => {
             setUserEmail(userAttributes.email);
           }
           
-          // First check for custom attributes that might already be set
-          if (userAttributes['custom:firstName'] && userAttributes['custom:lastName']) {
-            setFirstName(userAttributes['custom:firstName']);
-            setLastName(userAttributes['custom:lastName']);
-          } 
-          // Then check for Google-style attributes (given_name, family_name)
-          else if (userAttributes.given_name || userAttributes.family_name) {
-            setFirstName(userAttributes.given_name || '');
-            setLastName(userAttributes.family_name || '');
+          // Check for custom attributes
+          if (userAttributes['given_name']) {
+            setGiven_name(userAttributes['given_name']);
           }
-          // Finally, handle Apple-style attributes (single 'name' field)
-          else if (userAttributes.name) {
-            const { firstName, lastName } = extractNamesFromFullName(userAttributes.name);
-            setFirstName(firstName);
-            setLastName(lastName);
+          
+          if (userAttributes['family_name']) {
+            setFamily_name(userAttributes['family_name']);
           }
         } catch (error) {
           console.error('Auth error:', error);
@@ -103,14 +79,22 @@ const SignUpThird = () => {
   // Check if all fields are filled
   React.useEffect(() => {
     setIsButtonActive(
-      firstName.length > 0 && 
-      lastName.length > 0 && 
-      state.length > 0 && 
-      targetStates.length > 0 &&
-      investmentStrategies.length > 0 &&
-      acceptTerms // Require terms acceptance to enable button
+      // For OAuth users, don't require name fields
+      isOAuthUser ? (
+        state.length > 0 && 
+        targetStates.length > 0 &&
+        investmentStrategies.length > 0 &&
+        acceptTerms
+      ) : (
+        given_name.length > 0 && 
+        family_name.length > 0 && 
+        state.length > 0 && 
+        targetStates.length > 0 &&
+        investmentStrategies.length > 0 &&
+        acceptTerms
+      )
     );
-  }, [firstName, lastName, state, targetStates, investmentStrategies, acceptTerms]);
+  }, [given_name, family_name, state, targetStates, investmentStrategies, acceptTerms, isOAuthUser]);
 
   const handleSignUp = async () => {
     if (!isButtonActive || isLoading) return;
@@ -121,16 +105,21 @@ const SignUpThird = () => {
       const targetStatesString = targetStates.join('');
       const investmentStrategiesString = investmentStrategies.join('');
 
+      // Base attributes that are common for all users
       const userAttributes = {
-        name: `${firstName} ${lastName}`,
-        'custom:firstName': firstName,
-        'custom:lastName': lastName,
         'custom:email_updates': String(optInEmail),
         'custom:terms': String(acceptTerms),
         'custom:origin_state': state,
         'custom:interest_state': targetStatesString,
         'custom:invest_strategy': investmentStrategiesString,
       };
+
+      // Only add name attributes for non-OAuth users
+      if (!isOAuthUser) {
+        userAttributes.name = `${given_name} ${family_name}`;
+        userAttributes['given_name'] = given_name;
+        userAttributes['family_name'] = family_name;
+      }
 
       if (isOAuthUser) {
         // For OAuth users, update their attributes instead of signing up
@@ -230,27 +219,32 @@ const SignUpThird = () => {
       <View style={styles.mainContent}>
         <Text style={styles.title}>Let's get to know you</Text>
 
-        <NormTextbox
-          label="First Name"
-          value={firstName}
-          onChangeText={setFirstName}
-          placeholder="First name"
-          isFocused={firstNameFocused}
-          onFocus={() => setFirstNameFocused(true)}
-          onBlur={() => setFirstNameFocused(false)}
-          autoCapitalize="words"
-        />
+        {/* Only show name fields for non-OAuth users */}
+        {!isOAuthUser && (
+          <>
+            <NormTextbox
+              label="First Name"
+              value={given_name}
+              onChangeText={setGiven_name}
+              placeholder="First name"
+              isFocused={given_nameFocused}
+              onFocus={() => setGiven_nameFocused(true)}
+              onBlur={() => setGiven_nameFocused(false)}
+              autoCapitalize="words"
+            />
 
-        <NormTextbox
-          label="Last Name"
-          value={lastName}
-          onChangeText={setLastName}
-          placeholder="Last name"
-          isFocused={lastNameFocused}
-          onFocus={() => setLastNameFocused(true)}
-          onBlur={() => setLastNameFocused(false)}
-          autoCapitalize="words"
-        />
+            <NormTextbox
+              label="Last Name"
+              value={family_name}
+              onChangeText={setFamily_name}
+              placeholder="Last name"
+              isFocused={family_nameFocused}
+              onFocus={() => setFamily_nameFocused(true)}
+              onBlur={() => setFamily_nameFocused(false)}
+              autoCapitalize="words"
+            />
+          </>
+        )}
 
         <StateDropdown
           label="Home State"

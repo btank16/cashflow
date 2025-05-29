@@ -17,18 +17,21 @@ import ExitIcon from '../../../assets/icons/ExitIcon.jsx';
 
 const UserScreen = () => {
   const navigation = useNavigation();
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [displayName, setDisplayName] = useState('');
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // Use the cached user attributes instead of making a direct API call
-        const firstNameValue = await getUserAttribute('custom:firstName');
-        const lastNameValue = await getUserAttribute('custom:lastName');
+        // First try to get the name attribute
+        const nameValue = await getUserAttribute('name');
         
-        setFirstName(firstNameValue || '');
-        setLastName(lastNameValue || '');
+        if (nameValue) {
+          setDisplayName(nameValue);
+        } else {
+          // If name is not available, fall back to email
+          const emailValue = await getUserAttribute('email');
+          setDisplayName(emailValue || '');
+        }
       } catch (error) {
         console.error('Error fetching user attributes:', error);
       }
@@ -92,7 +95,7 @@ const UserScreen = () => {
       scrollable={false}
     >
       <View style={styles.profileInfo}>
-        <Text style={styles.name}>{firstName} {lastName}</Text>
+        <Text style={styles.name}>{displayName}</Text>
       </View>
 
       <View style={styles.menuGroup}>
@@ -128,7 +131,7 @@ const UserScreen = () => {
         />
       </View>
 
-      <View style={styles.menuGroup}>
+      <View style={[styles.menuGroup, styles.deleteAccountButton]}>
         <MenuButton
           icon={() => <TrashIcon size={20} color={colors.iconWhite} />}
           title="Delete my Account"
@@ -176,6 +179,9 @@ const styles = StyleSheet.create({
     borderColor: colors.darkGreenTertiary,
     marginBottom: 16,
     overflow: 'hidden',
+  },
+  deleteAccountButton: {
+    marginTop: 40,
   },
   menuButton: {
     flexDirection: 'row',

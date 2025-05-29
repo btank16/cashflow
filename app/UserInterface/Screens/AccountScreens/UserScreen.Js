@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ChevronLeftIcon, ChevronRightIcon } from "react-native-heroicons/outline";
+import { ChevronLeftIcon, ChevronRightIcon, TrashIcon } from "react-native-heroicons/outline";
 import { signOut } from '@aws-amplify/auth';
 import colors from '../../Colors/colors.Js';
 import { getUserAttribute } from '../../Utils/UserAttributesCache.Js';
@@ -67,6 +67,11 @@ const UserScreen = () => {
     </TouchableOpacity>
   );
 
+  // Custom icon wrapper for heroicons
+  const HeroIconWrapper = ({ icon: Icon, size = 20, color = colors.iconWhite }) => {
+    return <Icon size={size} color={color} />;
+  };
+
   const renderHeader = () => (
     <View style={styles.header}>
       <TouchableOpacity 
@@ -120,6 +125,15 @@ const UserScreen = () => {
           title="Log out"
           color={colors.darkGreenTertiary}
           onPress={handleSignOut}
+        />
+      </View>
+
+      <View style={styles.menuGroup}>
+        <MenuButton
+          icon={() => <TrashIcon size={20} color={colors.iconWhite} />}
+          title="Delete my Account"
+          color={colors.quaternaryRed}
+          onPress={() => navigation.navigate('DeleteAccount')}
         />
       </View>
     </ScreenLayout>

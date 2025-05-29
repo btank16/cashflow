@@ -20,8 +20,6 @@ const SignUpThird = () => {
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('');
-  const [dateOfBirthError, setDateOfBirthError] = useState('');
   const [userEmail, setUserEmail] = useState(email || '');
   const [state, setState] = useState('');
   const [targetStates, setTargetStates] = useState([]);
@@ -30,7 +28,6 @@ const SignUpThird = () => {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [firstNameFocused, setFirstNameFocused] = useState(false);
   const [lastNameFocused, setLastNameFocused] = useState(false);
-  const [dateOfBirthFocused, setDateOfBirthFocused] = useState(false);
   const [isButtonActive, setIsButtonActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [termsVisible, setTermsVisible] = useState(false);
@@ -39,64 +36,6 @@ const SignUpThird = () => {
   // Use the direct PDF URLs from secretkeys.json
   const termsSource = { uri: secretKeys.policy_links.termsOfUse };
   const privacySource = { uri: secretKeys.policy_links.privacyPolicy };
-
-  // Validate date of birth
-  const validateDateOfBirth = (dob) => {
-    // Check if format is correct (mm/dd/yyyy)
-    const dateRegex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/;
-    if (!dateRegex.test(dob)) {
-      setDateOfBirthError('Please enter a valid date (mm/dd/yyyy)');
-      return false;
-    }
-
-    // Parse date and check if user is at least 18 years old
-    const parts = dob.split('/');
-    const birthDate = new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]));
-    
-    // Calculate age
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    
-    if (age < 18) {
-      setDateOfBirthError('You must be at least 18 years old');
-      return false;
-    }
-    
-    // Valid date of birth
-    setDateOfBirthError('');
-    return true;
-  };
-
-  // Handle date of birth input change
-  const handleDateOfBirthChange = (text) => {
-    // Format input as mm/dd/yyyy
-    let formatted = text.replace(/\D/g, ''); // Remove non-digits
-    
-    if (formatted.length > 8) {
-      formatted = formatted.substring(0, 8);
-    }
-    
-    // Add slashes
-    if (formatted.length > 4) {
-      formatted = `${formatted.substring(0, 2)}/${formatted.substring(2, 4)}/${formatted.substring(4)}`;
-    } else if (formatted.length > 2) {
-      formatted = `${formatted.substring(0, 2)}/${formatted.substring(2)}`;
-    }
-    
-    setDateOfBirth(formatted);
-    
-    // Only validate if we have a complete date
-    if (formatted.length === 10) {
-      validateDateOfBirth(formatted);
-    } else {
-      setDateOfBirthError('');
-    }
-  };
 
   // Add handler functions for Terms and Privacy
   const handleTermsPress = () => {
@@ -107,33 +46,50 @@ const SignUpThird = () => {
     setPrivacyVisible(true);
   };
 
+  // Helper function to extract first and last name from a full name
+  const extractNamesFromFullName = (fullName) => {
+    if (!fullName) return { firstName: '', lastName: '' };
+    
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length === 1) {
+      // Only one word, use it as the first name
+      return { firstName: parts[0], lastName: '' };
+    } else {
+      // First word is first name, everything else combined is last name
+      const firstName = parts[0];
+      const lastName = parts.slice(1).join(' ');
+      return { firstName, lastName };
+    }
+  };
+
   // If user is coming from OAuth, try to prefill values
   useEffect(() => {
     if (isOAuthUser) {
       const getOAuthUserDetails = async () => {
         try {
           const userAttributes = await fetchUserAttributes();
+          console.log('OAuth user attributes:', userAttributes);
 
-          // Prefill values if available
+          // Prefill email if available
           if (userAttributes.email) {
             setUserEmail(userAttributes.email);
           }
-          // Try to get first name from custom attribute first, then fall back to given_name if available
-          if (userAttributes['custom:firstName']) {
+          
+          // First check for custom attributes that might already be set
+          if (userAttributes['custom:firstName'] && userAttributes['custom:lastName']) {
             setFirstName(userAttributes['custom:firstName']);
-          } else if (userAttributes.given_name) {
-            setFirstName(userAttributes.given_name);
-          }
-          // Try to get last name from custom attribute first, then fall back to family_name if available
-          if (userAttributes['custom:lastName']) {
             setLastName(userAttributes['custom:lastName']);
-          } else if (userAttributes.family_name) {
-            setLastName(userAttributes.family_name);
+          } 
+          // Then check for Google-style attributes (given_name, family_name)
+          else if (userAttributes.given_name || userAttributes.family_name) {
+            setFirstName(userAttributes.given_name || '');
+            setLastName(userAttributes.family_name || '');
           }
-          // Check for date of birth
-          if (userAttributes['custom:date_of_birth']) {
-            setDateOfBirth(userAttributes['custom:date_of_birth']);
-            validateDateOfBirth(userAttributes['custom:date_of_birth']);
+          // Finally, handle Apple-style attributes (single 'name' field)
+          else if (userAttributes.name) {
+            const { firstName, lastName } = extractNamesFromFullName(userAttributes.name);
+            setFirstName(firstName);
+            setLastName(lastName);
           }
         } catch (error) {
           console.error('Auth error:', error);
@@ -146,26 +102,18 @@ const SignUpThird = () => {
 
   // Check if all fields are filled
   React.useEffect(() => {
-    const isDateValid = dateOfBirth.length === 10 && dateOfBirthError === '';
-    
     setIsButtonActive(
       firstName.length > 0 && 
       lastName.length > 0 && 
-      isDateValid &&
       state.length > 0 && 
       targetStates.length > 0 &&
       investmentStrategies.length > 0 &&
       acceptTerms // Require terms acceptance to enable button
     );
-  }, [firstName, lastName, dateOfBirth, dateOfBirthError, state, targetStates, investmentStrategies, acceptTerms]);
+  }, [firstName, lastName, state, targetStates, investmentStrategies, acceptTerms]);
 
   const handleSignUp = async () => {
     if (!isButtonActive || isLoading) return;
-
-    // Validate date of birth again
-    if (!validateDateOfBirth(dateOfBirth)) {
-      return;
-    }
 
     setIsLoading(true);
     try {
@@ -177,7 +125,6 @@ const SignUpThird = () => {
         name: `${firstName} ${lastName}`,
         'custom:firstName': firstName,
         'custom:lastName': lastName,
-        'custom:date_of_birth': dateOfBirth,
         'custom:email_updates': String(optInEmail),
         'custom:terms': String(acceptTerms),
         'custom:origin_state': state,
@@ -305,26 +252,6 @@ const SignUpThird = () => {
           autoCapitalize="words"
         />
 
-        <NormTextbox
-          label="Date of Birth"
-          value={dateOfBirth}
-          onChangeText={handleDateOfBirthChange}
-          placeholder="mm/dd/yyyy"
-          isFocused={dateOfBirthFocused}
-          onFocus={() => setDateOfBirthFocused(true)}
-          onBlur={() => {
-            setDateOfBirthFocused(false);
-            if (dateOfBirth.length > 0) {
-              validateDateOfBirth(dateOfBirth);
-            }
-          }}
-          keyboardType="numeric"
-          style={dateOfBirthError ? { borderColor: colors.errorRed } : {}}
-        />
-        {dateOfBirthError ? (
-          <Text style={styles.errorText}>{dateOfBirthError}</Text>
-        ) : null}
-
         <StateDropdown
           label="Home State"
           value={state}
@@ -408,6 +335,7 @@ const styles = StyleSheet.create({
   },
   agreementSection: {
     marginBottom: 16,
+    marginLeft: -16,
   },
   termsContainer: {
     marginTop: 8,
@@ -435,13 +363,6 @@ const styles = StyleSheet.create({
   },
   loadingButton: {
     opacity: 0.8,
-  },
-  errorText: {
-    color: colors.errorRed,
-    fontSize: 12,
-    marginTop: -4,
-    marginBottom: 8,
-    marginLeft: 2,
   },
 });
 

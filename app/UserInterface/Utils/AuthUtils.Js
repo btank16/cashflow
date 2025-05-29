@@ -1,5 +1,4 @@
 import { getCurrentUser, fetchUserAttributes, fetchAuthSession } from 'aws-amplify/auth';
-import { useNavigation } from '@react-navigation/native';
 
 // Function to check if a session exists before running authentication checks
 export const hasActiveSession = async () => {
@@ -9,6 +8,22 @@ export const hasActiveSession = async () => {
   } catch (error) {
     console.log('No active session found:', error);
     return false;
+  }
+};
+
+// Helper function to extract names from a full name string (for Apple Sign In)
+const extractNamesFromFullName = (fullName) => {
+  if (!fullName) return { firstName: '', lastName: '' };
+  
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length === 1) {
+    // Only one word, use it as the first name
+    return { firstName: parts[0], lastName: '' };
+  } else {
+    // First word is first name, everything else combined is last name
+    const firstName = parts[0];
+    const lastName = parts.slice(1).join(' ');
+    return { firstName, lastName };
   }
 };
 
@@ -35,9 +50,30 @@ export const checkIsFirstTimeUser = async () => {
     // Check if this is an OAuth user by looking for identities attribute
     const isOAuthUser = userAttributes.identities ? true : false;
     
-    // Include both new custom attributes and fallback to check standard attributes
-    const hasFirstName = userAttributes['custom:firstName'] || userAttributes.given_name;
-    const hasLastName = userAttributes['custom:lastName'] || userAttributes.family_name;
+    // Check for custom attributes first
+    let hasFirstName = !!userAttributes['custom:firstName'];
+    let hasLastName = !!userAttributes['custom:lastName'];
+    
+    // If custom attributes aren't set, check OAuth provider attributes
+    if (!hasFirstName || !hasLastName) {
+      // Check Google style attributes
+      if (userAttributes.given_name) {
+        hasFirstName = true;
+      }
+      
+      if (userAttributes.family_name) {
+        hasLastName = true;
+      }
+      
+      // Check Apple style attributes (single name field)
+      if (!hasFirstName || !hasLastName) {
+        if (userAttributes.name) {
+          const { firstName, lastName } = extractNamesFromFullName(userAttributes.name);
+          hasFirstName = !!firstName;
+          hasLastName = !!lastName;
+        }
+      }
+    }
     
     // Check if required profile fields are missing
     const isFirstTimeUser = !hasFirstName || 

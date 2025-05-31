@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { ChevronLeftIcon, ChevronRightIcon } from "react-native-heroicons/outline";
+import { ChevronLeftIcon, ChevronRightIcon, TrashIcon } from "react-native-heroicons/outline";
 import { signOut } from '@aws-amplify/auth';
 import colors from '../../Colors/colors.Js';
 import { getUserAttribute } from '../../Utils/UserAttributesCache.Js';
@@ -17,18 +17,21 @@ import ExitIcon from '../../../assets/icons/ExitIcon.jsx';
 
 const UserScreen = () => {
   const navigation = useNavigation();
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [displayName, setDisplayName] = useState('');
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // Use the cached user attributes instead of making a direct API call
-        const firstNameValue = await getUserAttribute('custom:firstName');
-        const lastNameValue = await getUserAttribute('custom:lastName');
+        // First try to get the name attribute
+        const nameValue = await getUserAttribute('name');
         
-        setFirstName(firstNameValue || '');
-        setLastName(lastNameValue || '');
+        if (nameValue) {
+          setDisplayName(nameValue);
+        } else {
+          // If name is not available, fall back to email
+          const emailValue = await getUserAttribute('email');
+          setDisplayName(emailValue || '');
+        }
       } catch (error) {
         console.error('Error fetching user attributes:', error);
       }
@@ -67,6 +70,11 @@ const UserScreen = () => {
     </TouchableOpacity>
   );
 
+  // Custom icon wrapper for heroicons
+  const HeroIconWrapper = ({ icon: Icon, size = 20, color = colors.iconWhite }) => {
+    return <Icon size={size} color={color} />;
+  };
+
   const renderHeader = () => (
     <View style={styles.header}>
       <TouchableOpacity 
@@ -87,7 +95,7 @@ const UserScreen = () => {
       scrollable={false}
     >
       <View style={styles.profileInfo}>
-        <Text style={styles.name}>{firstName} {lastName}</Text>
+        <Text style={styles.name}>{displayName}</Text>
       </View>
 
       <View style={styles.menuGroup}>
@@ -120,6 +128,15 @@ const UserScreen = () => {
           title="Log out"
           color={colors.darkGreenTertiary}
           onPress={handleSignOut}
+        />
+      </View>
+
+      <View style={[styles.menuGroup, styles.deleteAccountButton]}>
+        <MenuButton
+          icon={() => <TrashIcon size={20} color={colors.iconWhite} />}
+          title="Delete my Account"
+          color={colors.quaternaryRed}
+          onPress={() => navigation.navigate('DeleteAccount')}
         />
       </View>
     </ScreenLayout>
@@ -162,6 +179,9 @@ const styles = StyleSheet.create({
     borderColor: colors.darkGreenTertiary,
     marginBottom: 16,
     overflow: 'hidden',
+  },
+  deleteAccountButton: {
+    marginTop: 40,
   },
   menuButton: {
     flexDirection: 'row',

@@ -20,6 +20,7 @@ import ExpenseScreen from './app/UserInterface/Screens/AccountScreens/ExpenseScr
 import FirstAddExpense from './app/UserInterface/Screens/AccountScreens/FirstAddExpense.Js';
 import SecondAddExpense from './app/UserInterface/Screens/AccountScreens/SecondAddExpense.Js';
 import AttributeScreen from './app/UserInterface/Screens/AccountScreens/AttributeScreen.Js';
+import DeleteAccount from './app/UserInterface/Screens/AccountScreens/DeleteAccount.Js';
 import IntroScreen from './app/UserInterface/Screens/AuthScreens/IntroScreen.Js';
 import SignIn from './app/UserInterface/Screens/AuthScreens/SignIn.Js';
 import SignUpFirst from './app/UserInterface/Screens/AuthScreens/SignUpFirst.Js';
@@ -67,6 +68,7 @@ const MainStack = () => (
     <Stack.Screen name="ExpenseScreen" component={ExpenseScreen} />
     <Stack.Screen name="FirstAddExpense" component={FirstAddExpense} />
     <Stack.Screen name="SecondAddExpense" component={SecondAddExpense} />
+    <Stack.Screen name="DeleteAccount" component={DeleteAccount} />
   </Stack.Navigator>
 );
 

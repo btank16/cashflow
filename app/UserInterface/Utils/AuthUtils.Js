@@ -1,5 +1,4 @@
 import { getCurrentUser, fetchUserAttributes, fetchAuthSession } from 'aws-amplify/auth';
-import { useNavigation } from '@react-navigation/native';
 
 // Function to check if a session exists before running authentication checks
 export const hasActiveSession = async () => {
@@ -11,6 +10,8 @@ export const hasActiveSession = async () => {
     return false;
   }
 };
+
+
 
 // Function to check if a user is a first-time OAuth user
 export const checkIsFirstTimeUser = async () => {
@@ -35,14 +36,8 @@ export const checkIsFirstTimeUser = async () => {
     // Check if this is an OAuth user by looking for identities attribute
     const isOAuthUser = userAttributes.identities ? true : false;
     
-    // Include both new custom attributes and fallback to check standard attributes
-    const hasFirstName = userAttributes['custom:firstName'] || userAttributes.given_name;
-    const hasLastName = userAttributes['custom:lastName'] || userAttributes.family_name;
-    
     // Check if required profile fields are missing
-    const isFirstTimeUser = !hasFirstName || 
-                           !hasLastName ||
-                           !userAttributes['custom:origin_state'] ||
+    const isFirstTimeUser = !userAttributes['custom:origin_state'] ||
                            !userAttributes['custom:interest_state'] ||
                            !userAttributes['custom:invest_strategy'];
     

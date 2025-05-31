@@ -33,7 +33,7 @@ Amplify.configure({
           providers: awsconfig.auth.oauth.identity_providers
         },
         username: true,
-        email: true
+        email: true,
       }
     }
   },

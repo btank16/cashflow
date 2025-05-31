@@ -107,22 +107,22 @@ function CalcHomeScreen() {
     
     const fetchUserData = async () => {
       try {
-        // Use the cached user attributes instead of making a direct API call
-        const firstNameValue = await getUserAttribute('custom:firstName');
+        // First try to get given_name attribute
+        const givenName = await getUserAttribute('given_name');
         if (!isMounted) return;
         
-        if (firstNameValue) {
-          setFirstName(firstNameValue);
+        if (givenName) {
+          setFirstName(givenName);
         } else {
-          // Fallback to get given_name if custom:firstName is not available
-          const givenName = await getUserAttribute('given_name');
+          // Fall back to custom:given_name if available
+          const customGivenName = await getUserAttribute('custom:given_name');
           if (!isMounted) return;
-          setFirstName(givenName || 'User');
+          setFirstName(customGivenName || '');
         }
       } catch (error) {
         console.error('Error fetching user attributes:', error);
         if (!isMounted) return;
-        setFirstName('User');
+        setFirstName('');
       }
     };
 
@@ -277,7 +277,9 @@ function CalcHomeScreen() {
       header={renderHeader()}
       backgroundColor={colors.darkGreenPrimary}
     >
-      <Text style={styles.welcomeText}>Welcome, {firstName || 'User'}!</Text>
+      <Text style={styles.welcomeText}>
+        {firstName ? `Welcome, ${firstName}!` : 'Welcome to Cashflow!'}
+      </Text>
       <View style={styles.calculatorsGrid}>
         {calculators.map((calc, index) => (
           <CalculatorButton 

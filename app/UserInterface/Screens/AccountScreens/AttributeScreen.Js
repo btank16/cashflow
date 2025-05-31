@@ -38,9 +38,8 @@ const AttributeScreen = () => {
   const navigation = useNavigation();
 
   // State for user attributes
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [given_name, setGiven_name] = useState('');
+  const [family_name, setFamily_name] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [state, setState] = useState('');
   const [targetStates, setTargetStates] = useState([]);
@@ -48,8 +47,8 @@ const AttributeScreen = () => {
   const [optInEmail, setOptInEmail] = useState(true);
   
   // State for field focus
-  const [firstNameFocused, setFirstNameFocused] = useState(false);
-  const [lastNameFocused, setLastNameFocused] = useState(false);
+  const [given_nameFocused, setGiven_nameFocused] = useState(false);
+  const [family_nameFocused, setFamily_nameFocused] = useState(false);
   
   // State for tracking original values and changes
   const [originalValues, setOriginalValues] = useState({});
@@ -178,9 +177,8 @@ const AttributeScreen = () => {
 
         // Store original values for change detection
         const originalData = {
-          firstName: userAttributes['custom:firstName'] || '',
-          lastName: userAttributes['custom:lastName'] || '',
-          dateOfBirth: userAttributes['custom:date_of_birth'] || '',
+          given_name: userAttributes['given_name'] || '',
+          family_name: userAttributes['family_name'] || '',
           email: userAttributes.email || '',
           state: userAttributes['custom:origin_state'] || '',
           targetStates: parsedTargetStates,
@@ -191,9 +189,8 @@ const AttributeScreen = () => {
         setOriginalValues(originalData);
 
         // Set current values
-        setFirstName(originalData.firstName);
-        setLastName(originalData.lastName);
-        setDateOfBirth(originalData.dateOfBirth);
+        setGiven_name(originalData.given_name);
+        setFamily_name(originalData.family_name);
         setUserEmail(originalData.email);
         setState(originalData.state);
         setTargetStates(originalData.targetStates);
@@ -216,22 +213,22 @@ const AttributeScreen = () => {
     if (Object.keys(originalValues).length === 0) return;
 
     const hasChanged = 
-      firstName !== originalValues.firstName ||
-      lastName !== originalValues.lastName ||
+      given_name !== originalValues.given_name ||
+      family_name !== originalValues.family_name ||
       state !== originalValues.state ||
       JSON.stringify(targetStates) !== JSON.stringify(originalValues.targetStates) ||
       JSON.stringify(investmentStrategies) !== JSON.stringify(originalValues.investmentStrategies) ||
       optInEmail !== originalValues.optInEmail;
 
     setIsButtonActive(
-      firstName.length > 0 && 
-      lastName.length > 0 && 
+      given_name.length > 0 && 
+      family_name.length > 0 && 
       state.length > 0 && 
       targetStates.length > 0 &&
       investmentStrategies.length > 0 &&
       hasChanged
     );
-  }, [firstName, lastName, state, targetStates, investmentStrategies, optInEmail, originalValues]);
+  }, [given_name, family_name, state, targetStates, investmentStrategies, optInEmail, originalValues]);
 
   const handleSave = async () => {
     if (!isButtonActive || isLoading) return;
@@ -250,16 +247,14 @@ const AttributeScreen = () => {
       console.log('Saved investment strategies string:', investmentStrategiesString);
 
       const userAttributes = {
-        name: `${firstName} ${lastName}`,
-        'custom:firstName': firstName,
-        'custom:lastName': lastName,
+        name: `${given_name} ${family_name}`,
+        'given_name': given_name,
+        'family_name': family_name,
         'custom:email_updates': String(optInEmail),
         'custom:origin_state': state,
         'custom:interest_state': targetStatesString,
         'custom:invest_strategy': investmentStrategiesString,
       };
-
-      // Note: Not including dateOfBirth in updates since it's read-only
 
       // Update user attributes using the cache utility - updates both AWS and local cache
       const success = await updateUserAttributesWithCache(userAttributes);
@@ -324,32 +319,25 @@ const AttributeScreen = () => {
       <View style={styles.mainContent}>
         <NormTextbox
           label="First Name"
-          value={firstName}
-          onChangeText={setFirstName}
+          value={given_name}
+          onChangeText={setGiven_name}
           placeholder="First name"
-          isFocused={firstNameFocused}
-          onFocus={() => setFirstNameFocused(true)}
-          onBlur={() => setFirstNameFocused(false)}
+          isFocused={given_nameFocused}
+          onFocus={() => setGiven_nameFocused(true)}
+          onBlur={() => setGiven_nameFocused(false)}
           autoCapitalize="words"
         />
 
         <NormTextbox
           label="Last Name"
-          value={lastName}
-          onChangeText={setLastName}
+          value={family_name}
+          onChangeText={setFamily_name}
           placeholder="Last name"
-          isFocused={lastNameFocused}
-          onFocus={() => setLastNameFocused(true)}
-          onBlur={() => setLastNameFocused(false)}
+          isFocused={family_nameFocused}
+          onFocus={() => setFamily_nameFocused(true)}
+          onBlur={() => setFamily_nameFocused(false)}
           autoCapitalize="words"
         />
-
-        <View style={styles.readOnlyField}>
-          <Text style={styles.fieldLabel}>Date of Birth</Text>
-          <View style={styles.fieldValueContainer}>
-            <Text style={styles.fieldValue}>{dateOfBirth || 'Not provided'}</Text>
-          </View>
-        </View>
 
         <StateDropdown
           label="Home State"
@@ -402,28 +390,6 @@ const styles = StyleSheet.create({
   agreementSection: {
     width: '100%',
     paddingVertical: 8,
-  },
-  readOnlyField: {
-    marginBottom: 16,
-  },
-  fieldLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.primaryGrey,
-    marginBottom: 8,
-  },
-  fieldValueContainer: {
-    height: 48,
-    backgroundColor: colors.tertiaryGrey,
-    borderWidth: 1,
-    borderColor: colors.tertiaryGrey,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-  },
-  fieldValue: {
-    fontSize: 16,
-    color: colors.primaryBlack,
   },
 });
 

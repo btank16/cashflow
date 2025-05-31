@@ -18,19 +18,16 @@ const SignUpThird = () => {
   const route = useRoute();
   const { email, password, confirmPassword, isOAuthUser } = route.params || {};
 
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('');
-  const [dateOfBirthError, setDateOfBirthError] = useState('');
+  const [given_name, setGiven_name] = useState('');
+  const [family_name, setFamily_name] = useState('');
   const [userEmail, setUserEmail] = useState(email || '');
   const [state, setState] = useState('');
   const [targetStates, setTargetStates] = useState([]);
   const [investmentStrategies, setInvestmentStrategies] = useState([]);
   const [optInEmail, setOptInEmail] = useState(true);
   const [acceptTerms, setAcceptTerms] = useState(false);
-  const [firstNameFocused, setFirstNameFocused] = useState(false);
-  const [lastNameFocused, setLastNameFocused] = useState(false);
-  const [dateOfBirthFocused, setDateOfBirthFocused] = useState(false);
+  const [given_nameFocused, setGiven_nameFocused] = useState(false);
+  const [family_nameFocused, setFamily_nameFocused] = useState(false);
   const [isButtonActive, setIsButtonActive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [termsVisible, setTermsVisible] = useState(false);
@@ -39,64 +36,6 @@ const SignUpThird = () => {
   // Use the direct PDF URLs from secretkeys.json
   const termsSource = { uri: secretKeys.policy_links.termsOfUse };
   const privacySource = { uri: secretKeys.policy_links.privacyPolicy };
-
-  // Validate date of birth
-  const validateDateOfBirth = (dob) => {
-    // Check if format is correct (mm/dd/yyyy)
-    const dateRegex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/;
-    if (!dateRegex.test(dob)) {
-      setDateOfBirthError('Please enter a valid date (mm/dd/yyyy)');
-      return false;
-    }
-
-    // Parse date and check if user is at least 18 years old
-    const parts = dob.split('/');
-    const birthDate = new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]));
-    
-    // Calculate age
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    
-    if (age < 18) {
-      setDateOfBirthError('You must be at least 18 years old');
-      return false;
-    }
-    
-    // Valid date of birth
-    setDateOfBirthError('');
-    return true;
-  };
-
-  // Handle date of birth input change
-  const handleDateOfBirthChange = (text) => {
-    // Format input as mm/dd/yyyy
-    let formatted = text.replace(/\D/g, ''); // Remove non-digits
-    
-    if (formatted.length > 8) {
-      formatted = formatted.substring(0, 8);
-    }
-    
-    // Add slashes
-    if (formatted.length > 4) {
-      formatted = `${formatted.substring(0, 2)}/${formatted.substring(2, 4)}/${formatted.substring(4)}`;
-    } else if (formatted.length > 2) {
-      formatted = `${formatted.substring(0, 2)}/${formatted.substring(2)}`;
-    }
-    
-    setDateOfBirth(formatted);
-    
-    // Only validate if we have a complete date
-    if (formatted.length === 10) {
-      validateDateOfBirth(formatted);
-    } else {
-      setDateOfBirthError('');
-    }
-  };
 
   // Add handler functions for Terms and Privacy
   const handleTermsPress = () => {
@@ -113,27 +52,20 @@ const SignUpThird = () => {
       const getOAuthUserDetails = async () => {
         try {
           const userAttributes = await fetchUserAttributes();
+          console.log('OAuth user attributes:', userAttributes);
 
-          // Prefill values if available
+          // Prefill email if available
           if (userAttributes.email) {
             setUserEmail(userAttributes.email);
           }
-          // Try to get first name from custom attribute first, then fall back to given_name if available
-          if (userAttributes['custom:firstName']) {
-            setFirstName(userAttributes['custom:firstName']);
-          } else if (userAttributes.given_name) {
-            setFirstName(userAttributes.given_name);
+          
+          // Check for custom attributes
+          if (userAttributes['given_name']) {
+            setGiven_name(userAttributes['given_name']);
           }
-          // Try to get last name from custom attribute first, then fall back to family_name if available
-          if (userAttributes['custom:lastName']) {
-            setLastName(userAttributes['custom:lastName']);
-          } else if (userAttributes.family_name) {
-            setLastName(userAttributes.family_name);
-          }
-          // Check for date of birth
-          if (userAttributes['custom:date_of_birth']) {
-            setDateOfBirth(userAttributes['custom:date_of_birth']);
-            validateDateOfBirth(userAttributes['custom:date_of_birth']);
+          
+          if (userAttributes['family_name']) {
+            setFamily_name(userAttributes['family_name']);
           }
         } catch (error) {
           console.error('Auth error:', error);
@@ -146,26 +78,26 @@ const SignUpThird = () => {
 
   // Check if all fields are filled
   React.useEffect(() => {
-    const isDateValid = dateOfBirth.length === 10 && dateOfBirthError === '';
-    
     setIsButtonActive(
-      firstName.length > 0 && 
-      lastName.length > 0 && 
-      isDateValid &&
-      state.length > 0 && 
-      targetStates.length > 0 &&
-      investmentStrategies.length > 0 &&
-      acceptTerms // Require terms acceptance to enable button
+      // For OAuth users, don't require name fields
+      isOAuthUser ? (
+        state.length > 0 && 
+        targetStates.length > 0 &&
+        investmentStrategies.length > 0 &&
+        acceptTerms
+      ) : (
+        given_name.length > 0 && 
+        family_name.length > 0 && 
+        state.length > 0 && 
+        targetStates.length > 0 &&
+        investmentStrategies.length > 0 &&
+        acceptTerms
+      )
     );
-  }, [firstName, lastName, dateOfBirth, dateOfBirthError, state, targetStates, investmentStrategies, acceptTerms]);
+  }, [given_name, family_name, state, targetStates, investmentStrategies, acceptTerms, isOAuthUser]);
 
   const handleSignUp = async () => {
     if (!isButtonActive || isLoading) return;
-
-    // Validate date of birth again
-    if (!validateDateOfBirth(dateOfBirth)) {
-      return;
-    }
 
     setIsLoading(true);
     try {
@@ -173,17 +105,21 @@ const SignUpThird = () => {
       const targetStatesString = targetStates.join('');
       const investmentStrategiesString = investmentStrategies.join('');
 
+      // Base attributes that are common for all users
       const userAttributes = {
-        name: `${firstName} ${lastName}`,
-        'custom:firstName': firstName,
-        'custom:lastName': lastName,
-        'custom:date_of_birth': dateOfBirth,
         'custom:email_updates': String(optInEmail),
         'custom:terms': String(acceptTerms),
         'custom:origin_state': state,
         'custom:interest_state': targetStatesString,
         'custom:invest_strategy': investmentStrategiesString,
       };
+
+      // Only add name attributes for non-OAuth users
+      if (!isOAuthUser) {
+        userAttributes.name = `${given_name} ${family_name}`;
+        userAttributes['given_name'] = given_name;
+        userAttributes['family_name'] = family_name;
+      }
 
       if (isOAuthUser) {
         // For OAuth users, update their attributes instead of signing up
@@ -283,47 +219,32 @@ const SignUpThird = () => {
       <View style={styles.mainContent}>
         <Text style={styles.title}>Let's get to know you</Text>
 
-        <NormTextbox
-          label="First Name"
-          value={firstName}
-          onChangeText={setFirstName}
-          placeholder="First name"
-          isFocused={firstNameFocused}
-          onFocus={() => setFirstNameFocused(true)}
-          onBlur={() => setFirstNameFocused(false)}
-          autoCapitalize="words"
-        />
+        {/* Only show name fields for non-OAuth users */}
+        {!isOAuthUser && (
+          <>
+            <NormTextbox
+              label="First Name"
+              value={given_name}
+              onChangeText={setGiven_name}
+              placeholder="First name"
+              isFocused={given_nameFocused}
+              onFocus={() => setGiven_nameFocused(true)}
+              onBlur={() => setGiven_nameFocused(false)}
+              autoCapitalize="words"
+            />
 
-        <NormTextbox
-          label="Last Name"
-          value={lastName}
-          onChangeText={setLastName}
-          placeholder="Last name"
-          isFocused={lastNameFocused}
-          onFocus={() => setLastNameFocused(true)}
-          onBlur={() => setLastNameFocused(false)}
-          autoCapitalize="words"
-        />
-
-        <NormTextbox
-          label="Date of Birth"
-          value={dateOfBirth}
-          onChangeText={handleDateOfBirthChange}
-          placeholder="mm/dd/yyyy"
-          isFocused={dateOfBirthFocused}
-          onFocus={() => setDateOfBirthFocused(true)}
-          onBlur={() => {
-            setDateOfBirthFocused(false);
-            if (dateOfBirth.length > 0) {
-              validateDateOfBirth(dateOfBirth);
-            }
-          }}
-          keyboardType="numeric"
-          style={dateOfBirthError ? { borderColor: colors.errorRed } : {}}
-        />
-        {dateOfBirthError ? (
-          <Text style={styles.errorText}>{dateOfBirthError}</Text>
-        ) : null}
+            <NormTextbox
+              label="Last Name"
+              value={family_name}
+              onChangeText={setFamily_name}
+              placeholder="Last name"
+              isFocused={family_nameFocused}
+              onFocus={() => setFamily_nameFocused(true)}
+              onBlur={() => setFamily_nameFocused(false)}
+              autoCapitalize="words"
+            />
+          </>
+        )}
 
         <StateDropdown
           label="Home State"
@@ -408,6 +329,7 @@ const styles = StyleSheet.create({
   },
   agreementSection: {
     marginBottom: 16,
+    marginLeft: -16,
   },
   termsContainer: {
     marginTop: 8,
@@ -435,13 +357,6 @@ const styles = StyleSheet.create({
   },
   loadingButton: {
     opacity: 0.8,
-  },
-  errorText: {
-    color: colors.errorRed,
-    fontSize: 12,
-    marginTop: -4,
-    marginBottom: 8,
-    marginLeft: 2,
   },
 });
 

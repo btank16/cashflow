@@ -9,6 +9,7 @@ import NormTextbox from '../../Components/NormTextbox.Js';
 import PasswordBox from '../../Components/PasswordBox.Js';
 import SocialSignInButton from '../../Components/SocialSignInButton.Js';
 import { handleOAuthRedirect, forceCheckAuthAndRedirect, hasActiveSession } from '../../Utils/AuthUtils.Js';
+import { initUserAttributesCache, refreshUserAttributes } from '../../Utils/UserAttributesCache.Js';
 import PrimaryButton from '../../Components/PrimaryButton.Js';
 import ScreenLayout from '../../UtilScreens/ScreenLayout.Js';
 
@@ -89,6 +90,10 @@ const SignIn = () => {
       });
 
       if (signInResult.isSignedIn) {
+        // Initialize and refresh user attributes cache after successful sign in
+        await initUserAttributesCache();
+        await refreshUserAttributes();
+        
         navigation.reset({
           index: 0,
           routes: [{ name: 'Main', params: { screen: 'CalcHomeScreen' } }],

@@ -12,6 +12,7 @@ import PrimaryButton from '../../Components/PrimaryButton.Js';
 import ScreenLayoutWithFooter from '../../UtilScreens/ScreenLayoutWithFooter.Js';
 import PDFViewer from '../../Components/PDFViewer.Js';
 import secretKeys from '../../../../secretkeys.json';
+import { refreshUserAttributes } from '../../Utils/UserAttributesCache.Js';
 
 const SignUpThird = () => {
   const navigation = useNavigation();
@@ -124,6 +125,9 @@ const SignUpThird = () => {
       if (isOAuthUser) {
         // For OAuth users, update their attributes instead of signing up
         await updateUserAttributes({ userAttributes });
+        
+        // Force refresh the user attributes cache before navigation
+        await refreshUserAttributes();
 
         // Navigate directly to main app for OAuth users
         navigation.reset({
@@ -145,6 +149,7 @@ const SignUpThird = () => {
         });
 
         // Regular users need to go through verification
+        // We'll refresh the user attributes after they verify in VerificationScreen
         navigation.navigate('VerificationScreen', { email: userEmail });
       }
     } catch (error) {

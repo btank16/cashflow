@@ -6,6 +6,7 @@ import colors from '../../Colors/colors.Js';
 import MailIcon from '../../../assets/icons/MailIcon.jsx';
 import SplitText from '../../Components/SplitText.Js';
 import ScreenLayout from '../../UtilScreens/ScreenLayout.Js';
+import { initUserAttributesCache, refreshUserAttributes } from '../../Utils/UserAttributesCache.Js';
 
 const VerificationScreen = () => {
   const navigation = useNavigation();
@@ -21,6 +22,10 @@ const VerificationScreen = () => {
         username: email,
         confirmationCode: code,
       });
+
+      // Initialize and refresh user attributes cache after successful verification
+      await initUserAttributesCache();
+      await refreshUserAttributes();
 
       // If verification is successful, navigate to main app
       navigation.reset({

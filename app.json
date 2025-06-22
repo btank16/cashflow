@@ -12,7 +12,6 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.btanski.cashflow",
       "associatedDomains": [
-        "applinks:3f63ead00107678794a4.auth.us-east-1.amazoncognito.com",
         "applinks:3f63ead00107678794a4.auth.us-east-1.amazoncognito.com"
       ],
       "infoPlist": {

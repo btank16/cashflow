@@ -2,8 +2,7 @@
   "expo": {
     "name": "Cashflow",
     "slug": "cashflow",
-    "description": "This is a calculator for real estate investors to analyze properties.",
-    "version": "1.2.3",
+    "version": "1.2.4",
     "orientation": "portrait",
     "icon": "./app/assets//images/CashflowAppIcon.png",
     "userInterfaceStyle": "light",
@@ -39,8 +38,11 @@
         }
       ]
     },
+    "androidStatusBar": {
+      "barStyle": "light-content",
+      "backgroundColor": "#0E2C28"
+    },
     "web": {
-      "output": "static",
       "favicon": "./app/assets/images/CashflowAppIcon.png"
     },
     "extra": {
@@ -49,7 +51,7 @@
       }
     },
     "plugins": ["expo-asset"],
-    "runtimeVersion": "1.2.3",
+    "runtimeVersion": "1.2.4",
     "updates": {
       "url": "https://u.expo.dev/13cedaf9-9498-4cab-ad7a-81166055290b"
     }

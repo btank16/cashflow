@@ -206,6 +206,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         width: '100%',
+        paddingHorizontal: 10,
     },
     logoWrapper: {
         position: 'absolute',

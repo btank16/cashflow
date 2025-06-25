@@ -30,11 +30,11 @@ const PriceSuggestion = (
   // Calculates the total expenses known without the purchase price
   const ExpNoProperty = monthlyCapEx + totalMonthlyExpenses;
 
-  // Calculates the maximum monthly payment that makes the cashflow target
-  const MaxCashflowMortgage = MonthRent - (ExpNoProperty + CashflowTarget);
+  // Calculates the maximum monthly payment w/ tax that makes the cashflow target
+  const MaxCashflowMortgageTax = MonthRent - (ExpNoProperty + CashflowTarget);
 
-  // Calculates the maximum monthly payment to net zero
-  const MaxZeroMortgage = MonthRent - ExpNoProperty;
+  // Calculates the maximum monthly payment w/ tax to net zero
+  const MaxZeroMortgageTax = MonthRent - ExpNoProperty;
 
   // Use reverseMortgage to get the rates
   const { NormRate, LowDPRate } = reverseMortgage(IntRate, DownPayPerc, LoanTerm);
@@ -44,13 +44,13 @@ const PriceSuggestion = (
 
   // Calculates target purchase price
   const TargetPrice = DownPayPerc < 20
-    ? MaxCashflowMortgage / (LowDPRate + monthlyPropTaxRate)
-    : MaxCashflowMortgage / (NormRate + monthlyPropTaxRate);
+    ? MaxCashflowMortgageTax / (LowDPRate + monthlyPropTaxRate)
+    : MaxCashflowMortgageTax / (NormRate + monthlyPropTaxRate);
 
   // Calculates net zero purchase price
   const NetZeroPrice = DownPayPerc < 20
-    ? MaxZeroMortgage / (LowDPRate + monthlyPropTaxRate)
-    : MaxZeroMortgage / (NormRate + monthlyPropTaxRate);
+    ? MaxZeroMortgageTax / (LowDPRate + monthlyPropTaxRate)
+    : MaxZeroMortgageTax / (NormRate + monthlyPropTaxRate);
 
   // Create purchase price objects to use with CoreFunctions
   const targetPriceObj = { value: TargetPrice, isCashPurchase: false };
@@ -77,6 +77,10 @@ const PriceSuggestion = (
   // Calculate Property Tax for each scenario
   const netZeroTax = NetZeroPrice * monthlyPropTaxRate;
   const targetTax = TargetPrice * monthlyPropTaxRate;
+
+  // Calculate Monthly Mortgage for each scenario
+  const MaxCashflowMortgage = MaxCashflowMortgageTax - targetTax;
+  const MaxZeroMortgage = MaxZeroMortgageTax - netZeroTax;
 
   // Calculate Monthly Expenses for Each Scenario
   const netZeroExp = MaxZeroMortgage + netZeroTax + ExpNoProperty;

@@ -7,6 +7,7 @@ import colors from '../Colors/colors.Js';
 import GoogleIcon from '../../assets/icons/GoogleIcon.jsx';
 import AppleIcon from '../../assets/icons/AppleIcon.jsx';
 import { hasActiveSession, forceCheckAuthAndRedirect } from '../Utils/AuthUtils.Js';
+import { initUserAttributesCache, refreshUserAttributes } from '../Utils/UserAttributesCache.Js';
 
 // Initialize WebBrowser
 WebBrowser.maybeCompleteAuthSession();
@@ -52,6 +53,10 @@ const SocialSignInButton = ({ provider, onSignInStart, style }) => {
           // First check if there's an active session before proceeding
           const sessionActive = await hasActiveSession();
           if (sessionActive) {
+            // Initialize and refresh user attributes cache after successful OAuth sign-in
+            await initUserAttributesCache();
+            await refreshUserAttributes();
+            
             await forceCheckAuthAndRedirect(navigation);
           }
         } catch (error) {

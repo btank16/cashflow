@@ -56,8 +56,9 @@ web-build/
 dist/
 
 # Native folders for EAS Build with Prebuild
-/android/
-/ios/
+**/android
+**/gradle
+**/ios
 
 # Temporary files created by Metro to check the health of the file watcher
 .metro-health-check*
@@ -77,7 +78,7 @@ logs
 *.log
 
 # Editor directories and files
-.vscode/
+**/.vscode
 *.swp
 *.swo
 

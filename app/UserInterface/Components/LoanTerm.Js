@@ -8,11 +8,12 @@ import SliderIcon from '../../assets/icons/SliderIcon';
 import InfoComponent from './InfoComponent.Js';
 
 const LoanTerm = ({ label, value, onValueChange, infoTitle, infoDescription }) => {
-  const [localValue, setLocalValue] = useState(value);
+  const [localValue, setLocalValue] = useState(Number(value) || 30);
   const [infoModalVisible, setInfoModalVisible] = useState(false);
 
   useEffect(() => {
-    setLocalValue(value);
+    // Ensure value is always a number
+    setLocalValue(Number(value) || 30);
   }, [value]);
 
   const handleSliderChange = (newValue) => {
@@ -107,7 +108,7 @@ const LoanTerm = ({ label, value, onValueChange, infoTitle, infoDescription }) =
           minimumValue={1}
           maximumValue={50}
           step={1}
-          value={localValue}
+          value={Number(localValue)}
           onValueChange={handleSliderChange}
           minimumTrackTintColor="transparent"
           maximumTrackTintColor="transparent"

@@ -34,7 +34,10 @@
               "pathPrefix": "/oauth2/idpresponse"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -50,7 +53,10 @@
         "projectId": "13cedaf9-9498-4cab-ad7a-81166055290b"
       }
     },
-    "plugins": ["expo-asset"],
+    "plugins": [
+      "expo-asset",
+      "expo-localization"
+    ],
     "runtimeVersion": "1.2.4",
     "updates": {
       "url": "https://u.expo.dev/13cedaf9-9498-4cab-ad7a-81166055290b"

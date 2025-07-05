@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { usePostHog } from 'posthog-react-native';
 import colors from '../../Colors/colors.Js';
 import WhiteTextLogo from '../../../assets/icons/WhiteTextLogo.jsx';
 import ScreenLayoutWithFooter from '../../UtilScreens/ScreenLayoutWithFooter.Js';
@@ -23,6 +24,7 @@ const subtitleFontSize = calculateFontSize(20);
 
 const IntroScreen = () => {
   const navigation = useNavigation();
+  const posthog = usePostHog();
 
   // Calculate image dimensions while maintaining aspect ratio
   const imageWidth = screenWidth; // Full screen width
@@ -36,18 +38,34 @@ const IntroScreen = () => {
     </View>
   );
 
+  const handleSignIn = () => {
+    // Capture sign in event
+    posthog?.capture('sign_in_clicked', {
+      screen: 'IntroScreen'
+    });
+    navigation.navigate('SignIn');
+  };
+
+  const handleSignUp = () => {
+    // Capture sign up event
+    posthog?.capture('sign_up_clicked', {
+      screen: 'IntroScreen'
+    });
+    navigation.navigate('SignUpFirst');
+  };
+
   const renderFooter = () => (
     <View style={styles.buttonContainer}>
       <TouchableOpacity 
         style={styles.signInButton}
-        onPress={() => navigation.navigate('SignIn')}
+        onPress={handleSignIn}
       >
         <Text style={styles.signInText}>Sign In</Text>
       </TouchableOpacity>
 
       <TouchableOpacity 
         style={styles.signUpButton}
-        onPress={() => navigation.navigate('SignUpFirst')}
+        onPress={handleSignUp}
       >
         <Text style={styles.signUpText}>Sign Up</Text>
       </TouchableOpacity>

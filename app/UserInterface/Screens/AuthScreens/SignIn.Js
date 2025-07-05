@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { signIn, fetchAuthSession } from '@aws-amplify/auth';
+import { usePostHog } from 'posthog-react-native';
 import colors from '../../Colors/colors.Js';
 import GreenLogo from '../../../assets/icons/GreenLogo.jsx';
 import BackButton from '../../Components/BackButton.Js';
@@ -15,6 +16,7 @@ import ScreenLayout from '../../UtilScreens/ScreenLayout.Js';
 
 const SignIn = () => {
   const navigation = useNavigation();
+  const posthog = usePostHog();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -25,6 +27,14 @@ const SignIn = () => {
   const [isSocialSignInLoading, setIsSocialSignInLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(false);
 
+  // Track successful sign-in
+  const trackSuccessfulSignIn = (method = 'email') => {
+    posthog?.capture('success_sign_in', {
+      method: method,
+      screen: 'SignIn'
+    });
+  };
+
   // Check for active auth session when the screen mounts, but only if we have a session
   useEffect(() => {
     const initialAuthCheck = async () => {
@@ -33,7 +43,12 @@ const SignIn = () => {
         const sessionActive = await hasActiveSession();
         if (sessionActive) {
           setCheckingAuth(true);
-          await forceCheckAuthAndRedirect(navigation);
+          const redirectResult = await forceCheckAuthAndRedirect(navigation);
+          
+          // If we successfully redirected, it means we have a valid session (possibly from OAuth)
+          if (redirectResult) {
+            trackSuccessfulSignIn('oauth');
+          }
         }
       } catch (error) {
         // Silently handle errors
@@ -60,7 +75,12 @@ const SignIn = () => {
           
           setCheckingAuth(true);
           // We have an active session, handle the OAuth redirect
-          await handleOAuthRedirect(navigation);
+          const redirectResult = await handleOAuthRedirect(navigation);
+          
+          // If navigation was performed, it means OAuth sign-in was successful
+          if (redirectResult) {
+            trackSuccessfulSignIn('oauth');
+          }
         } catch (error) {
           // Silently handle errors
         } finally {
@@ -90,6 +110,9 @@ const SignIn = () => {
       });
 
       if (signInResult.isSignedIn) {
+        // Track successful email sign-in
+        trackSuccessfulSignIn('email');
+        
         // Initialize and refresh user attributes cache after successful sign in
         await initUserAttributesCache();
         await refreshUserAttributes();

@@ -3,6 +3,7 @@ import { TouchableOpacity, View, StyleSheet, Alert, ActivityIndicator } from 're
 import { signInWithRedirect } from '@aws-amplify/auth';
 import * as WebBrowser from 'expo-web-browser';
 import { useNavigation } from '@react-navigation/native';
+import { usePostHog } from 'posthog-react-native';
 import colors from '../Colors/colors.Js';
 import GoogleIcon from '../../assets/icons/GoogleIcon.jsx';
 import AppleIcon from '../../assets/icons/AppleIcon.jsx';
@@ -15,6 +16,7 @@ WebBrowser.maybeCompleteAuthSession();
 const SocialSignInButton = ({ provider, onSignInStart, style }) => {
   const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
+  const posthog = usePostHog();
   
   // Use an effect to clean up timeouts when component unmounts
   useEffect(() => {
@@ -57,7 +59,15 @@ const SocialSignInButton = ({ provider, onSignInStart, style }) => {
             await initUserAttributesCache();
             await refreshUserAttributes();
             
-            await forceCheckAuthAndRedirect(navigation);
+            const redirectResult = await forceCheckAuthAndRedirect(navigation);
+            
+            // Track successful OAuth sign-in
+            if (redirectResult) {
+              posthog?.capture('success_sign_in', {
+                method: provider,
+                screen: 'SocialSignIn'
+              });
+            }
           }
         } catch (error) {
           // Silently handle errors

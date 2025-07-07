@@ -29,7 +29,7 @@ const getListingPriceText = (purchasePrice, targetPrice, netZeroPrice) => {
     return "Purchase at the Listing Price will have Negative Cashflow";
 };
 
-function ProjectionCalcOut(props) {
+function ProjectionCalcOutTutor(props) {
     const navigation = useNavigation();
     const route = useRoute();
     const { inputValues, ...results } = route.params;
@@ -120,11 +120,11 @@ function ProjectionCalcOut(props) {
         <View style={styles.logoContainer}>
             <BackButton 
                 inputValues={inputValues}
-                destinationScreen="ProjectionCalcIn"
+                destinationScreen="ProjectionCalcInTutor"
             />
             <TouchableOpacity 
                 style={styles.logoWrapper}
-                onPress={() => navigation.navigate('CalcHomeScreen')}
+                onPress={() => navigation.navigate('AltCalcHomeScreen')}
             >
                 <DarkTextLogo />
             </TouchableOpacity>
@@ -302,4 +302,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default ProjectionCalcOut;
+export default ProjectionCalcOutTutor;

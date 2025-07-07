@@ -12,7 +12,7 @@ import InfoComponent from '../../Components/InfoComponent.Js';
 import calculatorInfo from '../../../assets/text/info.json';
 import ScreenLayout from '../../UtilScreens/ScreenLayout.Js';
 
-function CommercialCalcOut(props) {
+function CommercialCalcOutTutor(props) {
     const navigation = useNavigation();
     const route = useRoute();
     const { inputValues, ...results } = route.params;
@@ -141,11 +141,11 @@ function CommercialCalcOut(props) {
         <View style={styles.logoContainer}>
             <BackButton 
                 inputValues={inputValues}
-                destinationScreen="CommercialCalcIn"
+                destinationScreen="CommercialCalcInTutor"
             />
             <TouchableOpacity 
                 style={styles.logoWrapper}
-                onPress={() => navigation.navigate('CalcHomeScreen')}
+                onPress={() => navigation.navigate('AltCalcHomeScreen')}
             >
                 <DarkTextLogo />
             </TouchableOpacity>
@@ -243,4 +243,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default CommercialCalcOut;
+export default CommercialCalcOutTutor;

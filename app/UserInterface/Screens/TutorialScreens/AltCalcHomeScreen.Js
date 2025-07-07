@@ -1,28 +1,24 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, Image } from "react-native";
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import React, { useState } from 'react';
+import { View, StyleSheet, Text, TouchableOpacity, Image, Alert } from "react-native";
+import { useNavigation } from '@react-navigation/native';
 import { InformationCircleIcon, ChevronRightIcon } from 'react-native-heroicons/outline';
-import { getUserAttribute } from '../Utils/UserAttributesCache.Js';
-import colors from '../Colors/colors.Js';
-import { useCalculations } from '../Utils/DataCache.Js';
-import { deleteCalculation as deleteCalculationFromAPI } from '../Utils/AmplifyDataUtils.Js';
-import RentalIcon from '../../assets/icons/RentalIcon.jsx';
-import FlipIcon from '../../assets/icons/FlipIcon.jsx';
-import BRRRRIcon from '../../assets/icons/BRRRIcon.jsx';
-import WholesaleIcon from '../../assets/icons/WholesaleIcon.jsx';
-import TargetIcon from '../../assets/icons/TargetIcon.jsx';
-import WhiteTextLogo from '../../assets/icons/WhiteTextLogo.jsx';
-import HistoryItem from '../Components/HistoryItem.Js';
-import FeedbackIcon from '../../assets/icons/FeedbackIcon.jsx';
-import HistoryIcon from '../../assets/icons/HistoryIcon.jsx';
-import UserIcon from '../../assets/icons/UserIcon.jsx';
-import CommercialIcon from '../../assets/icons/CommercialIcon.jsx';
-import InfoComponent from '../Components/InfoComponent.Js';
-import calculatorInfo from '../../assets/text/info.json';
-import GreenLogo from '../../assets/icons/GreenLogo.jsx';
-import MarkdownModal from '../Components/ArticleModal.Js';
-import introToCashflow from '../../assets/text/introToCashflow.Js';
-import ScreenLayout from '../UtilScreens/ScreenLayout.Js';
+import colors from '../../Colors/colors.Js';
+import RentalIcon from '../../../assets/icons/RentalIcon.jsx';
+import FlipIcon from '../../../assets/icons/FlipIcon.jsx';
+import BRRRRIcon from '../../../assets/icons/BRRRIcon.jsx';
+import WholesaleIcon from '../../../assets/icons/WholesaleIcon.jsx';
+import TargetIcon from '../../../assets/icons/TargetIcon.jsx';
+import WhiteTextLogo from '../../../assets/icons/WhiteTextLogo.jsx';
+import FeedbackIcon from '../../../assets/icons/FeedbackIcon.jsx';
+import HistoryIcon from '../../../assets/icons/HistoryIcon.jsx';
+import UserIcon from '../../../assets/icons/UserIcon.jsx';
+import CommercialIcon from '../../../assets/icons/CommercialIcon.jsx';
+import InfoComponent from '../../Components/InfoComponent.Js';
+import calculatorInfo from '../../../assets/text/info.json';
+import GreenLogo from '../../../assets/icons/GreenLogo.jsx';
+import MarkdownModal from '../../Components/ArticleModal.Js';
+import introToCashflow from '../../../assets/text/introToCashflow.Js';
+import ScreenLayout from '../../UtilScreens/ScreenLayout.Js';
 
 const CalculatorButton = ({ name, screen, Icon, color, infoTitle, infoDescription, fullWidth }) => {
   const navigation = useNavigation();
@@ -83,23 +79,10 @@ const ArticleItem = ({ item, onPress }) => (
   </TouchableOpacity>
 );
 
-function CalcHomeScreen() {
+function AltCalcHomeScreen() {
   const navigation = useNavigation();
-  const { calculations, isLoading, refreshCalculations } = useCalculations(null, true);
-  const [history, setHistory] = useState([]);
-  const [firstName, setFirstName] = useState('');
   const [markdownModalVisible, setMarkdownModalVisible] = useState(false);
   const [currentMarkdownContent, setCurrentMarkdownContent] = useState('');
-
-  // Update history when calculations change
-  useEffect(() => {
-    if (calculations && calculations.length > 0) {
-      // Take the 3 most recent calculations
-      setHistory(calculations.slice(0, 3));
-    } else {
-      setHistory([]);
-    }
-  }, [calculations]);
 
   const articles = [
     { 
@@ -112,7 +95,7 @@ function CalcHomeScreen() {
   const calculators = [
     { 
       name: "Rental Property Calculator", 
-      screen: "RentalCalcIn", 
+      screen: "RentalCalcInTutor", 
       Icon: RentalIcon, 
       color: colors.primaryGreen,
       infoTitle: calculatorInfo.calculator_type.rental_calc.title,
@@ -120,7 +103,7 @@ function CalcHomeScreen() {
     },
     { 
       name: "Fix & Flip Calculator", 
-      screen: "FlipCalcIn", 
+      screen: "FlipCalcInTutor", 
       Icon: FlipIcon, 
       color: colors.primaryOrange,
       infoTitle: calculatorInfo.calculator_type.flip_calc.title,
@@ -128,7 +111,7 @@ function CalcHomeScreen() {
     },
     { 
       name: "BRRRR Calculator", 
-      screen: "BRRCalcIn", 
+      screen: "BRRCalcInTutor", 
       Icon: BRRRRIcon, 
       color: colors.primaryBlue,
       infoTitle: calculatorInfo.calculator_type.brrrr_calc.title,
@@ -136,7 +119,7 @@ function CalcHomeScreen() {
     },
     { 
       name: "Wholesale Calculator", 
-      screen: "WholesaleCalcIn", 
+      screen: "WholesaleCalcInTutor", 
       Icon: WholesaleIcon, 
       color: colors.brightGreen,
       infoTitle: calculatorInfo.calculator_type.wholesale_calc.title,
@@ -144,7 +127,7 @@ function CalcHomeScreen() {
     },
     { 
       name: "Price Target Calculator", 
-      screen: "ProjectionCalcIn", 
+      screen: "ProjectionCalcInTutor", 
       Icon: TargetIcon, 
       color: colors.primaryPurple,
       infoTitle: calculatorInfo.calculator_type.target_calc.title,
@@ -152,7 +135,7 @@ function CalcHomeScreen() {
     },
     { 
       name: "Commercial Multi-Family", 
-      screen: "CommercialCalcIn", 
+      screen: "CommercialCalcInTutor", 
       Icon: CommercialIcon, 
       color: colors.primaryPink,
       infoTitle: calculatorInfo.calculator_type.commercial_calc.title,
@@ -160,16 +143,44 @@ function CalcHomeScreen() {
     },
   ];
 
+  const showSignupAlert = () => {
+    Alert.alert(
+      'Create an Account',
+      'Create an account to use these features',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        },
+        {
+          text: 'Sign Up',
+          onPress: () => navigation.navigate('SignUpFirst')
+        }
+      ],
+      { cancelable: true }
+    );
+  };
+
   const renderHistorySection = () => (
     <View style={styles.sectionContainer}>
       <TouchableOpacity 
         style={styles.sectionTitleContainer}
-        onPress={() => navigation.navigate('HistoryScreen')}
+        onPress={showSignupAlert}
       >
         <Text style={styles.sectionTitle}>Recent Calculations</Text>
         <ChevronRightIcon color={colors.iconWhite} size={24} />
       </TouchableOpacity>
-      <Text style={styles.emptyHistoryText}>Create an Account to Save Your Calculations</Text>
+      <View style={styles.emptyHistoryContainer}>
+        <Text style={styles.emptyHistoryText}>
+          <Text 
+            style={styles.createAccountText}
+            onPress={showSignupAlert}
+          >
+            Create an Account
+          </Text>
+          <Text> to Save Your Calculations</Text>
+        </Text>
+      </View>
     </View>
   );
 
@@ -182,17 +193,17 @@ function CalcHomeScreen() {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('UserScreen')}>
+      <TouchableOpacity style={styles.headerIcon} onPress={showSignupAlert}>
         <UserIcon color={colors.primary} size={24} />
       </TouchableOpacity>
       <View style={styles.logoContainer}>
         <WhiteTextLogo width={120} height={28} />
       </View>
       <View style={styles.headerIcons}>
-        <TouchableOpacity onPress={() => navigation.navigate('HistoryScreen')} style={styles.headerIcon}>
+        <TouchableOpacity onPress={showSignupAlert} style={styles.headerIcon}>
           <HistoryIcon color={colors.primary} size={24} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('FeedbackScreen')} style={styles.headerIcon}>
+        <TouchableOpacity onPress={() => navigation.navigate('AltFeedbackScreen')} style={styles.headerIcon}>
           <FeedbackIcon color={colors.primary} size={24} />
         </TouchableOpacity>
       </View>
@@ -205,7 +216,7 @@ function CalcHomeScreen() {
       backgroundColor={colors.darkGreenPrimary}
     >
       <Text style={styles.welcomeText}>
-        {firstName ? `Welcome, ${firstName}!` : 'Welcome to Cashflow!'}
+        {'Welcome to Cashflow!'}
       </Text>
       <View style={styles.calculatorsGrid}>
         {calculators.map((calc, index) => (
@@ -317,10 +328,21 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.iconWhite,
   },
+  emptyHistoryContainer: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
   emptyHistoryText: {
     textAlign: 'center',
     color: colors.mainShade,
     fontStyle: 'italic',
+  },
+  createAccountText: {
+    color: colors.primaryGreen,
+    fontStyle: 'italic',
+    fontWeight: 'bold',
+    textDecorationLine: 'underline',
   },
   articleItem: {
     flexDirection: 'row',
@@ -367,4 +389,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CalcHomeScreen;
+export default AltCalcHomeScreen;

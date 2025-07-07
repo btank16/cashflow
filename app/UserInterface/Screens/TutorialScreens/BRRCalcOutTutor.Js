@@ -13,7 +13,7 @@ import calculatorInfo from '../../../assets/text/info.json';
 import ScreenLayout from '../../UtilScreens/ScreenLayout.Js';
 
 
-function BRRCalcOut(props) {
+function BRRCalcOutTutor(props) {
     const navigation = useNavigation();
     const route = useRoute();
     const { inputValues, ...results } = route.params;
@@ -120,11 +120,11 @@ function BRRCalcOut(props) {
         <View style={styles.logoContainer}>
             <BackButton 
                 inputValues={inputValues}
-                destinationScreen="BRRCalcIn"
+                destinationScreen="BRRCalcInTutor"
             />
             <TouchableOpacity 
                 style={styles.logoWrapper}
-                onPress={() => navigation.navigate('CalcHomeScreen')}
+                onPress={() => navigation.navigate('AltCalcHomeScreen')}
             >
                 <DarkTextLogo />
             </TouchableOpacity>
@@ -280,4 +280,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default BRRCalcOut;
+export default BRRCalcOutTutor;

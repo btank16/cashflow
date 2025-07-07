@@ -4,13 +4,12 @@ import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import { ChevronDownIcon } from "react-native-heroicons/outline";
 import { send, EmailJSResponseStatus } from '@emailjs/react-native';
-import colors from '../Colors/colors.Js';
-import BackButton from '../Components/BackButton.Js';
-import GreenLogo from '../../assets/icons/GreenLogo.jsx';
-import PrimaryButton from '../Components/PrimaryButton.Js';
-import { getUserAttribute } from '../Utils/UserAttributesCache.Js';
-import secretKeys from '../../../secretkeys.json';
-import ScreenLayout from '../UtilScreens/ScreenLayout.Js';
+import colors from '../../Colors/colors.Js';
+import BackButton from '../../Components/BackButton.Js';
+import GreenLogo from '../../../assets/icons/GreenLogo.jsx';
+import PrimaryButton from '../../Components/PrimaryButton.Js';
+import secretKeys from '../../../../secretkeys.json';
+import ScreenLayout from '../../UtilScreens/ScreenLayout.Js';
 
 const SUBJECT_OPTIONS = [
   "Bug Report", 
@@ -106,28 +105,12 @@ const SubjectDropdown = ({
 
 const MAX_FEEDBACK_CHARS = 500;
 
-function FeedbackScreen() {
+function AltFeedbackScreen() {
   const navigation = useNavigation();
   const [subject, setSubject] = useState('');
   const [feedback, setFeedback] = useState('');
   const [feedbackFocused, setFeedbackFocused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
-
-  useEffect(() => {
-    // Fetch user attributes when component mounts
-    const fetchUserData = async () => {
-      try {
-        const email = await getUserAttribute('email') || '';
-        
-        setUserEmail(email);
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      }
-    };
-
-    fetchUserData();
-  }, []);
 
   const handleFeedbackChange = (text) => {
     if (text.length <= MAX_FEEDBACK_CHARS) {
@@ -145,7 +128,7 @@ function FeedbackScreen() {
     
     try {
       const templateParams = {
-        email: userEmail || 'No Email Provided',
+        email: 'Unauthenticated User',
         title: subject,
         feedback: feedback
       };
@@ -185,7 +168,7 @@ function FeedbackScreen() {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <BackButton destinationScreen="CalcHomeScreen" />
+      <BackButton destinationScreen="AltCalcHomeScreen" />
     </View>
   );
 
@@ -355,4 +338,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FeedbackScreen;
+export default AltFeedbackScreen;

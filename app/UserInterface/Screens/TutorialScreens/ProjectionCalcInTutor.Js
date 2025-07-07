@@ -1,19 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Text, Animated } from "react-native";
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Text, Animated, TouchableOpacity } from "react-native";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../../Colors/colors.Js';
 import NumericInput from '../../Components/NumericInputBox.Js';
 import LoanTerm from '../../Components/LoanTerm.Js';
 import CalcButton from '../../Components/CalcButton.Js';
-import HomeButton from '../../Components/HomeButton.Js';
 import SwitchableNumericInput from '../../Components/SwitchableNumericInput.Js';
 const { PriceSuggestion } = require('../../../Calculations/SuggestPrice.Js');
-import OperatingExpenses from '../../Components/OperatingExpenses.Js';
+import TutorialOperatingExpense from '../../Components/TutorialOperatingExpense.Js';
 import calculatorInfo from '../../../assets/text/info.json';
-import { createCalculation, updateCalculation, createExpense, updateExpense } from '../../Utils/AmplifyDataUtils.Js';
-import { getExpenses } from '../../Utils/DataCache.Js';
+import { ChevronLeftIcon } from 'react-native-heroicons/solid';
 
-function ProjectionCalcIn(props) {
+function ProjectionCalcInTutor(props) {
     const navigation = useNavigation();
     const route = useRoute();
     const [purchasePrice, setPurchasePrice] = useState('');
@@ -27,17 +25,15 @@ function ProjectionCalcIn(props) {
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-    const [resultScreen, setResultScreen] = useState('ProjectionCalcOut');
+    const [resultScreen, setResultScreen] = useState('ProjectionCalcOutTutor');
     const [switchableInputs, setSwitchableInputs] = useState({
         closingCost: { value: '', isDollar: false },
         capexEst: { value: '', isDollar: false }
     });
-    const [calculationId, setCalculationId] = useState(null);
     const [showHeaderTitle, setShowHeaderTitle] = useState(false);
     const scrollY = useRef(new Animated.Value(0)).current;
     const [operatingExpensesActive, setOperatingExpensesActive] = useState(true);
     const [operatingExpenses, setOperatingExpenses] = useState([]);
-    const [saveNewExpenses, setSaveNewExpenses] = useState(false);
 
     useEffect(() => {
         checkFormValidity();
@@ -64,7 +60,6 @@ function ProjectionCalcIn(props) {
     useEffect(() => {
         if (route.params?.inputValues) {
             const {
-                id,
                 purchasePrice,
                 monthCashflow,
                 downPayment,
@@ -78,7 +73,6 @@ function ProjectionCalcIn(props) {
                 operatingExpenseArray
             } = route.params.inputValues;
 
-            setCalculationId(id);
             setPurchasePrice(purchasePrice?.toString() || '');
             setMonthCashflow(monthCashflow?.toString() || '');
             setDownPayment(downPayment?.toString() || '');
@@ -97,7 +91,6 @@ function ProjectionCalcIn(props) {
             if (operatingExpenseArray) {
                 setOperatingExpensesActive(operatingExpenseArray.isActive);
                 setOperatingExpenses(operatingExpenseArray.expenses);
-                setSaveNewExpenses(operatingExpenseArray.saveNewExpenses);
             }
         }
     }, [route.params?.inputValues]);
@@ -133,69 +126,8 @@ function ProjectionCalcIn(props) {
         }));
     };
 
-    const toTitleCase = (str) => {
-        return str
-            .toLowerCase()
-            .split(' ')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-    };
-
-    const onCalculatePress = async () => {
+    const onCalculatePress = () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
-
-        if (saveNewExpenses && operatingExpenses.length > 0) {
-            try {
-                // Get all existing expenses from DataCache
-                const existingExpenses = await getExpenses();
-                
-                for (const expense of operatingExpenses) {
-                    if (expense.category && expense.cost) {
-                        const formattedCategory = toTitleCase(expense.category);
-
-                        // Check if this expense already exists
-                        const matchingExpense = existingExpenses.find(existing => 
-                            existing.category === formattedCategory && 
-                            parseFloat(existing.cost) === parseFloat(expense.cost) && 
-                            existing.frequency === expense.frequency
-                        );
-
-                        if (matchingExpense) {
-                            // Update existing expense
-                            try {
-                                // Parse existing applicable calculators
-                                const existingCalculators = JSON.parse(matchingExpense.applicable_calculators || '[]');
-                                
-                                // Only add 'rental' if it's not already in the list
-                                if (!existingCalculators.includes('target')) {
-                                    const updatedCalculators = [...existingCalculators, 'target'];
-                                    
-                                    await updateExpense(
-                                        matchingExpense.id,
-                                        formattedCategory,
-                                        expense.cost,
-                                        expense.frequency,
-                                        updatedCalculators
-                                    );
-                                }
-                            } catch (error) {
-                                console.error('Error updating existing expense:', error);
-                            }
-                        } else {
-                            // Create new expense
-                            await createExpense(
-                                formattedCategory,
-                                expense.cost,
-                                expense.frequency,
-                                ['target']
-                            );
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Error saving operating expenses:', error);
-            }
-        }
 
         const inputValues = {
             purchasePrice: toNumber(purchasePrice),
@@ -210,8 +142,7 @@ function ProjectionCalcIn(props) {
             rehabCost: toNumber(rehabCost),
             operatingExpenseArray: {
                 isActive: operatingExpensesActive,
-                expenses: operatingExpenses,
-                saveNewExpenses: saveNewExpenses
+                expenses: operatingExpenses
             }
         };
 
@@ -242,40 +173,12 @@ function ProjectionCalcIn(props) {
             MaxZeroMortgage: cashflowResults[10],
             MaxCashflowMortgage: cashflowResults[11],
         };
-
-        try {
-            let savedData;
-            
-            if (calculationId) {
-                // Update existing calculation
-                savedData = await updateCalculation(
-                    calculationId,
-                    'projection',
-                    inputValues,
-                    results
-                );
-            } else {
-                // Create new calculation
-                savedData = await createCalculation(
-                    'projection',
-                    inputValues,
-                    results
-                );
-            }
-            
-            let savedId = calculationId;
-            if (savedData && savedData.id) {
-                savedId = savedData.id;
-            }
-            
-            // Navigate to the result screen
-            navigation.navigate(resultScreen, {
-                inputValues: {...inputValues, id: savedId},
-                ...results
-            });
-        } catch (error) {
-            console.error('Error saving calculation to database:', error);
-        }
+        
+        // Navigate to the result screen
+        navigation.navigate(resultScreen, {
+            inputValues: inputValues,
+            ...results
+        });
     };
 
     const numericInputsArray = [
@@ -383,14 +286,15 @@ function ProjectionCalcIn(props) {
         setOperatingExpenses(expenses);
     };
 
-    const handleSaveNewExpensesChange = (value) => {
-        setSaveNewExpenses(value);
-    };
-
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
-                <HomeButton/>
+                <TouchableOpacity 
+                    style={styles.backButton} 
+                    onPress={() => navigation.navigate('AltCalcHomeScreen')}
+                >
+                    <ChevronLeftIcon color={colors.primaryBlack} size={24} />
+                </TouchableOpacity>
                 {showHeaderTitle && (
                     <Text style={styles.headerTitle}>Price Target Calculator</Text>
                 )}
@@ -425,11 +329,10 @@ function ProjectionCalcIn(props) {
                     <NumericInput {...numericInputsArray[1]} />
                     <NumericInput {...numericInputsArray[4]} />
                     <SwitchableNumericInput {...switchableInputsArray[1]}/>
-                    <OperatingExpenses
+                    <TutorialOperatingExpense
                         calculatorType="target"
                         onActiveChange={setOperatingExpensesActive}
                         onExpensesChange={handleOperatingExpensesChange}
-                        onSaveNewExpensesChange={handleSaveNewExpensesChange}
                         initialExpenses={operatingExpenses}
                         infoTitle={calculatorInfo.calculator_input.operating_expenses.title}
                         infoDescription={calculatorInfo.calculator_input.operating_expenses.description}
@@ -498,6 +401,11 @@ const styles = StyleSheet.create({
         right: 0,
         textAlign: 'center',
     },
+    backButton: {
+        paddingVertical: 10,
+        paddingHorizontal: 10,
+        zIndex: 1,
+    },
 });
 
-export default ProjectionCalcIn;
+export default ProjectionCalcInTutor;

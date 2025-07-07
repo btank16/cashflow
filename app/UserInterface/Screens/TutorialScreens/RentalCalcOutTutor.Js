@@ -12,7 +12,7 @@ import InfoComponent from '../../Components/InfoComponent.Js';
 import calculatorInfo from '../../../assets/text/info.json';
 import ScreenLayout from '../../UtilScreens/ScreenLayout.Js';
 
-function RentalCalcOut(props) {
+function RentalCalcOutTutor(props) {
     const navigation = useNavigation();
     const route = useRoute();
     const { inputValues, ...results } = route.params;
@@ -140,11 +140,11 @@ function RentalCalcOut(props) {
         <View style={styles.logoContainer}>
             <BackButton 
                 inputValues={inputValues}
-                destinationScreen="RentalCalcIn"
+                destinationScreen="RentalCalcInTutor"
             />
             <TouchableOpacity 
                 style={styles.logoWrapper}
-                onPress={() => navigation.navigate('CalcHomeScreen')}
+                onPress={() => navigation.navigate('AltCalcHomeScreen')}
             >
                 <DarkTextLogo />
             </TouchableOpacity>
@@ -242,4 +242,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default RentalCalcOut;
+export default RentalCalcOutTutor;

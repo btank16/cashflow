@@ -1,27 +1,25 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Text, Animated } from "react-native";
+import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Text, Animated, TouchableOpacity } from "react-native";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../../Colors/colors.Js';
 import NumericInput from '../../Components/NumericInputBox.Js';
 import CalcButton from '../../Components/CalcButton.Js';
-import HomeButton from '../../Components/HomeButton.Js';
 import SwitchableNumericInput from '../../Components/SwitchableNumericInput.Js';
 import LoanTerm from '../../Components/LoanTerm.Js';
 import Checkbox from '../../Components/InterestCheckbox.Js';
 const { CommercialCalc } = require('../../../Calculations/CommercialFunction.Js');
-import OperatingExpenses from '../../Components/OperatingExpenses.Js';
+import TutorialOperatingExpense from '../../Components/TutorialOperatingExpense.Js';
 import calculatorInfo from '../../../assets/text/info.json';
-import { createCalculation, updateCalculation, createExpense, updateExpense } from '../../Utils/AmplifyDataUtils.Js';
-import { getExpenses } from '../../Utils/DataCache.Js';
+import { ChevronLeftIcon } from 'react-native-heroicons/solid';
 
-function CommercialCalcIn(props) {
+function CommercialCalcInTutor(props) {
     const navigation = useNavigation();
     const route = useRoute();
     const [purchasePrice, setPurchasePrice] = useState('');
     const [loanTerm, setLoanTerm] = useState(30);
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
-    const [resultScreen, setResultScreen] = useState('CommercialCalcOut');
+    const [resultScreen, setResultScreen] = useState('CommercialCalcOutTutor');
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
     const [switchableInputs, setSwitchableInputs] = useState({
         downPayment: { value: '', isDollar: false },
@@ -30,7 +28,6 @@ function CommercialCalcIn(props) {
         propertyTax: { value: '', isDollar: false },
         capexEst: { value: '', isDollar: false },
     });
-    const [calculationId, setCalculationId] = useState(null);
     const [showHeaderTitle, setShowHeaderTitle] = useState(false);
     const scrollY = useRef(new Animated.Value(0)).current;
     const [interestRateInput, setInterestRateInput] = useState({
@@ -42,7 +39,6 @@ function CommercialCalcIn(props) {
     const [grossRent, setGrossRent] = useState('');
     const [operatingExpensesActive, setOperatingExpensesActive] = useState(true);
     const [operatingExpenses, setOperatingExpenses] = useState([]);
-    const [saveNewExpenses, setSaveNewExpenses] = useState(false);
     const [vacancyRate, setVacancyRate] = useState('');
 
     useEffect(() => {
@@ -70,7 +66,6 @@ function CommercialCalcIn(props) {
     useEffect(() => {
         if (route.params?.inputValues) {
             const {
-                id,
                 purchasePrice,
                 downPayment,
                 capitalReserve,
@@ -86,7 +81,6 @@ function CommercialCalcIn(props) {
                 operatingExpenseArray,
             } = route.params.inputValues;
 
-            setCalculationId(id);
             setPurchasePrice(purchasePrice?.toString() || '');
             setInterestRateInput({
                 value: interestRate?.value?.toString() || '',
@@ -110,7 +104,6 @@ function CommercialCalcIn(props) {
             if (operatingExpenseArray) {
                 setOperatingExpensesActive(operatingExpenseArray.isActive);
                 setOperatingExpenses(operatingExpenseArray.expenses);
-                setSaveNewExpenses(operatingExpenseArray.saveNewExpenses);
             }
         }
     }, [route.params?.inputValues]);
@@ -145,69 +138,8 @@ function CommercialCalcIn(props) {
         }));
     };
 
-    const toTitleCase = (str) => {
-        return str
-            .toLowerCase()
-            .split(' ')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-    };
-
-    const onCalculatePress = async () => {
+    const onCalculatePress = () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
-
-        if (saveNewExpenses && operatingExpenses.length > 0) {
-            try {
-                // Get all existing expenses from DataCache
-                const existingExpenses = await getExpenses();
-                
-                for (const expense of operatingExpenses) {
-                    if (expense.category && expense.cost) {
-                        const formattedCategory = toTitleCase(expense.category);
-
-                        // Check if this expense already exists
-                        const matchingExpense = existingExpenses.find(existing => 
-                            existing.category === formattedCategory && 
-                            parseFloat(existing.cost) === parseFloat(expense.cost) && 
-                            existing.frequency === expense.frequency
-                        );
-
-                        if (matchingExpense) {
-                            // Update existing expense
-                            try {
-                                // Parse existing applicable calculators
-                                const existingCalculators = JSON.parse(matchingExpense.applicable_calculators || '[]');
-                                
-                                // Only add 'rental' if it's not already in the list
-                                if (!existingCalculators.includes('commercial')) {
-                                    const updatedCalculators = [...existingCalculators, 'commercial'];
-                                    
-                                    await updateExpense(
-                                        matchingExpense.id,
-                                        formattedCategory,
-                                        expense.cost,
-                                        expense.frequency,
-                                        updatedCalculators
-                                    );
-                                }
-                            } catch (error) {
-                                console.error('Error updating existing expense:', error);
-                            }
-                        } else {
-                            // Create new expense
-                            await createExpense(
-                                formattedCategory,
-                                expense.cost,
-                                expense.frequency,
-                                ['commercial']
-                            );
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Error saving operating expenses:', error);
-            }
-        }
 
         const inputValues = {
             purchasePrice: toNumber(purchasePrice),
@@ -224,8 +156,7 @@ function CommercialCalcIn(props) {
             propertyTax: switchableInputs.propertyTax,
             operatingExpenseArray: {
                 isActive: operatingExpensesActive,
-                expenses: operatingExpenses,
-                saveNewExpenses: saveNewExpenses
+                expenses: operatingExpenses
             }
         };
 
@@ -256,40 +187,12 @@ function CommercialCalcIn(props) {
             monthsTillEven: funcResults[8],
             annualCashflow: funcResults[9]
         };
-
-        try {
-            let savedData;
-            
-            if (calculationId) {
-                // Update existing calculation
-                savedData = await updateCalculation(
-                    calculationId,
-                    'commercial',
-                    inputValues,
-                    results
-                );
-            } else {
-                // Create new calculation
-                savedData = await createCalculation(
-                    'commercial',
-                    inputValues,
-                    results
-                );
-            }
-            
-            let savedId = calculationId;
-            if (savedData && savedData.id) {
-                savedId = savedData.id;
-            }
-            
-            // Navigate to the result screen
-            navigation.navigate(resultScreen, {
-                inputValues: {...inputValues, id: savedId},
-                ...results
-            });
-        } catch (error) {
-            console.error('Error saving calculation to database:', error);
-        }
+        
+        // Navigate to the result screen
+        navigation.navigate(resultScreen, {
+            inputValues: inputValues,
+            ...results
+        });
     };
 
     const numericInputsArray = [
@@ -427,16 +330,17 @@ function CommercialCalcIn(props) {
         setOperatingExpenses(expenses);
     };
 
-    const handleSaveNewExpensesChange = (value) => {
-        setSaveNewExpenses(value);
-    };
-
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
-                <HomeButton />
+                <TouchableOpacity 
+                    style={styles.backButton} 
+                    onPress={() => navigation.navigate('AltCalcHomeScreen')}
+                >
+                    <ChevronLeftIcon color={colors.primaryBlack} size={24} />
+                </TouchableOpacity>
                 {showHeaderTitle && (
-                    <Text style={styles.headerTitle}>Rental Calculator</Text>
+                    <Text style={styles.headerTitle}>Commercial Calculator</Text>
                 )}
             </View>
             <KeyboardAvoidingView 
@@ -482,11 +386,10 @@ function CommercialCalcIn(props) {
                     <SwitchableNumericInput {...switchableInputsArray[3]} />
                     <SwitchableNumericInput {...switchableInputsArray[4]} />
                     <NumericInput {...numericInputsArray[5]} />
-                    <OperatingExpenses
+                    <TutorialOperatingExpense
                         calculatorType="commercial"
                         onActiveChange={setOperatingExpensesActive}
                         onExpensesChange={handleOperatingExpensesChange}
-                        onSaveNewExpensesChange={handleSaveNewExpensesChange}
                         initialExpenses={operatingExpenses}
                         infoTitle={calculatorInfo.calculator_input.operating_expenses.title}
                         infoDescription={calculatorInfo.calculator_input.operating_expenses.description}
@@ -555,6 +458,11 @@ const styles = StyleSheet.create({
         right: 0,
         textAlign: 'center',
     },
+    backButton: {
+        paddingVertical: 10,
+        paddingHorizontal: 10,
+        zIndex: 1,
+    },
 });
 
-export default CommercialCalcIn;
+export default CommercialCalcInTutor;

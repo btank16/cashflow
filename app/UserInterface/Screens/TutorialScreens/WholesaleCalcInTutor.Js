@@ -1,17 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Text, Animated } from "react-native";
+import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Text, Animated, TouchableOpacity } from "react-native";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../../Colors/colors.Js';
 import NumericInput from '../../Components/NumericInputBox.Js';
 import CalcButton from '../../Components/CalcButton.Js';
 import HomeButton from '../../Components/HomeButton.Js';
 const { wholesalefunction } = require('../../../Calculations/WholesalingFunction.Js');
-import OperatingExpenses from '../../Components/OperatingExpenses.Js';
+import TutorialOperatingExpense from '../../Components/TutorialOperatingExpense.Js';
 import calculatorInfo from '../../../assets/text/info.json';
-import { createCalculation, updateCalculation, createExpense, updateExpense } from '../../Utils/AmplifyDataUtils.Js';
-import { getExpenses } from '../../Utils/DataCache.Js';
+import { ChevronLeftIcon } from 'react-native-heroicons/solid';
 
-function WholesaleCalcIn(props) {
+function WholesaleCalcInTutor(props) {
     const navigation = useNavigation();
     const route = useRoute();
     const [purchasePrice, setPurchasePrice] = useState('');
@@ -19,14 +18,12 @@ function WholesaleCalcIn(props) {
     const [afterRev, setAfterRev] = useState('');
     const [isFormValid, setIsFormValid] = useState(false);
     const scrollViewRef = useRef();
-    const [resultScreen, setResultScreen] = useState('WholesaleCalcOut');
+    const [resultScreen, setResultScreen] = useState('WholesaleCalcOutTutor');
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-    const [calculationId, setCalculationId] = useState(null);
     const [showHeaderTitle, setShowHeaderTitle] = useState(false);
     const scrollY = useRef(new Animated.Value(0)).current;
     const [operatingExpensesActive, setOperatingExpensesActive] = useState(true);
     const [operatingExpenses, setOperatingExpenses] = useState([]);
-    const [saveNewExpenses, setSaveNewExpenses] = useState(false);
     const [monthsHeld, setMonthsHeld] = useState('');
 
     useEffect(() => {
@@ -54,7 +51,6 @@ function WholesaleCalcIn(props) {
     useEffect(() => {
         if (route.params?.inputValues) {
             const {
-                id,
                 purchasePrice,
                 afterRev,
                 rehabCost,
@@ -66,12 +62,10 @@ function WholesaleCalcIn(props) {
             setAfterRev(afterRev?.toString() || '');
             setRehabCost(rehabCost?.toString() || '');
             setMonthsHeld(monthsHeld?.toString() || '');
-            setCalculationId(id);
 
             if (operatingExpenseArray) {
                 setOperatingExpensesActive(operatingExpenseArray.isActive);
                 setOperatingExpenses(operatingExpenseArray.expenses);
-                setSaveNewExpenses(operatingExpenseArray.saveNewExpenses);
             }
         }
     }, [route.params?.inputValues]);
@@ -84,69 +78,8 @@ function WholesaleCalcIn(props) {
         );
     };
 
-    const toTitleCase = (str) => {
-        return str
-            .toLowerCase()
-            .split(' ')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-    };
-
-    const onCalculatePress = async () => {
+    const onCalculatePress = () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
-
-        if (saveNewExpenses && operatingExpenses.length > 0) {
-            try {
-                // Get all existing expenses from DataCache
-                const existingExpenses = await getExpenses();
-                
-                for (const expense of operatingExpenses) {
-                    if (expense.category && expense.cost) {
-                        const formattedCategory = toTitleCase(expense.category);
-
-                        // Check if this expense already exists
-                        const matchingExpense = existingExpenses.find(existing => 
-                            existing.category === formattedCategory && 
-                            parseFloat(existing.cost) === parseFloat(expense.cost) && 
-                            existing.frequency === expense.frequency
-                        );
-
-                        if (matchingExpense) {
-                            // Update existing expense
-                            try {
-                                // Parse existing applicable calculators
-                                const existingCalculators = JSON.parse(matchingExpense.applicable_calculators || '[]');
-                                
-                                // Only add 'rental' if it's not already in the list
-                                if (!existingCalculators.includes('wholesale')) {
-                                    const updatedCalculators = [...existingCalculators, 'wholesale'];
-                                    
-                                    await updateExpense(
-                                        matchingExpense.id,
-                                        formattedCategory,
-                                        expense.cost,
-                                        expense.frequency,
-                                        updatedCalculators
-                                    );
-                                }
-                            } catch (error) {
-                                console.error('Error updating existing expense:', error);
-                            }
-                        } else {
-                            // Create new expense
-                            await createExpense(
-                                formattedCategory,
-                                expense.cost,
-                                expense.frequency,
-                                ['wholesale']
-                            );
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Error saving operating expenses:', error);
-            }
-        }
 
         const inputValues = {
             purchasePrice: toNumber(purchasePrice),
@@ -155,8 +88,7 @@ function WholesaleCalcIn(props) {
             monthsHeld: toNumber(monthsHeld),
             operatingExpenseArray: {
                 isActive: operatingExpensesActive,
-                expenses: operatingExpenses,
-                saveNewExpenses: saveNewExpenses
+                expenses: operatingExpenses
             }
         };
 
@@ -177,40 +109,12 @@ function WholesaleCalcIn(props) {
             sale5Perc: wholesaleResults[4],
             sale15Perc: wholesaleResults[5],
         };
-
-        try {
-            let savedData;
-            
-            if (calculationId) {
-                // Update existing calculation
-                savedData = await updateCalculation(
-                    calculationId,
-                    'wholesale',
-                    inputValues,
-                    results
-                );
-            } else {
-                // Create new calculation
-                savedData = await createCalculation(
-                    'wholesale',
-                    inputValues,
-                    results
-                );
-            }
-            
-            let savedId = calculationId;
-            if (savedData && savedData.id) {
-                savedId = savedData.id;
-            }
-            
-            // Navigate to the result screen
-            navigation.navigate(resultScreen, {
-                inputValues: {...inputValues, id: savedId},
-                ...results
-            });
-        } catch (error) {
-            console.error('Error saving calculation to database:', error);
-        }
+        
+        // Navigate to the result screen
+        navigation.navigate(resultScreen, {
+            inputValues: inputValues,
+            ...results
+        });
     };
 
     const numericInputsArray = [
@@ -275,14 +179,15 @@ function WholesaleCalcIn(props) {
         setOperatingExpenses(expenses);
     };
 
-    const handleSaveNewExpensesChange = (value) => {
-        setSaveNewExpenses(value);
-    };
-
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
-                <HomeButton/>
+                <TouchableOpacity 
+                    style={styles.backButton} 
+                    onPress={() => navigation.navigate('AltCalcHomeScreen')}
+                >
+                    <ChevronLeftIcon color={colors.primaryBlack} size={24} />
+                </TouchableOpacity>
                 {showHeaderTitle && (
                     <Text style={styles.headerTitle}>Wholesaling Calculator</Text>
                 )}
@@ -304,11 +209,10 @@ function WholesaleCalcIn(props) {
                     <NumericInput {...numericInputsArray[1]} />
                     <NumericInput {...numericInputsArray[2]} />
                     <NumericInput {...numericInputsArray[3]} />
-                    <OperatingExpenses
+                    <TutorialOperatingExpense
                         calculatorType="wholesale"
                         onActiveChange={setOperatingExpensesActive}
                         onExpensesChange={handleOperatingExpensesChange}
-                        onSaveNewExpensesChange={handleSaveNewExpensesChange}
                         initialExpenses={operatingExpenses}
                         sectionTitle="Additional Expenses"
                         viewAllButtonText="View all Saved Expenses"
@@ -372,6 +276,11 @@ const styles = StyleSheet.create({
         right: 0,
         textAlign: 'center',
     },
+    backButton: {
+        paddingVertical: 10,
+        paddingHorizontal: 10,
+        zIndex: 1,
+    },
 });
 
-export default WholesaleCalcIn;
+export default WholesaleCalcInTutor;

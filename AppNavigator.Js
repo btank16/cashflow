@@ -58,12 +58,6 @@ const AuthStack = () => (
     <Stack.Screen name="VerificationScreen" component={VerificationScreen} />
     <Stack.Screen name="ForgetPassFirst" component={ForgetPassFirst} />
     <Stack.Screen name="ForgetPassSec" component={ForgetPassSec} />
-  </Stack.Navigator>
-);
-
-// Create UnAuth stack for tutorial screens
-const UnAuthStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
     <Stack.Screen name="AltCalcHomeScreen" component={AltCalcHomeScreen} />
     <Stack.Screen name="AltFeedbackScreen" component={AltFeedbackScreen} />
     <Stack.Screen name="BRRCalcInTutor" component={BRRCalcInTutor} />
@@ -117,7 +111,6 @@ function AppNavigator({ initialRouteName = 'Auth' }) {
     >
       <Stack.Screen name="Auth" component={AuthStack} />
       <Stack.Screen name="Main" component={MainStack} />
-      <Stack.Screen name="UnAuth" component={UnAuthStack} />
     </Stack.Navigator>
   );
 }

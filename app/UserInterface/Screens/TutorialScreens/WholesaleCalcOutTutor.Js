@@ -11,7 +11,7 @@ import InfoComponent from '../../Components/InfoComponent.Js';
 import calculatorInfo from '../../../assets/text/info.json';
 import ScreenLayout from '../../UtilScreens/ScreenLayout.Js';
 
-function WholesaleCalcOut(props) {
+function WholesaleCalcOutTutor(props) {
     const navigation = useNavigation();
     const route = useRoute();
     const { inputValues, ...results } = route.params;
@@ -46,11 +46,11 @@ function WholesaleCalcOut(props) {
         <View style={styles.logoContainer}>
             <BackButton 
                 inputValues={inputValues}
-                destinationScreen="WholesaleCalcIn"
+                destinationScreen="WholesaleCalcInTutor"
             />
             <TouchableOpacity 
                 style={styles.logoWrapper}
-                onPress={() => navigation.navigate('CalcHomeScreen')}
+                onPress={() => navigation.navigate('AltCalcHomeScreen')}
             >
                 <DarkTextLogo />
             </TouchableOpacity>
@@ -181,4 +181,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default WholesaleCalcOut;
+export default WholesaleCalcOutTutor;

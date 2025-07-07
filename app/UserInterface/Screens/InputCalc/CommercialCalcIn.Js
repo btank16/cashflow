@@ -436,7 +436,7 @@ function CommercialCalcIn(props) {
             <View style={styles.logoContainer}>
                 <HomeButton />
                 {showHeaderTitle && (
-                    <Text style={styles.headerTitle}>Rental Calculator</Text>
+                    <Text style={styles.headerTitle}>Commercial Calculator</Text>
                 )}
             </View>
             <KeyboardAvoidingView 

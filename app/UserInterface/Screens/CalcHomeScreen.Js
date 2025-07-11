@@ -238,6 +238,7 @@ function CalcHomeScreen() {
             item={item}
             onDelete={() => handleDeleteCalculation(item.id)}
             navigation={navigation}
+            captureEventName={`${item.calculator_type.toLowerCase()}_history`}
           />
         ))
       ) : (

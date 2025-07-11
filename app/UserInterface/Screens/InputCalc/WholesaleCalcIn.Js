@@ -322,6 +322,7 @@ function WholesaleCalcIn(props) {
                     title="Calculate"
                     onPress={onCalculatePress}
                     disabled={!isFormValid}
+                    captureEventName="wholesale_calc_press"
                 />
             </View>
         </SafeAreaView>

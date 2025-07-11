@@ -578,6 +578,7 @@ function BRRCalcIn(props) {
                     title="Calculate"
                     onPress={onCalculatePress}
                     disabled={!isFormValid}
+                    captureEventName="brrr_calc_press"
                 />
             </View>
         </SafeAreaView>

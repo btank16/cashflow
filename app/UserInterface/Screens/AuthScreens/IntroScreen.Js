@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { usePostHog } from 'posthog-react-native';
 import colors from '../../Colors/colors.Js';
 import WhiteTextLogo from '../../../assets/icons/WhiteTextLogo.jsx';
 import ScreenLayoutWithFooter from '../../UtilScreens/ScreenLayoutWithFooter.Js';
@@ -31,6 +32,7 @@ const IntroScreen = () => {
   const navigation = useNavigation();
   const [termsVisible, setTermsVisible] = useState(false);
   const [privacyVisible, setPrivacyVisible] = useState(false);
+  const posthog = usePostHog();
   
   // Use the direct PDF URLs from secretkeys.json
   const termsSource = { uri: secretKeys.policy_links.termsOfUse };
@@ -61,14 +63,24 @@ const IntroScreen = () => {
       <View style={styles.buttonContainer}>
         <TouchableOpacity 
           style={styles.signInButton}
-          onPress={() => navigation.navigate('SignIn')}
+          onPress={() => {
+            posthog.capture('intro_signin_click', {
+              screen: 'IntroScreen'
+            });
+            navigation.navigate('SignIn');
+          }}
         >
           <Text style={styles.signInText}>Sign In</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
           style={styles.signUpButton}
-          onPress={() => navigation.navigate('AltCalcHomeScreen')}
+          onPress={() => {
+            posthog.capture('intro_get_started_click', {
+              screen: 'IntroScreen'
+            });
+            navigation.navigate('AltCalcHomeScreen');
+          }}
         >
           <Text style={styles.signUpText}>Get Started</Text>
         </TouchableOpacity>
@@ -76,7 +88,12 @@ const IntroScreen = () => {
       
       <TouchableOpacity 
         style={styles.createAccountContainer}
-        onPress={() => navigation.navigate('SignUpFirst')}
+        onPress={() => {
+          posthog.capture('intro_create_account_click', {
+            screen: 'IntroScreen'
+          });
+          navigation.navigate('SignUpFirst');
+        }}
       >
         <Text style={styles.createAccountText}>Create Account</Text>
       </TouchableOpacity>

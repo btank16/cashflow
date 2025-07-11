@@ -441,6 +441,7 @@ function ProjectionCalcIn(props) {
                     title="Calculate"
                     onPress={onCalculatePress}
                     disabled={!isFormValid}
+                    captureEventName="projection_calc_press"
                 />
             </View>
         </SafeAreaView>

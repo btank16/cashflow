@@ -1,14 +1,21 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { usePostHog } from 'posthog-react-native';
 import colors from '../Colors/colors.Js'
 
-const CalcButton = ({ title, onPress, destination, style, disabled }) => {
+const CalcButton = ({ title, onPress, destination, style, disabled, captureEventName }) => {
   const navigation = useNavigation();
+  const posthog = usePostHog();
 
   //Function to allow you to press the button and nothing happens
   //This allows the button to be "inactive"
   const handlePress = () => {
+    // Capture button click event with optional custom event name
+    if (!disabled) {
+      posthog.capture(captureEventName ? captureEventName : 'calc_click');
+    }
+    
     if (onPress) {
       onPress();
     }

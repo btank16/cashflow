@@ -401,6 +401,7 @@ function CommercialCalcInTutor(props) {
                     title="Calculate"
                     onPress={onCalculatePress}
                     disabled={!isFormValid}
+                    captureEventName="commercial_calc_tutor_press"
                 />
             </View>
         </SafeAreaView>

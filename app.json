@@ -7,6 +7,7 @@
     "icon": "./app/assets//images/CashflowAppIcon.png",
     "userInterfaceStyle": "light",
     "scheme": "cashflow",
+    "platforms": ["ios", "android", "web"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.btanski.cashflow",
@@ -37,7 +38,8 @@
           ],
           "category": ["BROWSABLE", "DEFAULT"]
         }
-      ]
+      ],
+      "ndkVersion": "26.1.10909125"
     },
     "androidStatusBar": {
       "barStyle": "light-content",
@@ -55,7 +57,8 @@
       "expo-asset", 
       "expo-localization",
       "@config-plugins/react-native-blob-util",
-      "@config-plugins/react-native-pdf"
+      "@config-plugins/react-native-pdf",
+      "expo-dev-client"
     ],
     "runtimeVersion": "1.3.0",
     "updates": {

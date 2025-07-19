@@ -51,7 +51,12 @@
         "projectId": "13cedaf9-9498-4cab-ad7a-81166055290b"
       }
     },
-    "plugins": ["expo-asset", "expo-localization"],
+    "plugins": [
+      "expo-asset", 
+      "expo-localization",
+      "@config-plugins/react-native-blob-util",
+      "@config-plugins/react-native-pdf"
+    ],
     "runtimeVersion": "1.3.0",
     "updates": {
       "url": "https://u.expo.dev/13cedaf9-9498-4cab-ad7a-81166055290b"

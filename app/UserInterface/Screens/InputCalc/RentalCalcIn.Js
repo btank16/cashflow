@@ -500,6 +500,7 @@ function RentalCalcIn(props) {
                     title="Calculate"
                     onPress={onCalculatePress}
                     disabled={!isFormValid}
+                    captureEventName="rental_calc_press"
                 />
             </View>
         </SafeAreaView>

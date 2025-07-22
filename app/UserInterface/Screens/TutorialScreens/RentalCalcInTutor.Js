@@ -400,6 +400,7 @@ function RentalCalcInTutor(props) {
                     title="Calculate"
                     onPress={onCalculatePress}
                     disabled={!isFormValid}
+                    captureEventName="rental_calc_tutor_press"
                 />
             </View>
         </SafeAreaView>

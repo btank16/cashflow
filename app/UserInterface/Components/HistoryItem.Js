@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { ClockIcon, TrashIcon } from 'react-native-heroicons/outline';
+import { usePostHog } from 'posthog-react-native';
 import colors from '../Colors/colors.Js';
 import RentalIcon from '../../assets/icons/RentalIcon.jsx';
 import FlipIcon from '../../assets/icons/FlipIcon.jsx';
@@ -145,16 +146,23 @@ const getNavigationScreen = (calculatorType) => {
   }
 };
 
-const HistoryItem = ({ item, onDelete, navigation }) => {
+const HistoryItem = ({ item, onDelete, navigation, captureEventName }) => {
   const { icon, details, name, primColor, secColor } = getCalculatorDetails(item);
   const timeElapsed = getTimeElapsed(item.updatedAt);
+  const posthog = usePostHog();
 
   const renderRightActions = (progress, dragX) => {
     return (
       <View style={styles.deleteButtonContainer}>
         <TouchableOpacity 
           style={styles.deleteButton} 
-          onPress={() => onDelete(item.id)}
+          onPress={() => {
+            // Capture delete event
+            posthog.capture(captureEventName ? `${captureEventName}_delete` : 'history_item_delete', {
+              calculator_type: item.calculator_type,
+            });
+            onDelete(item.id);
+          }}
         >
           <TrashIcon color={colors.quaternaryRed} size={24} />
         </TouchableOpacity>
@@ -169,6 +177,12 @@ const HistoryItem = ({ item, onDelete, navigation }) => {
     >
       <TouchableOpacity onPress={() => {
         const screen = getNavigationScreen(item.calculator_type);
+        
+        // Capture item click event
+        posthog.capture(captureEventName ? `${captureEventName}_view` : 'history_item_view', {
+          calculator_type: item.calculator_type,
+        });
+        
         navigation.navigate(screen, {
           inputValues: {
             ...JSON.parse(item.input_values),

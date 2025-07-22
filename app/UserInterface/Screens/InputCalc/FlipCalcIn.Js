@@ -494,6 +494,7 @@ function FlipCalcIn(props) {
                     title="Calculate"
                     onPress={onCalculatePress}
                     disabled={!isFormValid}
+                    captureEventName="flip_calc_press"
                 />
             </View>
         </SafeAreaView>

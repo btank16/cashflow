@@ -10,6 +10,8 @@ import { initUserAttributesCache, clearUserAttributesCache } from './app/UserInt
 import { initDataCache, clearDataCache } from './app/UserInterface/Utils/DataCache.Js';
 import colors from './app/UserInterface/Colors/colors.Js';
 import AnimationLoader from './app/UserInterface/Components/AnimationLoader.Js';
+import { PostHogProvider } from 'posthog-react-native';
+import secretKeys from './secretkeys.json';
 
 // Initialize WebBrowser configuration for OAuth
 initWebBrowserConfig();
@@ -210,30 +212,57 @@ function App() {
     );
   }
 
+  // Configure PostHog options
+  const posthogOptions = {
+    host: secretKeys.posthog.host,
+    // Disable automatic screen tracking to prevent navigation errors
+    disableNavigationTracking: true
+  };
+
   return (
     <View style={styles.mainContainer}>
-        <NavigationContainer
-          ref={navigationRef}
-          linking={{
-            prefixes: ['cashflow://', `https://${awsconfig.auth.oauth.domain}`],
-            config: {
-              screens: {
-                SignIn: 'signin',
-                SignUpThird: 'completeprofile',
-                Main: {
-                  screens: {
-                    CalcHomeScreen: 'home'
-                  }
+      <NavigationContainer
+        ref={navigationRef}
+        linking={{
+          prefixes: ['cashflow://', `https://${awsconfig.auth.oauth.domain}`],
+          config: {
+            screens: {
+              SignIn: 'signin',
+              SignUpThird: 'completeprofile',
+              Main: {
+                screens: {
+                  CalcHomeScreen: 'home'
                 }
               }
-            },
-            onError: (error) => {
-              console.error('Deep linking error:', error);
             }
-          }}
+          },
+          onError: (error) => {
+            console.error('Deep linking error:', error);
+          }
+        }}
+        onReady={() => {
+          // Initialize PostHog after navigation is ready
+          const routeNameRef = navigationRef.current?.getCurrentRoute()?.name;
+          if (routeNameRef) {
+            // You can manually track screen views here if needed
+          }
+        }}
+        onStateChange={() => {
+          const previousRouteName = navigationRef.current?.getCurrentRoute()?.name;
+          const currentRouteName = navigationRef.current?.getCurrentRoute()?.name;
+          
+          if (previousRouteName !== currentRouteName) {
+            // You can manually track screen changes here if needed
+          }
+        }}
+      >
+        <PostHogProvider 
+          apiKey={secretKeys.posthog.apikey}
+          options={posthogOptions}
         >
           <AppNavigator initialRouteName={initialRoute} />
-        </NavigationContainer>
+        </PostHogProvider>
+      </NavigationContainer>
     </View>
   );
 }

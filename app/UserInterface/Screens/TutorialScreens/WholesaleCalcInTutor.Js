@@ -226,6 +226,7 @@ function WholesaleCalcInTutor(props) {
                     title="Calculate"
                     onPress={onCalculatePress}
                     disabled={!isFormValid}
+                    captureEventName="wholesale_calc_tutor_press"
                 />
             </View>
         </SafeAreaView>

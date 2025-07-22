@@ -13,7 +13,6 @@ Cashflow is a powerful real estate investment analysis tool designed to help inv
 - **BRRRR Calculator**: Evaluate the Buy, Rehab, Rent, Refinance, Repeat strategy
 - **Wholesale Calculator**: Calculate potential profits from wholesale deals
 - **Price Target Calculator**: Determine ideal purchase prices based on your investment goals
-- **Commercial Multi-Family**: Analyze commercial multi-family properties
 
 ## Getting Started
 

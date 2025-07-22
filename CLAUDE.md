@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a React Native mobile application for real estate investment calculations built with Expo SDK 52. The app provides 6 different calculators for various real estate investment strategies.
+This is a React Native mobile application for real estate investment calculations built with Expo SDK 53. The app provides 6 different calculators for various real estate investment strategies.
 
 ## Essential Commands
 
@@ -29,24 +29,24 @@ cd ../cashflow-testing && npm test
 
 ### Core Framework Dependencies
 
-#### **react (18.3.1)** - Core React Library
+#### **react (19.0.0)** - Core React Library
 - **Usage**: Used in 96+ component files throughout the app
 - **Files**: All .js/.jsx files in app/UserInterface/, App.js, AppNavigator.Js
 - **Purpose**: Provides React hooks (useState, useEffect, useRef), component creation, and JSX support
 
-#### **react-native (0.76.9)** - React Native Framework
+#### **react-native (0.79.5)** - React Native Framework
 - **Usage**: Used in 94+ component files
 - **Files**: All screen and component files
 - **Purpose**: Native UI components (View, Text, TouchableOpacity, Modal, StyleSheet, etc.)
 
-#### **expo (~52.0.38)** - Development Platform
+#### **expo (~53.0.0)** - Development Platform
 - **Usage**: Project configuration and build tooling
 - **Files**: app.json, metro.config.js
 - **Purpose**: Development framework and build system
 
 ### AWS/Authentication Dependencies
 
-#### **aws-amplify (^6.12.3)** - Backend Services
+#### **aws-amplify (^6.15.3)** - Backend Services
 - **Usage**: Used in 14 files for authentication and backend integration
 - **Key Files**:
   - `App.js` - Main Amplify configuration and setup
@@ -54,15 +54,15 @@ cd ../cashflow-testing && npm test
   - Auth screens (SignIn, SignUp, etc.) - User authentication flows
 - **Purpose**: AWS authentication, user management, and backend API integration
 
-#### **@aws-amplify/react-native (^1.1.7)** - React Native AWS Integration
+#### **@aws-amplify/react-native (^1.1.10)** - React Native AWS Integration
 - **Purpose**: React Native specific AWS services integration
 
-#### **@aws-amplify/rtn-web-browser (^1.1.1)** - OAuth Browser Support
+#### **@aws-amplify/rtn-web-browser (^1.1.4)** - OAuth Browser Support
 - **Usage**: Used in OAuth authentication flows
 - **Files**: `app/UserInterface/Components/SocialSignInButton.Js`
 - **Purpose**: Web browser integration for OAuth sign-in
 
-#### **@aws-amplify/ui-react-native (^2.4.1)** - AWS UI Components
+#### **@aws-amplify/ui-react-native (^2.5.3)** - AWS UI Components
 - **Purpose**: Pre-built authentication UI components
 
 ### Navigation Dependencies
@@ -83,25 +83,25 @@ cd ../cashflow-testing && npm test
 - **Files**: PDFViewer.Js, NumericInputBox.Js, LoanTerm.Js
 - **Purpose**: Provides Ionicons and other icon sets
 
-#### **react-native-svg (15.8.0)** - SVG Support
+#### **react-native-svg (15.11.2)** - SVG Support
 - **Usage**: Used in 28 icon files
 - **Files**: All files in `app/assets/icons/` (GoogleIcon.jsx, AppleIcon.jsx, etc.)
 - **Purpose**: SVG rendering for custom icons and graphics
 - **Configuration**: Configured in metro.config.js with react-native-svg-transformer
 
-#### **lottie-react-native (7.1.0)** - Animation Library
+#### **lottie-react-native (7.2.2)** - Animation Library
 - **Usage**: Used for app loading animations
 - **Files**: `app/UserInterface/Components/AnimationLoader.Js`
 - **Purpose**: JSON-based animations
 
 ### React Native Community Dependencies
 
-#### **@react-native-community/slider (4.5.5)** - Slider Component
+#### **@react-native-community/slider (4.5.6)** - Slider Component
 - **Usage**: Used for loan term selection
 - **Files**: `app/UserInterface/Components/LoanTerm.Js`
 - **Purpose**: Native slider input component
 
-#### **@react-native-picker/picker (2.9.0)** - Picker Component
+#### **@react-native-picker/picker (2.11.1)** - Picker Component
 - **Usage**: Used in 8 files for dropdown selections
 - **Files**: StateDropdown.Js, FeedbackScreen.Js, OperatingExpenses.Js
 - **Purpose**: Native picker/dropdown selection component
@@ -112,13 +112,13 @@ cd ../cashflow-testing && npm test
 
 ### Expo Modules
 
-#### **expo-web-browser (~14.0.2)** - Web Browser Functionality
+#### **expo-web-browser (~14.2.0)** - Web Browser Functionality
 - **Usage**: OAuth browser sessions and web authentication
 - **Files**: 
   - `app/UserInterface/Components/SocialSignInButton.Js`
   - `app/UserInterface/Utils/WebBrowserConfig.Js`
 
-#### **expo-linear-gradient (~14.0.2)** - Gradient Support
+#### **expo-linear-gradient (~14.1.5)** - Gradient Support
 - **Usage**: Linear gradient styling for UI components
 - **Files**: `app/UserInterface/Components/LoanTerm.Js`
 
@@ -127,17 +127,17 @@ cd ../cashflow-testing && npm test
 
 ### Third-party Libraries
 
-#### **react-native-gesture-handler (~2.20.2)** - Gesture Support
+#### **react-native-gesture-handler (~2.24.0)** - Gesture Support
 - **Usage**: Advanced gesture recognition and handling
 - **Files**: `app/UserInterface/Screens/HistoryScreen.Js`
 
-#### **react-native-reanimated (~3.16.1)** - Advanced Animations
+#### **react-native-reanimated (~3.17.4)** - Advanced Animations
 - **Purpose**: High-performance animations and transitions (required by other libraries)
 
-#### **react-native-screens (~4.4.0)** - Native Screen Optimization
+#### **react-native-screens (~4.11.1)** - Native Screen Optimization
 - **Purpose**: Native screen transitions and performance optimization (used by React Navigation)
 
-#### **react-native-safe-area-context (4.12.0)** - Safe Area Handling
+#### **react-native-safe-area-context (5.4.0)** - Safe Area Handling
 - **Purpose**: Safe area insets for different device types (used by React Navigation and Expo)
 
 ### Communication/Media Dependencies
@@ -170,6 +170,34 @@ cd ../cashflow-testing && npm test
 - **Usage**: User analytics and event tracking
 - **Files**: `App.js`
 
+### Storage Dependencies
+
+#### **@react-native-async-storage/async-storage (2.1.2)** - Async Storage
+- **Usage**: Local data persistence and storage
+- **Purpose**: Cross-platform async storage solution (replaces deprecated AsyncStorage)
+
+### UI Enhancement Dependencies
+
+#### **@gorhom/bottom-sheet (^5.0.6)** - Bottom Sheet Component
+- **Usage**: Modal bottom sheet UI components
+- **Purpose**: Advanced modal presentations with gesture support
+
+#### **react-native-markdown-display (^7.0.2)** - Markdown Rendering
+- **Usage**: Markdown content rendering
+- **Files**: `app/UserInterface/Components/ArticleModal.Js`
+- **Purpose**: Display formatted markdown content in the app
+
+### Development Dependencies
+
+#### **expo-dev-client (~5.2.4)** - Development Client
+- **Usage**: Custom development client for Expo projects
+- **Purpose**: Enables custom native code during development
+
+#### **Metro Build Tools** - Build System
+- **metro (^0.82.0)**, **metro-config (^0.82.0)**, **metro-resolver (^0.82.0)**
+- **Purpose**: Metro bundler for React Native builds
+- **Configuration**: Overrides specified in package.json
+
 ### Polyfills and Utilities
 
 #### **react-native-get-random-values (^1.11.0)** - Crypto Polyfill
@@ -178,19 +206,18 @@ cd ../cashflow-testing && npm test
 #### **react-native-url-polyfill (^2.0.0)** - URL Polyfill
 - **Purpose**: URL constructor polyfill for React Native (required by AWS Amplify)
 
-## Unused Dependencies (Safe to Remove)
+## Updated Dependencies Status
 
-The following dependencies are listed in package.json but have no active usage in the codebase:
+### Recently Added Dependencies
+- **@react-native-async-storage/async-storage (2.1.2)** - Now actively used for local storage
+- **@gorhom/bottom-sheet (^5.0.6)** - Added for advanced modal UI components
+- **react-native-markdown-display (^7.0.2)** - Now actively used in ArticleModal.Js
+- **expo-dev-client (~5.2.4)** - Added for custom development builds
+- **Metro build tools** - Upgraded and configured for improved build performance
 
-- **@heroicons/react** - No imports found
-- **@react-native-community/netinfo** - No network info usage detected
-- **react-native-chart-kit** - No chart components found
-- **react-native-collapsible** - No collapsible components found
-- **react-native-communications** - No communication functionality found
-- **react-native-picker-select** - No enhanced picker usage found
-- **react-native-render-html** - No HTML rendering functionality detected
-- **markdown-it** - No markdown processing found
-- **numeral** - No number formatting usage found
+### Dependencies No Longer Listed as Unused
+- **@react-native-community/netinfo (^11.4.1)** - Still in package.json, usage needs verification
+- **react-native-markdown-display** - Now actively used for markdown rendering
 
 ## Security Vulnerabilities
 
@@ -199,11 +226,13 @@ Current known vulnerabilities that should be addressed:
 - **markdown-it** in react-native-markdown-display (moderate severity)
 - **on-headers** (compression dependency)
 
-## Native Dependencies Requiring Config Plugins
+## Native Dependencies with Config Plugins
 
-For Expo SDK 53 upgrade, these dependencies will require config plugins:
-- **react-native-pdf** - needs `@config-plugins/react-native-pdf`
-- **react-native-blob-util** - needs `@config-plugins/react-native-blob-util`
+The following native dependencies now have config plugins properly configured:
+- **react-native-pdf** - uses `@config-plugins/react-native-pdf (^11.0.0)`
+- **react-native-blob-util** - uses `@config-plugins/react-native-blob-util (^11.0.0)`
+
+Both plugins are listed in app.json plugins array and dependencies are updated to compatible versions.
 
 ## Configuration Files
 
@@ -215,8 +244,9 @@ For Expo SDK 53 upgrade, these dependencies will require config plugins:
 - Uses `babel-preset-expo` (standard Expo configuration)
 
 ### app.json
-- Configures `expo-asset` and `expo-localization` plugins
+- Configures plugins: `expo-asset`, `expo-localization`, `@config-plugins/react-native-blob-util`, `@config-plugins/react-native-pdf`, `expo-dev-client`
 - Sets up deep linking and OAuth redirects for AWS Amplify
+- Updated to version 1.3.1 with Expo SDK 53 support
 
 ## Architecture Notes
 

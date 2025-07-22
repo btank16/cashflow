@@ -16,7 +16,6 @@ import HistoryItem from '../Components/HistoryItem.Js';
 import FeedbackIcon from '../../assets/icons/FeedbackIcon.jsx';
 import HistoryIcon from '../../assets/icons/HistoryIcon.jsx';
 import UserIcon from '../../assets/icons/UserIcon.jsx';
-import CommercialIcon from '../../assets/icons/CommercialIcon.jsx';
 import InfoComponent from '../Components/InfoComponent.Js';
 import calculatorInfo from '../../assets/text/info.json';
 import GreenLogo from '../../assets/icons/GreenLogo.jsx';
@@ -49,11 +48,7 @@ const CalculatorButton = ({ name, screen, Icon, color, infoTitle, infoDescriptio
       </TouchableOpacity>
       <View style={styles.calculatorButtonContent}>
         <View style={[styles.iconCircle, { backgroundColor: color }]}>
-          {Icon && (
-            Icon === CommercialIcon ? 
-              <Icon width={24} height={24} color={colors.iconWhite} /> :
-              <Icon width={24} height={24} fill={colors.iconWhite} />
-          )}
+          {Icon && <Icon width={24} height={24} fill={colors.iconWhite} />}
         </View>
         <Text style={styles.calculatorButtonText}>{name}</Text>
       </View>
@@ -208,15 +203,8 @@ function CalcHomeScreen() {
       Icon: TargetIcon, 
       color: colors.primaryPurple,
       infoTitle: calculatorInfo.calculator_type.target_calc.title,
-      infoDescription: calculatorInfo.calculator_type.target_calc.description
-    },
-    { 
-      name: "Commercial Multi-Family", 
-      screen: "CommercialCalcIn", 
-      Icon: CommercialIcon, 
-      color: colors.primaryPink,
-      infoTitle: calculatorInfo.calculator_type.commercial_calc.title,
-      infoDescription: calculatorInfo.calculator_type.commercial_calc.description
+      infoDescription: calculatorInfo.calculator_type.target_calc.description,
+      fullWidth: true
     },
   ];
 

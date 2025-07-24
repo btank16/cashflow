@@ -151,7 +151,6 @@ The AWS Amplify backend is located in `cashflow-server/amplify/`. No local devel
 
 - Email support integration: support@cashflow.deal
 - AWS authentication with secure user attribute management
-- Local SQLite storage with user-scoped data
 
 ## Contributing
 

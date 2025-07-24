@@ -16,6 +16,9 @@
       ],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "config": {
+        "googleMapsApiKey": "AIzaSyDMoPhjpSEqYhwLmKAM3QML0pFJuq_8DLI"
       }
     },
     "android": {
@@ -39,7 +42,12 @@
           "category": ["BROWSABLE", "DEFAULT"]
         }
       ],
-      "ndkVersion": "26.1.10909125"
+      "ndkVersion": "26.1.10909125",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDMoPhjpSEqYhwLmKAM3QML0pFJuq_8DLI"
+        }
+      }
     },
     "androidStatusBar": {
       "barStyle": "light-content",
@@ -58,7 +66,14 @@
       "expo-localization",
       "@config-plugins/react-native-blob-util",
       "@config-plugins/react-native-pdf",
-      "expo-dev-client"
+      "expo-dev-client",
+      [
+        "expo-maps",
+        {
+          "requestLocationPermission": true,
+          "locationPermission": "Allow Cashflow to use your location"
+        }
+      ]
     ],
     "runtimeVersion": "1.4.0",
     "updates": {

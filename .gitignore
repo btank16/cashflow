@@ -1,10 +1,127 @@
-# OSX
-#
+# ==========================================
+# Operating System Files
+# ==========================================
+
+# macOS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+.AppleDouble
+.LSOverride
+Icon
+.DocumentRevisions-V100
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.directory
+.Trash-*
+.nfs*
+
+# ==========================================
+# Node.js & JavaScript
+# ==========================================
+
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+
+# Package manager files
+.npm
+.yarn-integrity
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ==========================================
+# React Native & Expo
+# ==========================================
+
+# Expo
+.expo/
+.expo-shared/
+web-build/
+dist/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# React Native
+*.jsbundle
+
+# Metro
+.metro-health-check*
+.metro-cache/
+
+# Native projects (EAS Build with Prebuild)
+ios/
+android/
+gradle/
+
+# ==========================================
+# IDE & Editors
+# ==========================================
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+.history/
+
+# IntelliJ IDEA / Android Studio
+.idea/
+*.iml
+*.iws
+*.ipr
+.gradle/
+local.properties
 
 # Xcode
-#
-build/
 *.pbxuser
 !default.pbxuser
 *.mode1v3
@@ -13,93 +130,106 @@ build/
 !default.mode2v3
 *.perspectivev3
 !default.perspectivev3
-xcuserdata
+xcuserdata/
 *.xccheckout
 *.moved-aside
-DerivedData
+DerivedData/
 *.hmap
 *.ipa
 *.xcuserstate
-project.xcworkspace
+project.xcworkspace/
+*.xcworkspace
 
-# Android/IntelliJ
-#
-build/
-.idea
-.gradle
-local.properties
-*.iml
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+Session.vim
+Sessionx.vim
+.netrwhist
+tags
+[._]*.un~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Sublime Text
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+sftp-config.json
+sftp-config-alt*.json
+Package Control.last-run
+Package Control.ca-list
+Package Control.ca-bundle
+Package Control.system-ca-bundle
+Package Control.cache/
+Package Control.ca-certs/
+Package Control.merged-ca-bundle
+Package Control.user-ca-bundle
+oscrypto-ca-bundle.crt
+bh_unicode_properties.cache
+GitHub.sublime-settings
+
+# ==========================================
+# Project Specific
+# ==========================================
+
+# AWS Amplify
+.amplify/
+amplify_outputs.json
+amplify_outputs*.json
+amplifyconfiguration.json
+amplifyconfiguration*.json
+awsconfiguration.json
+
+# Sensitive Files
+secretkeys.json
+app.json
+.env
+.env.*
+*.env
+
+# Android
+*.keystore
+!debug.keystore
 *.hprof
 .cxx/
 
-# node.js
-#
-**/node_modules
-npm-debug.log
-yarn-error.log
-
-# BUCK
-buck-out/
-\.buckd/
-*.keystore
-!debug.keystore
-
-# Bundle artifacts
-*.jsbundle
-
-# CocoaPods
+# iOS
 /ios/Pods/
-
-# Expo
-.expo/
-web-build/
-dist/
-
-# Native folders for EAS Build with Prebuild
-**/android
-**/gradle
-**/ios
-
-# Temporary files created by Metro to check the health of the file watcher
-.metro-health-check*
-
-# Environment variables
-.env
-.env.*
-
-# TypeScript
-*.tsbuildinfo
 
 # Testing
 coverage/
+.nyc_output/
 
-# Logs
-logs
-*.log
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo
 
-# Editor directories and files
-**/.vscode
-*.swp
-*.swo
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
 
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-# Expo
-.expo
-dist/
-web-build/
-node_modules
+# Buck
+buck-out/
+\.buckd/
 
-# amplify
-.amplify
-amplify_outputs*
-amplifyconfiguration*
-
-# secretkeys.json
-secretkeys.json
+# Watchman
+.watchmanconfig

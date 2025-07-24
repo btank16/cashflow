@@ -1,5 +1,6 @@
+import 'react-native-get-random-values';
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, Image } from "react-native";
+import { View, StyleSheet, Text, TouchableOpacity, Image, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { InformationCircleIcon, ChevronRightIcon } from 'react-native-heroicons/outline';
 import { getUserAttribute } from '../Utils/UserAttributesCache.Js';
@@ -21,7 +22,7 @@ import calculatorInfo from '../../assets/text/info.json';
 import GreenLogo from '../../assets/icons/GreenLogo.jsx';
 import MarkdownModal from '../Components/ArticleModal.Js';
 import introToCashflow from '../../assets/text/introToCashflow.Js';
-import ScreenLayout from '../UtilScreens/ScreenLayout.Js';
+import GooglePlacesInput from '../Components/GooglePlacesInput.Js';
 
 const CalculatorButton = ({ name, screen, Icon, color, infoTitle, infoDescription, fullWidth }) => {
   const navigation = useNavigation();
@@ -85,6 +86,7 @@ function CalcHomeScreen() {
   const [firstName, setFirstName] = useState('');
   const [markdownModalVisible, setMarkdownModalVisible] = useState(false);
   const [currentMarkdownContent, setCurrentMarkdownContent] = useState('');
+  const [selectedAddress, setSelectedAddress] = useState('');
 
   // Update history when calculations change
   useEffect(() => {
@@ -156,6 +158,16 @@ function CalcHomeScreen() {
     }
   };
 
+  const handleAddressSelect = (data, details = null) => {
+    try {
+      const address = details?.formatted_address || data.description || '';
+      setSelectedAddress(address);
+      console.log('Selected address:', address);
+    } catch (error) {
+      console.error('Error selecting address:', error);
+    }
+  };
+
   const articles = [
     { 
       title: "Intro to Cashflow", 
@@ -209,13 +221,13 @@ function CalcHomeScreen() {
   ];
 
   const renderHistorySection = () => (
-    <View style={styles.sectionContainer}>
+    <View style={[styles.sectionContainer, styles.historySection]}>
       <TouchableOpacity 
         style={styles.sectionTitleContainer}
         onPress={() => navigation.navigate('HistoryScreen')}
       >
         <Text style={styles.sectionTitle}>Recent Calculations</Text>
-        <ChevronRightIcon color={colors.iconWhite} size={24} />
+        <ChevronRightIcon color={colors.darkGreenQuaternary} size={24} />
       </TouchableOpacity>
       {isLoading ? (
         <Text style={styles.emptyHistoryText}>Loading calculations...</Text>
@@ -262,75 +274,133 @@ function CalcHomeScreen() {
   );
 
   return (
-    <ScreenLayout
-      header={renderHeader()}
-      backgroundColor={colors.darkGreenPrimary}
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
     >
-      <Text style={styles.welcomeText}>
-        {firstName ? `Welcome, ${firstName}!` : 'Welcome to Cashflow!'}
-      </Text>
-      <View style={styles.calculatorsGrid}>
-        {calculators.map((calc, index) => (
-          <CalculatorButton 
-            key={index} 
-            {...calc} 
-          />
-        ))}
-      </View>
-      {renderHistorySection()}
-      <View style={styles.sectionContainer}>
-        <Text style={[styles.sectionTitle, {marginBottom: 16}]}>Resources</Text>
-        {articles.map((article, index) => (
-          <ArticleItem key={index} item={article} onPress={() => handleArticlePress(article)} />
-        ))}
-      </View>
+      {renderHeader()}
+      <View style={styles.contentContainer}>
+        <Text style={styles.welcomeText}>
+          {firstName ? `Welcome, ${firstName}!` : 'Welcome to Cashflow!'}
+        </Text>
+      
+        {/* Address Search Section */}
+        <View style={styles.searchSection}>
+          <Text style={styles.sectionLabel}>Search Property</Text>
+          <View style={styles.searchContainer}>
+            <GooglePlacesInput onAddressSelect={handleAddressSelect} />
+            {selectedAddress ? (
+              <Text style={styles.selectedAddressText}>
+                Selected: {selectedAddress}
+              </Text>
+            ) : null}
+          </View>
+        </View>
+        
+        {/* Calculators Section */}
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.calculatorsSection}>
+            <Text style={styles.sectionLabel}>Investment Calculators</Text>
+            <View style={styles.calculatorsGrid}>
+              {calculators.map((calc, index) => (
+                <CalculatorButton 
+                  key={index} 
+                  {...calc} 
+                />
+              ))}
+            </View>
+          </View>
+          
+          {renderHistorySection()}
+          
+          <View style={[styles.sectionContainer, styles.resourcesSection]}>
+            <Text style={[styles.sectionTitle, {marginBottom: 16}]}>Resources</Text>
+            {articles.map((article, index) => (
+              <ArticleItem key={index} item={article} onPress={() => handleArticlePress(article)} />
+            ))}
+          </View>
+        </ScrollView>
 
-      <MarkdownModal 
-        visible={markdownModalVisible}
-        onClose={() => setMarkdownModalVisible(false)}
-        markdownContent={currentMarkdownContent}
-      />
-    </ScreenLayout>
+        <MarkdownModal 
+          visible={markdownModalVisible}
+          onClose={() => setMarkdownModalVisible(false)}
+          markdownContent={currentMarkdownContent}
+        />
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.darkGreenPrimary,
+  },
+  contentContainer: {
+    flex: 1,
+    paddingTop: 60,
+    paddingHorizontal: 20,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollViewContent: {
+    paddingBottom: 24,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
+    marginBottom: 10,
   },
   logoContainer: {
     position: 'absolute',
     left: 0,
     right: 0,
     alignItems: 'center',
-    zIndex: -1,
+    justifyContent: 'center',
   },
   welcomeText: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 26,
+    fontWeight: '700',
     color: colors.iconWhite,
-    paddingVertical: 16,
+    paddingTop: 20,
+    paddingBottom: 24,
     textAlign: 'center',
+    letterSpacing: 0.5,
+    marginTop: 10,
   },
   calculatorsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginTop: 4,
   },
   calculatorButton: {
     aspectRatio: undefined,
     height: 120,
-    borderRadius: 20,
-    marginBottom: 8,
-    backgroundColor: colors.darkGreenSecondary,
+    borderRadius: 16,
+    marginBottom: 12,
+    backgroundColor: colors.darkGreenPrimary,
     borderWidth: 1,
     borderColor: colors.darkGreenTertiary,
     padding: 16,
-    position: 'relative', 
+    position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
   },
   calculatorButtonContent: {
     flex: 1,
@@ -368,6 +438,22 @@ const styles = StyleSheet.create({
   sectionContainer: {
     marginBottom: 16,
   },
+  historySection: {
+    backgroundColor: colors.darkGreenSecondary,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: colors.darkGreenTertiary,
+  },
+  resourcesSection: {
+    backgroundColor: colors.darkGreenSecondary,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: colors.darkGreenTertiary,
+  },
   sectionTitleContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -377,27 +463,30 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: colors.iconWhite,
+    color: colors.darkGreenQuaternary,
   },
   emptyHistoryText: {
     textAlign: 'center',
-    color: colors.mainShade,
+    color: colors.sixthGrey,
     fontStyle: 'italic',
+    fontSize: 14,
   },
   articleItem: {
     flexDirection: 'row',
-    backgroundColor: colors.iconWhite,
-    borderRadius: 8,
+    backgroundColor: colors.darkGreenPrimary,
+    borderRadius: 12,
     marginBottom: 16,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.darkGreenTertiary,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 3,
+    elevation: 2,
   },
   articleImageContainer: {
     width: 100,
@@ -418,7 +507,7 @@ const styles = StyleSheet.create({
   articleTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: colors.primaryBlack,
+    color: colors.iconWhite,
   },
   headerIcons: {
     flexDirection: 'row',
@@ -426,6 +515,40 @@ const styles = StyleSheet.create({
   },
   headerIcon: {
     marginLeft: 16,
+  },
+  searchSection: {
+    backgroundColor: colors.darkGreenSecondary,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: colors.darkGreenTertiary,
+  },
+  calculatorsSection: {
+    backgroundColor: colors.darkGreenSecondary,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: colors.darkGreenTertiary,
+  },
+  sectionLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.darkGreenQuaternary,
+    marginBottom: 16,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    opacity: 0.8,
+  },
+  searchContainer: {
+    paddingHorizontal: 0,
+  },
+  selectedAddressText: {
+    marginTop: 10,
+    color: colors.iconWhite,
+    fontSize: 14,
+    fontStyle: 'italic',
   },
 });
 

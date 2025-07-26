@@ -18,7 +18,7 @@
         "ITSAppUsesNonExemptEncryption": false
       },
       "config": {
-        "googleMapsApiKey": "AIzaSyDMoPhjpSEqYhwLmKAM3QML0pFJuq_8DLI"
+        "googleMapsApiKey": ""
       }
     },
     "android": {
@@ -45,7 +45,7 @@
       "ndkVersion": "26.1.10909125",
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyDMoPhjpSEqYhwLmKAM3QML0pFJuq_8DLI"
+          "apiKey": ""
         }
       }
     },

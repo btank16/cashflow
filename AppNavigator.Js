@@ -10,6 +10,7 @@ import ProjectionCalcIn from './app/UserInterface/Screens/InputCalc/ProjectionCa
 import ProjectionCalcOut from './app/UserInterface/Screens/OutputCalc/ProjectionCalcOut.Js'
 import RentalCalcIn from './app/UserInterface/Screens/InputCalc/RentalCalcIn.Js'
 import RentalCalcOut from './app/UserInterface/Screens/OutputCalc/RentalCalcOut.Js'
+import RentalCalcOutStatic from './app/UserInterface/Screens/OutputCalc/RentalCalcOutStatic.Js'
 import WholesaleCalcIn from './app/UserInterface/Screens/InputCalc/WholesaleCalcIn.Js';
 import WholesaleCalcOut from './app/UserInterface/Screens/OutputCalc/WholesaleCalcOut.Js';
 import HistoryScreen from './app/UserInterface/Screens/HistoryScreen.Js';
@@ -87,6 +88,7 @@ const MainStack = () => (
     <Stack.Screen name="ProjectionCalcOut" component={ProjectionCalcOut} />
     <Stack.Screen name="RentalCalcIn" component={RentalCalcIn} />
     <Stack.Screen name="RentalCalcOut" component={RentalCalcOut} />
+    <Stack.Screen name="RentalCalcOutStatic" component={RentalCalcOutStatic} />
     <Stack.Screen name="CommercialCalcIn" component={CommercialCalcIn} />
     <Stack.Screen name="CommercialCalcOut" component={CommercialCalcOut} />
     <Stack.Screen name="WholesaleCalcIn" component={WholesaleCalcIn} />

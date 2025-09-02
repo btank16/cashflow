@@ -1,12 +1,25 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, forwardRef, useImperativeHandle } from 'react';
 import { StyleSheet, View, TouchableOpacity, Text, Keyboard } from 'react-native';
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import secretKeys from '../../../secretkeys.json';
 import colors from '../Colors/colors.Js';
 
-const GooglePlacesInput = ({ onAddressSelect }) => {
+const GooglePlacesInput = forwardRef(({ onAddressSelect }, ref) => {
   const [isFocused, setIsFocused] = useState(false);
   const autocompleteRef = useRef(null);
+  
+  // Expose methods to parent component
+  useImperativeHandle(ref, () => ({
+    getAddressText: () => {
+      return autocompleteRef.current?.getAddressText() || '';
+    },
+    setAddressText: (text) => {
+      autocompleteRef.current?.setAddressText(text);
+    },
+    clear: () => {
+      autocompleteRef.current?.clear();
+    }
+  }));
   
   const handleSelectAddress = (data) => {
     // Update the text in the input field
@@ -59,9 +72,11 @@ const GooglePlacesInput = ({ onAddressSelect }) => {
             fontSize: 16,
             backgroundColor: colors.darkGreenSecondary,
             paddingHorizontal: 24,
-            borderRadius: 28,
             borderWidth: 1,
             borderColor: colors.darkGreenTertiary,
+            borderTopLeftRadius: 28,
+            borderBottomLeftRadius: 28,
+            borderRightWidth: 0,
           },
           listView: {
             backgroundColor: colors.darkGreenSecondary,
@@ -120,7 +135,7 @@ const GooglePlacesInput = ({ onAddressSelect }) => {
       />
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

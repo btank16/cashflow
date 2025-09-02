@@ -170,6 +170,8 @@ function CalcHomeScreen() {
       const address = details?.formatted_address || data.description || '';
       setSelectedAddress(address);
       console.log('Selected address:', address);
+      console.log('Condition:', data.condition);
+      console.log('Strategy:', data.strategy);
 
       // Call getUnitCount query
       if (address) {
@@ -213,8 +215,25 @@ function CalcHomeScreen() {
               console.log(`  - Square feet: ${unitData.square_feet[i] !== null ? unitData.square_feet[i] : 'Unknown'}`);
             }
           }
+          
+          // Navigate to RentalCalcOutStatic with address data
+          navigation.navigate('RentalCalcOutStatic', {
+            source: 'address',
+            address: address,
+            condition: data.condition,
+            strategy: data.strategy,
+            unitData: unitData
+          });
         } catch (apiError) {
           console.error('Error calling getUnitCount:', apiError);
+          
+          // Still navigate even if API fails
+          navigation.navigate('RentalCalcOutStatic', {
+            source: 'address',
+            address: address,
+            condition: data.condition,
+            strategy: data.strategy
+          });
         }
       }
     } catch (error) {
@@ -222,9 +241,39 @@ function CalcHomeScreen() {
     }
   };
 
-  const handleResidentAIInput = (text) => {
-    setResidentAIInput(text);
-    console.log('ResidentAI input:', text);
+  const handleResidentAIInput = (input) => {
+    if (input.type === 'text') {
+      setResidentAIInput(input.data);
+      console.log('ResidentAI text input:', input.data);
+      console.log('Condition:', input.condition);
+      console.log('Strategy:', input.strategy);
+      
+      // Navigate to the static demo screen when ResidentAI input is submitted
+      navigation.navigate('RentalCalcOutStatic', {
+        source: 'residentAI',
+        inputType: 'text',
+        text: input.data,
+        condition: input.condition,
+        strategy: input.strategy
+      });
+    } else if (input.type === 'image') {
+      console.log('ResidentAI image input received');
+      console.log('Condition:', input.condition);
+      console.log('Strategy:', input.strategy);
+      
+      if (input.data && input.data.uri) {
+        console.log('Image URI:', input.data.uri);
+      }
+      
+      // Handle image input - navigate to the demo screen
+      navigation.navigate('RentalCalcOutStatic', {
+        source: 'residentAI',
+        inputType: 'image',
+        imageUri: input.data?.uri,
+        condition: input.condition,
+        strategy: input.strategy
+      });
+    }
   };
 
   const articles = [
@@ -324,7 +373,7 @@ function CalcHomeScreen() {
     switch (item.type) {
       case 'search':
         return (
-          <View style={styles.searchContainer}>
+          <View style={styles.searchSection}>
             <AddressSearchBar 
               onAddressSelect={handleAddressSelect} 
               onResidentAIInput={handleResidentAIInput}
@@ -409,6 +458,7 @@ function CalcHomeScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           ItemSeparatorComponent={() => <View style={styles.itemSeparator} />}
+          removeClippedSubviews={false}
         />
       </View>
 
@@ -455,10 +505,25 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     textAlign: 'left',
     letterSpacing: 0.5,
+    zIndex: 1,
   },
-  searchContainer: {
-    paddingTop: 8,
-    paddingBottom: 0,
+  searchSection: {
+    backgroundColor: colors.darkGreenSecondary,
+    borderRadius: 16,
+    padding: 20,
+    marginTop: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.darkGreenTertiary,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+    zIndex: 2,
   },
   calculatorButton: {
     aspectRatio: undefined,
@@ -567,18 +632,12 @@ const styles = StyleSheet.create({
   itemSeparator: {
     height: 0,
   },
-  sectionSeparator: {
-    height: 4,
-  },
   calculatorsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginTop: 8,
     width: '100%',
-  },
-  calculatorsSection: {
-    marginTop: 0,
   },
 });
 

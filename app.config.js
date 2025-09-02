@@ -21,7 +21,9 @@ export default {
         `applinks:${cognitoDomain}`
       ],
       infoPlist: {
-        ITSAppUsesNonExemptEncryption: false
+        ITSAppUsesNonExemptEncryption: false,
+        NSPhotoLibraryUsageDescription: "Allow Cashflow to access your photos to upload property images for analysis",
+        NSCameraUsageDescription: "Allow Cashflow to access your camera to take property photos for analysis"
       },
       config: {
         googleMapsApiKey: secretKeys.googlemaps.apikey
@@ -53,7 +55,13 @@ export default {
         googleMaps: {
           apiKey: secretKeys.googlemaps.apikey
         }
-      }
+      },
+      permissions: [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES"
+      ]
     },
     androidStatusBar: {
       barStyle: "light-content",
@@ -78,6 +86,13 @@ export default {
         {
           requestLocationPermission: true,
           locationPermission: "Allow Cashflow to use your location"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          photosPermission: "Allow Cashflow to access your photos to upload property images for analysis",
+          cameraPermission: "Allow Cashflow to access your camera to take property photos for analysis"
         }
       ]
     ],

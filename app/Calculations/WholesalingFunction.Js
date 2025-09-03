@@ -19,9 +19,12 @@ const wholesalefunction = (
     const lowFee = 0.05;
     const highFee = 0.15;
     
+    // Use the smaller value between MAO and contractPrice
+    const priceToUse = Math.min(MAO, contractPrice);
+    
     // Use destructuring with alias assignment to get correctly named variables
-    const lowFeesResult = wholesalingFees(afterRepairValue, contractPrice, lowFee);
-    const highFeesResult = wholesalingFees(afterRepairValue, contractPrice, highFee);
+    const lowFeesResult = wholesalingFees(afterRepairValue, priceToUse, lowFee);
+    const highFeesResult = wholesalingFees(afterRepairValue, priceToUse, highFee);
     
     const fee5Percent = lowFeesResult.wholesaleFee;
     const salePrice5Percent = lowFeesResult.wholesaleSalePrice;

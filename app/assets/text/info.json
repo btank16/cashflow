@@ -30,6 +30,10 @@
       "title": "Purchase Price",
       "description": "The amount paid for the property."
     },
+    "insurance_cost": {
+      "title": "Annual Insurance Cost",
+      "description": "The amount paid in annual insurance costs."
+    },
     "down_payment": {
       "title": "Down Payment",
       "description": "The portion of the property's purchase price paid upfront in cash by the buyer."

@@ -25,7 +25,8 @@ const NumericInput = ({
   isRequired, 
   type, 
   infoTitle,
-  infoDescription 
+  infoDescription,
+  disabled = false
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [infoModalVisible, setInfoModalVisible] = useState(false);
@@ -54,10 +55,11 @@ const NumericInput = ({
       </View>
       <View style={[
         styles.inputContainer,
-        isFocused ? styles.inputContainerFocused : styles.inputContainerBlurred
+        isFocused ? styles.inputContainerFocused : styles.inputContainerBlurred,
+        disabled && styles.inputContainerDisabled
       ]}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, disabled && styles.inputDisabled]}
           onChangeText={handleChangeText}
           value={formatNumber(value)}
           placeholder={placeholder}
@@ -65,6 +67,7 @@ const NumericInput = ({
           keyboardType="numeric"
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
+          editable={!disabled}
         />
         <View style={styles.typeContainer}>
           <Text style={styles.typeText}>{type}</Text>
@@ -139,6 +142,13 @@ const styles = StyleSheet.create({
   typeText: {
     color: colors.fifthGrey,
     fontSize: 16,
+  },
+  inputContainerDisabled: {
+    backgroundColor: colors.secondaryGrey,
+    borderColor: colors.quaternaryGrey,
+  },
+  inputDisabled: {
+    color: colors.primaryGrey,
   },
 });
 

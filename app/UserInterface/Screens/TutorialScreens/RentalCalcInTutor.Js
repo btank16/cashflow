@@ -11,6 +11,7 @@ import Checkbox from '../../Components/InterestCheckbox.Js';
 import TutorialOperatingExpense from '../../Components/TutorialOperatingExpense.Js';
 import calculatorInfo from '../../../assets/text/info.json';
 import { ChevronLeftIcon } from 'react-native-heroicons/solid';
+import ItemizedRehabModal from '../../Components/ItemizedRehabModal.Js';
 
 
 function RentalCalcInTutor(props) {
@@ -21,6 +22,11 @@ function RentalCalcInTutor(props) {
         isCashPurchase: false
     });
     const [rehabCost, setRehabCost] = useState('');
+    const [itemizedRehab, setItemizedRehab] = useState({
+        isItemized: false,
+        items: []
+    });
+    const [showItemizedModal, setShowItemizedModal] = useState(false);
     const [loanTerm, setLoanTerm] = useState(30);
     const [monthRent, setMonthRent] = useState('');
     const [isFormValid, setIsFormValid] = useState(false);
@@ -42,6 +48,7 @@ function RentalCalcInTutor(props) {
     const [operatingExpensesActive, setOperatingExpensesActive] = useState(true);
     const [operatingExpenses, setOperatingExpenses] = useState([]);
     const [vacancyRate, setVacancyRate] = useState();
+    const [insuranceCost, setInsuranceCost] = useState();
 
     useEffect(() => {
         checkFormValidity();
@@ -79,6 +86,7 @@ function RentalCalcInTutor(props) {
                 capexEst,
                 operatingExpenseArray,
                 vacancyRate,
+                insuranceCost,
             } = route.params.inputValues;
 
             setPurchasePrice({
@@ -89,10 +97,20 @@ function RentalCalcInTutor(props) {
                 value: interestRate?.value?.toString() || '',
                 isInterestOnly: interestRate?.isInterestOnly || false
             });
-            setRehabCost(rehabCost?.toString() || '');
+            
+            // Handle rehab cost - check if it's itemized
+            if (rehabCost && typeof rehabCost === 'object' && rehabCost.isItemized) {
+                setItemizedRehab(rehabCost);
+                const total = rehabCost.items.reduce((sum, item) => sum + (parseFloat(item.cost) || 0), 0);
+                setRehabCost(total.toString());
+            } else {
+                setRehabCost(rehabCost?.toString() || '');
+            }
+            
             setLoanTerm(loanTerm?.toString() || '30');
             setMonthRent(monthRent?.toString() || '');
             setVacancyRate(vacancyRate?.toString() || '');
+            setInsuranceCost(insuranceCost?.toString() || '');
 
             setSwitchableInputs(prevInputs => ({
                 ...prevInputs,
@@ -158,13 +176,14 @@ function RentalCalcInTutor(props) {
             propertyTax: switchableInputs.propertyTax,
             closingCost: switchableInputs.closingCost,
             capexEst: switchableInputs.capexEst,
-            rehabCost: toNumber(rehabCost),
+            rehabCost: itemizedRehab.isItemized ? itemizedRehab : toNumber(rehabCost),
             monthRent: toNumber(monthRent),
             operatingExpenseArray: {
                 isActive: operatingExpensesActive,
                 expenses: operatingExpenses
             },
-            vacancyRate: toNumber(vacancyRate) || '0'
+            vacancyRate: toNumber(vacancyRate) || '0',
+            insuranceCost: toNumber(insuranceCost) || '0'
         };
 
         const rentalResults = rentalFunction(
@@ -178,6 +197,7 @@ function RentalCalcInTutor(props) {
             inputValues.rehabCost,
             inputValues.monthRent,
             inputValues.vacancyRate,
+            inputValues.insuranceCost,
             inputValues.operatingExpenseArray
         );
 
@@ -193,6 +213,7 @@ function RentalCalcInTutor(props) {
             cashOnCash: rentalResults[8],
             capRate: rentalResults[9],
             monthsTillEven: rentalResults[10],
+            monthlyInsuranceCost: rentalResults[11]
         };
         
         // Navigate to the result screen
@@ -226,11 +247,16 @@ function RentalCalcInTutor(props) {
         {
             label: "Rehab Cost",
             value: rehabCost,
-            onChangeText: setRehabCost,
+            onChangeText: (value) => {
+                if (!itemizedRehab.isItemized) {
+                    setRehabCost(value);
+                }
+            },
             placeholder: "ex. $10,000",
             type: "$",
             infoTitle: calculatorInfo.calculator_input.rehab_cost.title,
-            infoDescription: calculatorInfo.calculator_input.rehab_cost.description
+            infoDescription: calculatorInfo.calculator_input.rehab_cost.description,
+            disabled: itemizedRehab.isItemized
         },
         {
             label: "Gross Monthly Rent",
@@ -250,6 +276,15 @@ function RentalCalcInTutor(props) {
             type: "%",
             infoTitle: calculatorInfo.calculator_input.vacancy_rate.title,
             infoDescription: calculatorInfo.calculator_input.vacancy_rate.description
+        },
+        {
+            label: "Annual Insurance Cost",
+            value: insuranceCost,
+            onChangeText: setInsuranceCost,
+            placeholder: "ex. $2000",
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.insurance_cost.title,
+            infoDescription: calculatorInfo.calculator_input.insurance_cost.description
         }
     ];
 
@@ -318,6 +353,28 @@ function RentalCalcInTutor(props) {
         setOperatingExpenses(expenses);
     };
 
+    const handleItemizeRehab = () => {
+        setShowItemizedModal(true);
+    };
+
+    const handleSaveItemizedRehab = (items) => {
+        if (items.length === 0) {
+            // If no items, clear itemized mode
+            setItemizedRehab({
+                isItemized: false,
+                items: []
+            });
+            setRehabCost('');
+        } else {
+            const total = items.reduce((sum, item) => sum + (parseFloat(item.cost) || 0), 0);
+            setItemizedRehab({
+                isItemized: true,
+                items: items
+            });
+            setRehabCost(total.toString());
+        }
+    };
+
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
@@ -381,7 +438,18 @@ function RentalCalcInTutor(props) {
                     <SwitchableNumericInput {...switchableInputsArray[1]}/>
                     <Text style={styles.secondaryTitle}>Property Expenses</Text>
                     <SwitchableNumericInput {...switchableInputsArray[2]}/>
+                    <NumericInput {...numericInputsArray[5]}/>
                     <NumericInput {...numericInputsArray[2]}/>
+                    <TouchableOpacity 
+                        onPress={handleItemizeRehab} 
+                        style={styles.itemizeLink}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={styles.itemizeLinkText}>
+                            {itemizedRehab.isItemized ? '✓ ' : '+ '}
+                            Itemize Rehab
+                        </Text>
+                    </TouchableOpacity>
                     <NumericInput {...numericInputsArray[3]}/>
                     <SwitchableNumericInput {...switchableInputsArray[3]}/>
                     <NumericInput {...numericInputsArray[4]}/>
@@ -403,6 +471,12 @@ function RentalCalcInTutor(props) {
                     captureEventName="rental_calc_tutor_press"
                 />
             </View>
+            <ItemizedRehabModal
+                visible={showItemizedModal}
+                onClose={() => setShowItemizedModal(false)}
+                onSave={handleSaveItemizedRehab}
+                initialExpenses={itemizedRehab.items}
+            />
         </SafeAreaView>
     );
 }
@@ -462,6 +536,24 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 10,
         zIndex: 1,
+    },
+    itemizeLink: {
+        marginTop: -6,
+        marginBottom: 16,
+        marginLeft: 16,
+        paddingVertical: 4,
+        paddingHorizontal: 12,
+        backgroundColor: colors.secondaryBrightGreen,
+        borderRadius: 6,
+        alignSelf: 'flex-start',
+        borderWidth: 1,
+        borderColor: colors.primaryGreen,
+    },
+    itemizeLinkText: {
+        color: colors.primaryGreen,
+        fontSize: 14,
+        fontWeight: '600',
+        letterSpacing: 0.2,
     },
 });
 

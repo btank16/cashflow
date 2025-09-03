@@ -29,12 +29,21 @@ const BRRRRFunction = (
     afterRev,
     monthRent,
     vacancyRate,
+    insuranceCost,
     operatingExpenses
 ) => {
+    // Calculate total rehab cost if itemized
+    let totalRehabCost = 0;
+    if (typeof rehabCost === 'object' && rehabCost.isItemized && rehabCost.items) {
+        totalRehabCost = rehabCost.items.reduce((sum, item) => sum + (parseFloat(item.cost) || 0), 0);
+    } else {
+        totalRehabCost = parseFloat(rehabCost) || 0;
+    }
     
     //Calculates Pre-refinance Operating Expenses
     const {totalMonthlyExpenses, totalFixedExpenses} = operatingExpense(operatingExpenses);
     const {monthlyPropTax} = propertyTax(purchasePrice, propTax);
+    const monthlyInsuranceCost = insuranceCost / 12;
 
     //Calculates Initial Mortgage Costs
     const {downPaymentCash, downPaymentPercent, loanAmount} = downPayment(purchasePrice, downPay);
@@ -42,12 +51,12 @@ const BRRRRFunction = (
     const {closingCostTotal} = closingCosts(purchasePrice, closingCost);
 
     //Operating expenses Pre-refinance
-    const sumOpEx = sum(totalMonthlyExpenses, monthlyPropTax, mortgageCost);    
+    const sumOpEx = sum(totalMonthlyExpenses, monthlyPropTax, monthlyInsuranceCost, mortgageCost);    
     const monthPreRefiExpenses = sumOpEx.total
     const {totalHoldingExpenses} = holdingExpenses(rehabTime, monthPreRefiExpenses);
 
     //Calculate Total Cash Down
-    const sumCashDown = sum(downPaymentCash, closingCostTotal, totalFixedExpenses, rehabCost);
+    const sumCashDown = sum(downPaymentCash, closingCostTotal, totalFixedExpenses, totalRehabCost);
     const totalCashDown = sumCashDown.total
 
     //Calculate Principal Left
@@ -74,7 +83,7 @@ const BRRRRFunction = (
     const {monthlyCapEx} = capEx(monthRent, capexEst);
     const refiPropTax = propertyTax(revisedARV, propTax);
     const BRRRpropTax = refiPropTax.monthlyPropTax;
-    const sumPostRefiExpenses = sum(BRRRmortgageCost, BRRRpropTax, monthlyCapEx, totalMonthlyExpenses);
+    const sumPostRefiExpenses = sum(BRRRmortgageCost, BRRRpropTax, monthlyCapEx, totalMonthlyExpenses, monthlyInsuranceCost);
     const monthPostRefiExpenses = sumPostRefiExpenses.total;
 
     //Calculate Cashflow
@@ -95,7 +104,8 @@ const BRRRRFunction = (
         annualCashflow.toFixed(2),
         cashOnCash.toFixed(2),
         maxEquity.toFixed(2),
-        equityReturnPerc.toFixed(2)
+        equityReturnPerc.toFixed(2),
+        monthlyInsuranceCost.toFixed(2)
     ];
 }
 

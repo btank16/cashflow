@@ -125,6 +125,11 @@ function RentalCalcOut(props) {
             color: colors.primaryPurple,
         },
         {
+            name: 'Insurance Cost',
+            value: results.monthlyInsuranceCost,
+            color: colors.primaryPink,
+        },
+        {
             name: 'Operating Expenses',
             value: results.monthlyOpEx,
             color: colors.primaryOrange,

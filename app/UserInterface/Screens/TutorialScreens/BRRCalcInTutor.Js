@@ -11,6 +11,7 @@ import Checkbox from '../../Components/InterestCheckbox.Js';
 import TutorialOperatingExpense from '../../Components/TutorialOperatingExpense.Js';
 import calculatorInfo from '../../../assets/text/info.json';
 import { ChevronLeftIcon } from 'react-native-heroicons/solid';
+import ItemizedRehabModal from '../../Components/ItemizedRehabModal.Js';
 
 function BRRCalcInTutor(props) {
     const navigation = useNavigation();
@@ -20,6 +21,11 @@ function BRRCalcInTutor(props) {
         isCashPurchase: false
     });
     const [rehabCost, setRehabCost] = useState('');
+    const [itemizedRehab, setItemizedRehab] = useState({
+        isItemized: false,
+        items: []
+    });
+    const [showItemizedModal, setShowItemizedModal] = useState(false);
     const [loanTerm, setLoanTerm] = useState(30);
     const [newloanTerm, setnewLoanTerm] = useState(30);
     const [BRRmonthRent, setBRRmonthRent] = useState('');
@@ -46,6 +52,7 @@ function BRRCalcInTutor(props) {
     const [operatingExpensesActive, setOperatingExpensesActive] = useState(true);
     const [operatingExpenses, setOperatingExpenses] = useState([]);
     const [vacancyRate, setVacancyRate] = useState();
+    const [insuranceCost, setInsuranceCost] = useState();
 
     useEffect(() => {
         checkFormValidity();
@@ -88,6 +95,7 @@ function BRRCalcInTutor(props) {
                 newInterest,
                 operatingExpenseArray,
                 vacancyRate,
+                insuranceCost,
             } = route.params.inputValues;
 
             setPurchasePrice({
@@ -95,12 +103,22 @@ function BRRCalcInTutor(props) {
                 isCashPurchase: purchasePrice?.isCashPurchase || false
             });
             setVacancyRate(vacancyRate?.toString() || '');
+            setInsuranceCost(insuranceCost?.toString() || '');
             setInterestRateInput(prevInputs => ({
                 ...prevInputs,
                 initialInterest : interestRate || { value: '', isInterestOnly: false },
                 newInterest: newInterest || { value: '', isInterestOnly: false }
             }));
-            setRehabCost(rehabCost?.toString() || '');
+            
+            // Handle rehab cost - check if it's itemized
+            if (rehabCost && typeof rehabCost === 'object' && rehabCost.isItemized) {
+                setItemizedRehab(rehabCost);
+                const total = rehabCost.items.reduce((sum, item) => sum + (parseFloat(item.cost) || 0), 0);
+                setRehabCost(total.toString());
+            } else {
+                setRehabCost(rehabCost?.toString() || '');
+            }
+            
             setLoanTerm(loanTerm?.toString() || '30');
             setAfterRev(afterRev?.toString() || '');
             setRehabTime(rehabTime?.toString() || '');
@@ -172,7 +190,7 @@ function BRRCalcInTutor(props) {
             loanTerm: toNumber(loanTerm),
             propertyTax: switchableInputs.propertyTax,
             BRRcapexEst: switchableInputs.BRRcapexEst,
-            rehabCost: toNumber(rehabCost),
+            rehabCost: itemizedRehab.isItemized ? itemizedRehab : toNumber(rehabCost),
             closingCost: switchableInputs.closingCost,
             BRRmonthRent: toNumber(BRRmonthRent),
             afterRev: toNumber(afterRev),
@@ -184,7 +202,8 @@ function BRRCalcInTutor(props) {
                 isActive: operatingExpensesActive,
                 expenses: operatingExpenses
             },
-            vacancyRate: toNumber(vacancyRate) || '0'
+            vacancyRate: toNumber(vacancyRate) || '0',
+            insuranceCost: toNumber(insuranceCost) || '0'
         };
 
         const BRRRresults = BRRRRFunction(
@@ -203,6 +222,7 @@ function BRRCalcInTutor(props) {
             inputValues.afterRev,
             inputValues.BRRmonthRent,
             inputValues.vacancyRate,
+            inputValues.insuranceCost,
             inputValues.operatingExpenseArray
         );
 
@@ -218,7 +238,8 @@ function BRRCalcInTutor(props) {
             EquityReturnPerc: BRRRresults[11],
             BRRCapEx: BRRRresults[5],
             BRRPropTax: BRRRresults[4],
-            CashOnCash: BRRRresults[9]
+            CashOnCash: BRRRresults[9],
+            monthlyInsuranceCost: BRRRresults[12]
         };
         
         // Navigate to the result screen
@@ -242,11 +263,16 @@ function BRRCalcInTutor(props) {
         {
             label: "Rehab Cost",
             value: rehabCost,
-            onChangeText: setRehabCost,
+            onChangeText: (value) => {
+                if (!itemizedRehab.isItemized) {
+                    setRehabCost(value);
+                }
+            },
             placeholder: "ex. $10,000",
             type: "$",
             infoTitle: calculatorInfo.calculator_input.rehab_cost.title,
-            infoDescription: calculatorInfo.calculator_input.rehab_cost.description
+            infoDescription: calculatorInfo.calculator_input.rehab_cost.description,
+            disabled: itemizedRehab.isItemized
         },
         {
             label: "Gross Monthly Rent",
@@ -294,6 +320,15 @@ function BRRCalcInTutor(props) {
             type: "%",
             infoTitle: calculatorInfo.calculator_input.vacancy_rate.title,
             infoDescription: calculatorInfo.calculator_input.vacancy_rate.description
+        },
+        {
+            label: "Annual Insurance Cost",
+            value: insuranceCost,
+            onChangeText: setInsuranceCost,
+            placeholder: "ex. $2000",
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.insurance_cost.title,
+            infoDescription: calculatorInfo.calculator_input.insurance_cost.description
         }
     ];
 
@@ -361,6 +396,28 @@ function BRRCalcInTutor(props) {
 
     const handleOperatingExpensesChange = (expenses) => {
         setOperatingExpenses(expenses);
+    };
+
+    const handleItemizeRehab = () => {
+        setShowItemizedModal(true);
+    };
+
+    const handleSaveItemizedRehab = (items) => {
+        if (items.length === 0) {
+            // If no items, clear itemized mode
+            setItemizedRehab({
+                isItemized: false,
+                items: []
+            });
+            setRehabCost('');
+        } else {
+            const total = items.reduce((sum, item) => sum + (parseFloat(item.cost) || 0), 0);
+            setItemizedRehab({
+                isItemized: true,
+                items: items
+            });
+            setRehabCost(total.toString());
+        }
     };
 
     return (
@@ -436,11 +493,22 @@ function BRRCalcInTutor(props) {
                    <SwitchableNumericInput {...switchableInputsArray[2]} />
                    <Text style={styles.secondaryTitle}>Rehab Details</Text>                    
                    <NumericInput {...numericInputsArray[1]} />
+                   <TouchableOpacity 
+                       onPress={handleItemizeRehab} 
+                       style={styles.itemizeLink}
+                       activeOpacity={0.7}
+                   >
+                       <Text style={styles.itemizeLinkText}>
+                           {itemizedRehab.isItemized ? '✓ ' : '+ '}
+                           Itemize Rehab
+                       </Text>
+                   </TouchableOpacity>
                    <NumericInput {...numericInputsArray[4]} />
                    <Text style={styles.secondaryTitle}>Rent Details</Text>
                    <NumericInput {...numericInputsArray[2]} />
                    <SwitchableNumericInput {...switchableInputsArray[3]} />
                    <NumericInput {...numericInputsArray[6]} />
+                   <NumericInput {...numericInputsArray[7]} />
                    <Text style={styles.secondaryTitle}>Refinance Details</Text>
                    <NumericInput {...numericInputsArray[3]} />
                    <NumericInput {...numericInputsArray[5]} />
@@ -484,6 +552,12 @@ function BRRCalcInTutor(props) {
                     captureEventName="brrr_calc_tutor_press"
                 />
             </View>
+            <ItemizedRehabModal
+                visible={showItemizedModal}
+                onClose={() => setShowItemizedModal(false)}
+                onSave={handleSaveItemizedRehab}
+                initialExpenses={itemizedRehab.items}
+            />
         </SafeAreaView>
     );
 }
@@ -543,6 +617,24 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 10,
         zIndex: 1,
+    },
+    itemizeLink: {
+        marginTop: -6,
+        marginBottom: 16,
+        marginLeft: 16,
+        paddingVertical: 4,
+        paddingHorizontal: 12,
+        backgroundColor: colors.secondaryBrightGreen,
+        borderRadius: 6,
+        alignSelf: 'flex-start',
+        borderWidth: 1,
+        borderColor: colors.primaryGreen,
+    },
+    itemizeLinkText: {
+        color: colors.primaryGreen,
+        fontSize: 14,
+        fontWeight: '600',
+        letterSpacing: 0.2,
     },
 });
 

@@ -60,6 +60,19 @@ const ExpenseItem = ({ expense, onDelete }) => {
   const swipeableRef = useRef(null);
   const { category, cost, frequency, applicable_calculators } = expense;
   const calculators = JSON.parse(applicable_calculators);
+  
+  // Check if frequency is custom JSON and display "Custom" instead
+  let displayFrequency = frequency;
+  if (typeof frequency === 'string' && frequency.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(frequency);
+      if (parsed.type === 'custom') {
+        displayFrequency = 'Custom';
+      }
+    } catch (e) {
+      // If parsing fails, use original frequency
+    }
+  }
 
   const renderRightActions = (progress, dragX) => {
     return (
@@ -84,7 +97,7 @@ const ExpenseItem = ({ expense, onDelete }) => {
         <View style={styles.header}>
           <View style={styles.categoryContainer}>
             <Text style={styles.category} numberOfLines={2}>
-              {category} <Text style={styles.frequency}>({frequency})</Text>
+              {category} <Text style={styles.frequency}>({displayFrequency})</Text>
             </Text>
           </View>
           <TouchableOpacity 

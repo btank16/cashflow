@@ -24,7 +24,7 @@ import { createExpense, updateExpense } from '../../Utils/AmplifyDataUtils.Js';
 const calculatorData = [
   {
     id: 'rental',
-    name: 'Rental property calculator',
+    name: 'Rental Property Calculator',
     Icon: RentalIcon,
     color: colors.primaryGreen,
     type: 'rental'
@@ -52,7 +52,7 @@ const calculatorData = [
   },
   {
     id: 'wholesale',
-    name: 'Wholesaling calculator',
+    name: 'Wholesaling Calculator',
     Icon: WholesaleIcon,
     color: colors.brightGreen,
     type: 'wholesale'
@@ -73,6 +73,20 @@ const SecondAddExpense = () => {
   const [activeCalculators, setActiveCalculators] = useState([]);
   const [existingExpenseId, setExistingExpenseId] = useState(null);
   const { expenses, refreshExpenses } = useExpenses(null, true);
+  
+  // Check if frequency is custom (either "Custom" string or JSON)
+  const isCustomFrequency = () => {
+    if (frequency === 'Custom') return true;
+    if (typeof frequency === 'string' && frequency.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(frequency);
+        return parsed.type === 'custom';
+      } catch (e) {
+        return false;
+      }
+    }
+    return false;
+  };
 
   const toTitleCase = (str) => {
     return str
@@ -212,13 +226,21 @@ const SecondAddExpense = () => {
         </Text>
 
         <View style={styles.calculatorList}>
-          {calculatorData.map((calc) => (
-            <CalculatorBox
-              key={calc.id}
-              {...calc}
-              isActive={activeCalculators.includes(calc.type)}
-            />
-          ))}
+          {calculatorData
+            .filter((calc) => {
+              // If custom frequency, only show rental calculator
+              if (isCustomFrequency()) {
+                return calc.id === 'rental';
+              }
+              return true;
+            })
+            .map((calc) => (
+              <CalculatorBox
+                key={calc.id}
+                {...calc}
+                isActive={activeCalculators.includes(calc.type)}
+              />
+            ))}
         </View>
       </View>
     </ScreenLayoutWithFooter>

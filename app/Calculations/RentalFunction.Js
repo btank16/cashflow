@@ -31,7 +31,16 @@ const rentalFunction = (
     }
     
     //Calculates Operating Expenses
-    const {totalMonthlyExpenses, totalFixedExpenses} = operatingExpense(operatingExpenses);
+    // Check if we should enable custom expense handling
+    const customAllowed = true; // Enable custom expenses for rental calculator
+    const expenseResult = operatingExpense(operatingExpenses, customAllowed);
+    
+    // Use appropriate values based on whether custom is allowed
+    const totalMonthlyExpenses = customAllowed ? expenseResult.averageMonthlyExpenses : expenseResult.totalMonthlyExpenses;
+    const isoOpEx = expenseResult.totalMonthlyExpenses;
+    const totalFixedExpenses = expenseResult.totalFixedExpenses;
+    const customExpenseArray = customAllowed ? expenseResult.customArray : [];
+    
     const {monthlyPropTax} = propertyTax(purchasePrice, propTax);
     const {monthlyCapEx} = capEx(monthRent, capexEst);
 
@@ -77,7 +86,9 @@ const rentalFunction = (
         cashOnCash.toFixed(2),
         capRate.toFixed(2),
         monthsToEven, 
-        monthlyInsuranceCost.toFixed(2)
+        monthlyInsuranceCost.toFixed(2),
+        customExpenseArray,
+        isoOpEx.toFixed(2),
     ];
 }
 

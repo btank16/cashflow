@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Text, Animated, TouchableOpacity } from "react-native";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../../Colors/colors.Js';
@@ -128,7 +128,29 @@ function RentalCalcIn(props) {
 
             if (operatingExpenseArray) {
                 setOperatingExpensesActive(operatingExpenseArray.isActive);
-                setOperatingExpenses(operatingExpenseArray.expenses);
+                
+                // Process expenses to ensure custom frequency data is preserved
+                const processedExpenses = operatingExpenseArray.expenses.map(expense => {
+                    // Check if the expense has custom frequency data (object or JSON string)
+                    if (typeof expense.frequency === 'object' && expense.frequency !== null && expense.frequency.type === 'custom') {
+                        // Frequency is already an object, store it as customFrequencyData
+                        return {
+                            ...expense,
+                            customFrequencyData: JSON.stringify(expense.frequency),
+                            frequency: 'Custom'
+                        };
+                    } else if (typeof expense.frequency === 'string' && expense.frequency.startsWith('{')) {
+                        // Frequency is a JSON string, preserve it
+                        return {
+                            ...expense,
+                            customFrequencyData: expense.frequency,
+                            frequency: 'Custom'
+                        };
+                    }
+                    return expense;
+                });
+                
+                setOperatingExpenses(processedExpenses);
                 setSaveNewExpenses(operatingExpenseArray.saveNewExpenses);
             }
         }
@@ -285,7 +307,9 @@ function RentalCalcIn(props) {
             cashOnCash: rentalResults[8],
             capRate: rentalResults[9],
             monthsTillEven: rentalResults[10],
-            monthlyInsuranceCost: rentalResults[11]
+            monthlyInsuranceCost: rentalResults[11],
+            customExpenseArray: rentalResults[12] || [], // Add custom expense array
+            isoOpEx: rentalResults[13]
         };
 
         try {
@@ -449,13 +473,13 @@ function RentalCalcIn(props) {
         };
     }, []);
 
-    const handleOperatingExpensesChange = (expenses) => {
+    const handleOperatingExpensesChange = useCallback((expenses) => {
         setOperatingExpenses(expenses);
-    };
+    }, []);
 
-    const handleSaveNewExpensesChange = (value) => {
+    const handleSaveNewExpensesChange = useCallback((value) => {
         setSaveNewExpenses(value);
-    };
+    }, []);
 
     const handleItemizeRehab = () => {
         setShowItemizedModal(true);
@@ -560,6 +584,7 @@ function RentalCalcIn(props) {
                         initialExpenses={operatingExpenses}
                         infoTitle={calculatorInfo.calculator_input.operating_expenses.title}
                         infoDescription={calculatorInfo.calculator_input.operating_expenses.description}
+                        enableCustom={true}
                     />
                 </ScrollView>
             </KeyboardAvoidingView>

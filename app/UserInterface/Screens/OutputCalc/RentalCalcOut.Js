@@ -7,6 +7,7 @@ import ResultDisplay from '../../Components/ResultDisplay.Js';
 import BackButton from '../../Components/BackButton.Js';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ExpensePieChart from '../../Components/ExpensePieChart.Js';
+import MonthlyFlowChart from '../../Components/MonthlyFlowChart.js';
 import DarkTextLogo from '../../../assets/icons/DarkTextLogo.jsx';
 import InfoComponent from '../../Components/InfoComponent.Js';
 import calculatorInfo from '../../../assets/text/info.json';
@@ -193,6 +194,11 @@ function RentalCalcOut(props) {
             </View>
             <ExpensePieChart
                 chartData={expenseChartData}
+            />
+            <MonthlyFlowChart
+                monthlyRent={parseFloat(inputValues.monthRent) || 0}
+                monthlyExpenses={parseFloat(results.isoOpEx) + parseFloat(results.monthlyPropTax) + parseFloat(results.monthlyInsuranceCost) + parseFloat(results.monthlyCapEx) + parseFloat(results.mortgageCost)}
+                customExpenseArray={results.customExpenseArray || []}
             />
 
             <InfoComponent

@@ -105,27 +105,118 @@ const capEx = (monthRent, capEx) => {
     return{monthlyCapEx}
 };
 
-const operatingExpense = (operatingExpense) => {
+const operatingExpense = (operatingExpense, customAllowed = false) => {
     //Accepts operatingExpense array which has a isActive boolean and an expenses array
     //Expense array has a name, cost, and frequency
     let totalMonthlyExpenses = 0;
     let totalFixedExpenses = 0;
+    let totalAnnualExpenses = 0;
+    let customArray = [];
+    let totalCustomMonthlyAverage = 0;
     
     if (operatingExpense.isActive && operatingExpense.expenses) {
       operatingExpense.expenses.forEach(expense => {
         const cost = Number(expense.cost);
         
-        if (expense.frequency === 'Annually') {
-          totalMonthlyExpenses += cost / 12;
-        } else if (expense.frequency === 'Monthly') {
-          totalMonthlyExpenses += cost;
-        } else if (expense.frequency === 'Non-recurring') {
-          totalFixedExpenses += cost;
+        // Check if this is a custom frequency
+        let isCustom = false;
+        let customData = null;
+        
+        if (customAllowed) {
+          // Handle both object and string formats
+          if (typeof expense.frequency === 'object' && expense.frequency !== null && expense.frequency.type === 'custom') {
+            customData = expense.frequency;
+            isCustom = true;
+          } else if (typeof expense.frequency === 'string' && expense.frequency.startsWith('{')) {
+            try {
+              customData = JSON.parse(expense.frequency);
+              if (customData.type === 'custom') {
+                isCustom = true;
+              }
+            } catch (e) {
+              // If parsing fails, treat as regular frequency
+              isCustom = false;
+            }
+          }
+        }
+        
+        if (isCustom && customData) {
+          // Handle custom frequency
+          let monthlyAverage = 0;
+          
+          if (customData.pattern === 'monthly') {
+            // For monthly custom: cost * months selected / 12
+            const monthsPerYear = customData.months ? customData.months.length : 0;
+            monthlyAverage = (cost * monthsPerYear) / 12;
+            
+            customArray.push({
+              category: expense.category,
+              cost: cost,
+              yearInterval: 1,
+              monthsApplied: customData.months,
+              firstYear: true,
+              pattern: 'monthly'
+            });
+          } else if (customData.pattern === 'annual') {
+            // For annual custom: only include in first year average if firstYear is true OR yearInterval is 1
+            const yearInterval = customData.years || 1;
+            if (customData.firstYear === true || yearInterval === 1) {
+              monthlyAverage = cost / 12;
+            } else {
+              monthlyAverage = 0;
+            }
+            
+            customArray.push({
+              category: expense.category,
+              cost: cost,
+              yearInterval: yearInterval,
+              monthsApplied: [customData.month],
+              firstYear: customData.firstYear !== false,
+              pattern: 'annual'
+            });
+          }
+          
+          totalCustomMonthlyAverage += monthlyAverage;
+          
+        } else {
+          // Handle standard frequencies
+          if (expense.frequency === 'Annually') {
+            if (customAllowed) {
+              totalAnnualExpenses += cost;
+            } else {
+              totalMonthlyExpenses += cost / 12;
+            }
+          } else if (expense.frequency === 'Monthly') {
+            totalMonthlyExpenses += cost;
+          } else if (expense.frequency === 'Non-recurring') {
+            totalFixedExpenses += cost;
+          }
         }
       });
     }
-
-    return{totalMonthlyExpenses, totalFixedExpenses}
+    
+    if (customAllowed) {
+      // Calculate average monthly expenses (all recurring expenses averaged over 12 months)
+      const averageMonthlyExpenses = totalMonthlyExpenses + (totalAnnualExpenses / 12) + totalCustomMonthlyAverage;
+      
+      return {
+        totalMonthlyExpenses,
+        totalFixedExpenses,
+        totalAnnualExpenses,
+        averageMonthlyExpenses,
+        customArray
+      };
+    } else {
+      // Legacy behavior - include annual expenses in monthly
+      if (totalAnnualExpenses > 0) {
+        totalMonthlyExpenses += totalAnnualExpenses / 12;
+      }
+      
+      return {
+        totalMonthlyExpenses,
+        totalFixedExpenses
+      };
+    }
 };
 
 //Used to sum expenses, cash down, etc.

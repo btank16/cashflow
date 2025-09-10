@@ -79,7 +79,7 @@ const IntroScreen = () => {
             posthog.capture('intro_get_started_click', {
               screen: 'IntroScreen'
             });
-            navigation.navigate('AltCalcHomeScreen');
+            navigation.navigate('CalcHomeScreen');
           }}
         >
           <Text style={styles.signUpText}>Get Started</Text>

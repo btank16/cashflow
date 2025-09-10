@@ -36,8 +36,16 @@ const flipFunction = (
     const monthTotalExpenses = sumTotalEx.total
     const {totalHoldingExpenses} = holdingExpenses(rehabTime, monthTotalExpenses);
 
+    // Calculate total rehab cost if itemized
+    let totalRehabCost = 0;
+    if (typeof rehabCost === 'object' && rehabCost.isItemized && rehabCost.items) {
+        totalRehabCost = rehabCost.items.reduce((sum, item) => sum + (parseFloat(item.cost) || 0), 0);
+    } else {
+        totalRehabCost = parseFloat(rehabCost) || 0;
+    }
+    
     //Calculate Total Cash Down
-    const sumCashDown = sum(downPaymentCash, closingCostTotal, totalFixedExpenses, rehabCost);
+    const sumCashDown = sum(downPaymentCash, closingCostTotal, totalFixedExpenses, totalRehabCost);
     const totalCashDown = sumCashDown.total
 
     //Calculate Total Cas Out of Pocket

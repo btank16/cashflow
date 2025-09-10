@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Text, Animated } from "react-native";
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Platform, View, StyleSheet, SafeAreaView, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Text, Animated, TouchableOpacity } from "react-native";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../../Colors/colors.Js';
 import NumericInput from '../../Components/NumericInputBox.Js';
@@ -13,16 +13,24 @@ import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 import calculatorInfo from '../../../assets/text/info.json';
 import { createCalculation, updateCalculation, createExpense, updateExpense } from '../../Utils/AmplifyDataUtils.Js';
 import { getExpenses } from '../../Utils/DataCache.Js';
+import ItemizedRehabModal from '../../Components/ItemizedRehabModal.Js';
+import { useAuth } from '../../Utils/AuthContext.Js';
 
 
 function RentalCalcIn(props) {
     const navigation = useNavigation();
     const route = useRoute();
+    const { isAuthenticated } = useAuth();
     const [purchasePrice, setPurchasePrice] = useState({
         value: '',
         isCashPurchase: false
     });
     const [rehabCost, setRehabCost] = useState('');
+    const [itemizedRehab, setItemizedRehab] = useState({
+        isItemized: false,
+        items: []
+    });
+    const [showItemizedModal, setShowItemizedModal] = useState(false);
     const [loanTerm, setLoanTerm] = useState(30);
     const [monthRent, setMonthRent] = useState('');
     const [isFormValid, setIsFormValid] = useState(false);
@@ -46,6 +54,7 @@ function RentalCalcIn(props) {
     const [operatingExpenses, setOperatingExpenses] = useState([]);
     const [saveNewExpenses, setSaveNewExpenses] = useState(false);
     const [vacancyRate, setVacancyRate] = useState();
+    const [insuranceCost, setInsuranceCost] = useState();
 
     useEffect(() => {
         checkFormValidity();
@@ -84,6 +93,7 @@ function RentalCalcIn(props) {
                 capexEst,
                 operatingExpenseArray,
                 vacancyRate,
+                insuranceCost,
             } = route.params.inputValues;
 
             setCalculationId(id);
@@ -95,10 +105,20 @@ function RentalCalcIn(props) {
                 value: interestRate?.value?.toString() || '',
                 isInterestOnly: interestRate?.isInterestOnly || false
             });
-            setRehabCost(rehabCost?.toString() || '');
+            
+            // Handle rehab cost - check if it's itemized
+            if (rehabCost && typeof rehabCost === 'object' && rehabCost.isItemized) {
+                setItemizedRehab(rehabCost);
+                const total = rehabCost.items.reduce((sum, item) => sum + (parseFloat(item.cost) || 0), 0);
+                setRehabCost(total.toString());
+            } else {
+                setRehabCost(rehabCost?.toString() || '');
+            }
+            
             setLoanTerm(loanTerm?.toString() || '30');
             setMonthRent(monthRent?.toString() || '');
             setVacancyRate(vacancyRate?.toString() || '');
+            setInsuranceCost(insuranceCost?.toString() || '');
 
             setSwitchableInputs(prevInputs => ({
                 ...prevInputs,
@@ -110,7 +130,29 @@ function RentalCalcIn(props) {
 
             if (operatingExpenseArray) {
                 setOperatingExpensesActive(operatingExpenseArray.isActive);
-                setOperatingExpenses(operatingExpenseArray.expenses);
+                
+                // Process expenses to ensure custom frequency data is preserved
+                const processedExpenses = operatingExpenseArray.expenses.map(expense => {
+                    // Check if the expense has custom frequency data (object or JSON string)
+                    if (typeof expense.frequency === 'object' && expense.frequency !== null && expense.frequency.type === 'custom') {
+                        // Frequency is already an object, store it as customFrequencyData
+                        return {
+                            ...expense,
+                            customFrequencyData: JSON.stringify(expense.frequency),
+                            frequency: 'Custom'
+                        };
+                    } else if (typeof expense.frequency === 'string' && expense.frequency.startsWith('{')) {
+                        // Frequency is a JSON string, preserve it
+                        return {
+                            ...expense,
+                            customFrequencyData: expense.frequency,
+                            frequency: 'Custom'
+                        };
+                    }
+                    return expense;
+                });
+                
+                setOperatingExpenses(processedExpenses);
                 setSaveNewExpenses(operatingExpenseArray.saveNewExpenses);
             }
         }
@@ -159,7 +201,8 @@ function RentalCalcIn(props) {
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
-        if (saveNewExpenses && operatingExpenses.length > 0) {
+        // Only save expenses if user is authenticated
+        if (isAuthenticated && saveNewExpenses && operatingExpenses.length > 0) {
             try {
                 // Get all existing expenses from DataCache
                 const existingExpenses = await getExpenses();
@@ -226,7 +269,7 @@ function RentalCalcIn(props) {
             propertyTax: switchableInputs.propertyTax,
             closingCost: switchableInputs.closingCost,
             capexEst: switchableInputs.capexEst,
-            rehabCost: toNumber(rehabCost),
+            rehabCost: itemizedRehab.isItemized ? itemizedRehab : toNumber(rehabCost),
             monthRent: toNumber(monthRent),
             // afterRev: 0,
             // rehabTime: 0,
@@ -236,7 +279,8 @@ function RentalCalcIn(props) {
                 expenses: operatingExpenses,
                 saveNewExpenses: saveNewExpenses
             },
-            vacancyRate: toNumber(vacancyRate) || '0'
+            vacancyRate: toNumber(vacancyRate) || '0',
+            insuranceCost: toNumber(insuranceCost) || '0'
         };
 
         const rentalResults = rentalFunction(
@@ -250,6 +294,7 @@ function RentalCalcIn(props) {
             inputValues.rehabCost,
             inputValues.monthRent,
             inputValues.vacancyRate,
+            inputValues.insuranceCost,
             inputValues.operatingExpenseArray
         );
 
@@ -265,8 +310,22 @@ function RentalCalcIn(props) {
             cashOnCash: rentalResults[8],
             capRate: rentalResults[9],
             monthsTillEven: rentalResults[10],
+            monthlyInsuranceCost: rentalResults[11],
+            customExpenseArray: rentalResults[12] || [], // Add custom expense array
+            isoOpEx: rentalResults[13]
         };
 
+        // Check if user is authenticated
+        if (!isAuthenticated) {
+            // For non-authenticated users, navigate without saving
+            navigation.navigate(resultScreen, {
+                inputValues: {...inputValues, id: null},
+                ...results
+            });
+            return;
+        }
+        
+        // For authenticated users, save the calculation
         try {
             let savedData;
             
@@ -326,11 +385,16 @@ function RentalCalcIn(props) {
         {
             label: "Rehab Cost",
             value: rehabCost,
-            onChangeText: setRehabCost,
+            onChangeText: (value) => {
+                if (!itemizedRehab.isItemized) {
+                    setRehabCost(value);
+                }
+            },
             placeholder: "ex. $10,000",
             type: "$",
             infoTitle: calculatorInfo.calculator_input.rehab_cost.title,
-            infoDescription: calculatorInfo.calculator_input.rehab_cost.description
+            infoDescription: calculatorInfo.calculator_input.rehab_cost.description,
+            disabled: itemizedRehab.isItemized
         },
         {
             label: "Gross Monthly Rent",
@@ -350,6 +414,15 @@ function RentalCalcIn(props) {
             type: "%",
             infoTitle: calculatorInfo.calculator_input.vacancy_rate.title,
             infoDescription: calculatorInfo.calculator_input.vacancy_rate.description
+        },
+        {
+            label: "Annual Insurance Cost",
+            value: insuranceCost,
+            onChangeText: setInsuranceCost,
+            placeholder: "ex. $2000",
+            type: "$",
+            infoTitle: calculatorInfo.calculator_input.insurance_cost.title,
+            infoDescription: calculatorInfo.calculator_input.insurance_cost.description
         }
     ];
 
@@ -414,12 +487,34 @@ function RentalCalcIn(props) {
         };
     }, []);
 
-    const handleOperatingExpensesChange = (expenses) => {
+    const handleOperatingExpensesChange = useCallback((expenses) => {
         setOperatingExpenses(expenses);
+    }, []);
+
+    const handleSaveNewExpensesChange = useCallback((value) => {
+        setSaveNewExpenses(value);
+    }, []);
+
+    const handleItemizeRehab = () => {
+        setShowItemizedModal(true);
     };
 
-    const handleSaveNewExpensesChange = (value) => {
-        setSaveNewExpenses(value);
+    const handleSaveItemizedRehab = (items) => {
+        if (items.length === 0) {
+            // If no items, clear itemized mode
+            setItemizedRehab({
+                isItemized: false,
+                items: []
+            });
+            setRehabCost('');
+        } else {
+            const total = items.reduce((sum, item) => sum + (parseFloat(item.cost) || 0), 0);
+            setItemizedRehab({
+                isItemized: true,
+                items: items
+            });
+            setRehabCost(total.toString());
+        }
     };
 
     return (
@@ -480,7 +575,18 @@ function RentalCalcIn(props) {
                     <SwitchableNumericInput {...switchableInputsArray[1]}/>
                     <Text style={styles.secondaryTitle}>Property Expenses</Text>
                     <SwitchableNumericInput {...switchableInputsArray[2]}/>
+                    <NumericInput {...numericInputsArray[5]}/>
                     <NumericInput {...numericInputsArray[2]}/>
+                    <TouchableOpacity 
+                        onPress={handleItemizeRehab} 
+                        style={styles.itemizeLink}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={styles.itemizeLinkText}>
+                            {itemizedRehab.isItemized ? '✓ ' : '+ '}
+                            Itemize Rehab
+                        </Text>
+                    </TouchableOpacity>
                     <NumericInput {...numericInputsArray[3]}/>
                     <SwitchableNumericInput {...switchableInputsArray[3]}/>
                     <NumericInput {...numericInputsArray[4]}/>
@@ -492,6 +598,7 @@ function RentalCalcIn(props) {
                         initialExpenses={operatingExpenses}
                         infoTitle={calculatorInfo.calculator_input.operating_expenses.title}
                         infoDescription={calculatorInfo.calculator_input.operating_expenses.description}
+                        enableCustom={true}
                     />
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -503,6 +610,12 @@ function RentalCalcIn(props) {
                     captureEventName="rental_calc_press"
                 />
             </View>
+            <ItemizedRehabModal
+                visible={showItemizedModal}
+                onClose={() => setShowItemizedModal(false)}
+                onSave={handleSaveItemizedRehab}
+                initialExpenses={itemizedRehab.items}
+            />
         </SafeAreaView>
     );
 }
@@ -557,6 +670,24 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         textAlign: 'center',
+    },
+    itemizeLink: {
+        marginTop: -6,
+        marginBottom: 16,
+        marginLeft: 16,
+        paddingVertical: 4,
+        paddingHorizontal: 12,
+        backgroundColor: colors.secondaryBrightGreen,
+        borderRadius: 6,
+        alignSelf: 'flex-start',
+        borderWidth: 1,
+        borderColor: colors.primaryGreen,
+    },
+    itemizeLinkText: {
+        color: colors.primaryGreen,
+        fontSize: 14,
+        fontWeight: '600',
+        letterSpacing: 0.2,
     },
 });
 

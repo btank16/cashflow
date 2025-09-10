@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Text, Animated } from "react-native";
+import { View, StyleSheet, SafeAreaView, Platform, StatusBar, ScrollView, KeyboardAvoidingView, Keyboard, Text, Animated, TouchableOpacity } from "react-native";
 import { useNavigation, useRoute } from '@react-navigation/native';
 import colors from '../../Colors/colors.Js';
 import NumericInput from '../../Components/NumericInputBox.Js';
@@ -13,15 +13,23 @@ import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 import calculatorInfo from '../../../assets/text/info.json';
 import { createCalculation, updateCalculation, createExpense, updateExpense } from '../../Utils/AmplifyDataUtils.Js';
 import { getExpenses } from '../../Utils/DataCache.Js';
+import ItemizedRehabModal from '../../Components/ItemizedRehabModal.Js';
+import { useAuth } from '../../Utils/AuthContext.Js';
 
 function FlipCalcIn(props) {
     const navigation = useNavigation();
     const route = useRoute();
+    const { isAuthenticated } = useAuth();
     const [purchasePrice, setPurchasePrice] = useState({
         value: '',
         isCashPurchase: false
     });
     const [rehabCost, setRehabCost] = useState('');
+    const [itemizedRehab, setItemizedRehab] = useState({
+        isItemized: false,
+        items: []
+    });
+    const [showItemizedModal, setShowItemizedModal] = useState(false);
     const [loanTerm, setLoanTerm] = useState(30);
     const [afterRev, setAfterRev] = useState('');
     const [rehabTime, setRehabTime] = useState('');
@@ -94,7 +102,14 @@ function FlipCalcIn(props) {
                 value: interestRate?.value?.toString() || '',
                 isInterestOnly: interestRate?.isInterestOnly || false
             });
-            setRehabCost(rehabCost?.toString() || '');
+            // Handle rehab cost - check if it's itemized
+            if (rehabCost && typeof rehabCost === 'object' && rehabCost.isItemized) {
+                setItemizedRehab(rehabCost);
+                const total = rehabCost.items.reduce((sum, item) => sum + (parseFloat(item.cost) || 0), 0);
+                setRehabCost(total.toString());
+            } else {
+                setRehabCost(rehabCost?.toString() || '');
+            }
             setLoanTerm(loanTerm?.toString() || '30');
             setAfterRev(afterRev?.toString() || '');
             setRehabTime(rehabTime?.toString() || '');
@@ -158,7 +173,8 @@ function FlipCalcIn(props) {
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
-        if (saveNewExpenses && operatingExpenses.length > 0) {
+        // Only save expenses if user is authenticated
+        if (isAuthenticated && saveNewExpenses && operatingExpenses.length > 0) {
             try {
                 // Get all existing expenses from DataCache
                 const existingExpenses = await getExpenses();
@@ -224,7 +240,7 @@ function FlipCalcIn(props) {
             loanTerm: toNumber(loanTerm),
             propertyTax: switchableInputs.propertyTax,
             closingCost: switchableInputs.closingCost,
-            rehabCost: toNumber(rehabCost),
+            rehabCost: itemizedRehab.isItemized ? itemizedRehab : toNumber(rehabCost),
             afterRev: toNumber(afterRev),
             rehabTime: toNumber(rehabTime),
             agentCommish: switchableInputs.agentCommish,
@@ -260,6 +276,17 @@ function FlipCalcIn(props) {
             totalCashCost: flipResults[4],
         };
 
+        // Check if user is authenticated
+        if (!isAuthenticated) {
+            // For non-authenticated users, navigate without saving
+            navigation.navigate(resultScreen, {
+                inputValues: {...inputValues, id: null},
+                ...results
+            });
+            return;
+        }
+        
+        // For authenticated users, save the calculation
         try {
             let savedData;
             
@@ -319,11 +346,16 @@ function FlipCalcIn(props) {
         {
             label: "Rehab Cost",
             value: rehabCost,
-            onChangeText: setRehabCost,
+            onChangeText: (value) => {
+                if (!itemizedRehab.isItemized) {
+                    setRehabCost(value);
+                }
+            },
             placeholder: "ex. $10,000",
             type: "$",
             infoTitle: calculatorInfo.calculator_input.rehab_cost.title,
-            infoDescription: calculatorInfo.calculator_input.rehab_cost.description
+            infoDescription: calculatorInfo.calculator_input.rehab_cost.description,
+            disabled: itemizedRehab.isItemized
         },
         {
             label: "After Repair Value",
@@ -415,6 +447,28 @@ function FlipCalcIn(props) {
         setSaveNewExpenses(value);
     };
 
+    const handleItemizeRehab = () => {
+        setShowItemizedModal(true);
+    };
+
+    const handleSaveItemizedRehab = (items) => {
+        if (items.length === 0) {
+            // If no items, clear itemized mode
+            setItemizedRehab({
+                isItemized: false,
+                items: []
+            });
+            setRehabCost('');
+        } else {
+            const total = items.reduce((sum, item) => sum + (parseFloat(item.cost) || 0), 0);
+            setItemizedRehab({
+                isItemized: true,
+                items: items
+            });
+            setRehabCost(total.toString());
+        }
+    };
+
     return (
         <SafeAreaView style={styles.masterBackground}>
             <View style={styles.logoContainer}>
@@ -474,6 +528,16 @@ function FlipCalcIn(props) {
                     <SwitchableNumericInput {...switchableInputsArray[2]}/>
                     <Text style={styles.secondaryTitle}>Rehab Details</Text>
                     <NumericInput {...numericInputsArray[2]} />
+                    <TouchableOpacity 
+                        onPress={handleItemizeRehab} 
+                        style={styles.itemizeLink}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={styles.itemizeLinkText}>
+                            {itemizedRehab.isItemized ? '✓ ' : '+ '}
+                            Itemize Rehab
+                        </Text>
+                    </TouchableOpacity>
                     <NumericInput {...numericInputsArray[4]} />
                     <Text style={styles.secondaryTitle}>Sale Details</Text>
                     <NumericInput {...numericInputsArray[3]} />
@@ -497,6 +561,12 @@ function FlipCalcIn(props) {
                     captureEventName="flip_calc_press"
                 />
             </View>
+            <ItemizedRehabModal
+                visible={showItemizedModal}
+                onClose={() => setShowItemizedModal(false)}
+                onSave={handleSaveItemizedRehab}
+                initialExpenses={itemizedRehab.items}
+            />
         </SafeAreaView>
     );
 }
@@ -551,6 +621,24 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         textAlign: 'center',
+    },
+    itemizeLink: {
+        marginTop: -6,
+        marginBottom: 16,
+        marginLeft: 16,
+        paddingVertical: 4,
+        paddingHorizontal: 12,
+        backgroundColor: colors.secondaryBrightGreen,
+        borderRadius: 6,
+        alignSelf: 'flex-start',
+        borderWidth: 1,
+        borderColor: colors.primaryGreen,
+    },
+    itemizeLinkText: {
+        color: colors.primaryGreen,
+        fontSize: 14,
+        fontWeight: '600',
+        letterSpacing: 0.2,
     },
 });
 

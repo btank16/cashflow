@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, TextInput, Keyboard, TouchableWithoutFeedback, Modal } from 'react-native';
-import { PlusIcon, CheckIcon, TrashIcon, ArrowLongRightIcon, ChevronDownIcon } from 'react-native-heroicons/outline';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, TextInput, Keyboard, TouchableWithoutFeedback, Modal, Alert } from 'react-native';
+import { PlusIcon, CheckIcon, TrashIcon, ArrowLongRightIcon, ChevronDownIcon, PencilSquareIcon } from 'react-native-heroicons/outline';
 import ExpenseLogo from '../../assets/icons/ExpenseLogo.jsx';
 import colors from '../Colors/colors.Js';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,12 +8,8 @@ import { useNavigation } from '@react-navigation/native';
 import { Picker } from '@react-native-picker/picker';
 import InfoComponent from './InfoComponent.Js';
 import { getExpenses } from '../Utils/DataCache.Js';
-
-const frequencies = [
-  { label: 'Monthly', value: 'Monthly' },
-  { label: 'Annually', value: 'Annually' },
-  { label: 'Non-recurring', value: 'Non-recurring' },
-];
+import CustomFrequencyModal from './CustomFrequencyModal.js';
+import { useAuth } from '../Utils/AuthContext.Js';
 
 const OperatingExpenses = ({ 
   calculatorType, 
@@ -24,8 +20,15 @@ const OperatingExpenses = ({
   sectionTitle = "Operating Expenses",
   viewAllButtonText = "View all Saved Expenses",
   infoTitle,
-  infoDescription
+  infoDescription,
+  enableCustom = false
 }) => {
+  const frequencies = [
+    { label: 'Monthly', value: 'Monthly' },
+    { label: 'Annually', value: 'Annually' },
+    { label: 'Non-recurring', value: 'Non-recurring' },
+    ...(enableCustom ? [{ label: 'Custom', value: 'Custom' }] : [])
+  ];
   const [isActive, setIsActive] = useState(true);
   const [activeExpenses, setActiveExpenses] = useState([{ 
     category: '', 
@@ -38,44 +41,108 @@ const OperatingExpenses = ({
   const [focusedInputs, setFocusedInputs] = useState({});
   const [removedSavedExpenses, setRemovedSavedExpenses] = useState([]);
   const navigation = useNavigation();
+  const { isAuthenticated } = useAuth();
   const [isPickerVisible, setIsPickerVisible] = useState(false);
   const [activePickerIndex, setActivePickerIndex] = useState(null);
   const [tempFrequency, setTempFrequency] = useState('');
   const [infoModalVisible, setInfoModalVisible] = useState(false);
+  const [customModalVisible, setCustomModalVisible] = useState(false);
+  const [customModalExpenseIndex, setCustomModalExpenseIndex] = useState(null);
 
+  // Use refs to track initialization and prevent loops
+  const isUpdatingFromPropsRef = useRef(false);
+  const prevInitialExpensesRef = useRef(null);
+  const hasInitializedRef = useRef(false);
+  
   useEffect(() => {
+    // Initialize expenses when initialExpenses changes
     if (initialExpenses && initialExpenses.length > 0) {
-      const areExpensesDifferent = JSON.stringify(initialExpenses) !== JSON.stringify(activeExpenses);
-      if (areExpensesDifferent) {
-        // First set active expenses
-        setActiveExpenses(initialExpenses.map(expense => ({
-          ...expense,
-          showFrequency: false
-        })));
-
-        // Then load saved expenses with the updated active expenses
-        loadSavedExpenses();
+      // Check if initialExpenses actually changed (not just a new reference)
+      const serializedInitial = JSON.stringify(initialExpenses);
+      if (prevInitialExpensesRef.current !== serializedInitial) {
+        prevInitialExpensesRef.current = serializedInitial;
+        isUpdatingFromPropsRef.current = true;
+        hasInitializedRef.current = true;
+        
+        // Set active expenses
+        setActiveExpenses(initialExpenses.map(expense => {
+          // Check if frequency contains custom JSON data
+          let displayFrequency = expense.frequency;
+          let customData = null;
+          
+          // Handle multiple cases for custom frequency data
+          if (expense.customFrequencyData) {
+            // Already has customFrequencyData from previous state
+            customData = expense.customFrequencyData;
+            displayFrequency = 'Custom';
+          } else if (typeof expense.frequency === 'object' && expense.frequency !== null && expense.frequency.type === 'custom') {
+            // Frequency is an object (from database/storage)
+            customData = JSON.stringify(expense.frequency);
+            displayFrequency = 'Custom';
+          } else if (typeof expense.frequency === 'string' && expense.frequency.startsWith('{')) {
+            // Frequency is a JSON string
+            customData = expense.frequency;
+            displayFrequency = 'Custom';
+          }
+          
+          return {
+            ...expense,
+            frequency: displayFrequency, // Always use string for display
+            customFrequencyData: customData,
+            showFrequency: false
+          };
+        }));
+        
+        // Reset the flag after state update
+        setTimeout(() => {
+          isUpdatingFromPropsRef.current = false;
+        }, 0);
       }
+    } else if (!hasInitializedRef.current) {
+      // No initial expenses, but mark as initialized to allow user changes
+      hasInitializedRef.current = true;
     }
-  }, [initialExpenses]);
+  }, [initialExpenses]); // Re-run when initialExpenses changes
+  
+  useEffect(() => {
+    // Load saved expenses on mount
+    loadSavedExpenses();
+  }, []); // Only run on mount
 
   useEffect(() => {
-    if (activeExpenses.length > 0) {
-      loadSavedExpenses();
+    // Skip if we're updating from props or haven't initialized yet
+    if (isUpdatingFromPropsRef.current || !hasInitializedRef.current) {
+      return;
     }
-  }, [JSON.stringify(activeExpenses)]);
-
-  useEffect(() => {
-    // Only pass active expenses to parent component
-    onExpensesChange(activeExpenses);
-  }, [activeExpenses]);
+    
+    // Pass active expenses with custom frequency data to parent component
+    const expensesWithFrequencyData = activeExpenses.map(expense => {
+      if (expense.frequency === 'Custom' && expense.customFrequencyData) {
+        // Keep the customFrequencyData as is (string or object)
+        // The parent/storage layer will handle it appropriately
+        return {
+          category: expense.category,
+          cost: expense.cost,
+          frequency: expense.customFrequencyData, // Pass the JSON string
+          showFrequency: false
+        };
+      }
+      return {
+        category: expense.category,
+        cost: expense.cost,
+        frequency: expense.frequency,
+        showFrequency: false
+      };
+    });
+    onExpensesChange(expensesWithFrequencyData);
+  }, [activeExpenses, onExpensesChange]); // Include onExpensesChange in dependencies
 
   useEffect(() => {
     const keyboardDidHideListener = Keyboard.addListener(
       'keyboardDidHide',
       () => {
         // Close all frequency dropdowns when keyboard hides
-        setActiveExpenses(activeExpenses.map(exp => ({
+        setActiveExpenses(prev => prev.map(exp => ({
           ...exp,
           showFrequency: false
         })));
@@ -85,9 +152,14 @@ const OperatingExpenses = ({
     return () => {
       keyboardDidHideListener.remove();
     };
-  }, [activeExpenses]);
+  }, []); // Remove activeExpenses dependency - use functional update instead
 
   const loadSavedExpenses = async () => {
+    if (!isAuthenticated) {
+      setSavedExpenses([]);
+      return;
+    }
+    
     try {
       // Get all expenses from DataCache
       const allExpenses = await getExpenses();
@@ -164,12 +236,26 @@ const OperatingExpenses = ({
   };
 
   const addSavedExpenseToActive = (savedExpense) => {
+    // Check if the saved expense has custom frequency data
+    let customFrequencyData = null;
+    let displayFrequency = savedExpense.frequency;
+    
+    try {
+      if (typeof savedExpense.frequency === 'string' && savedExpense.frequency.startsWith('{')) {
+        customFrequencyData = savedExpense.frequency;
+        displayFrequency = 'Custom';
+      }
+    } catch (e) {
+      // If parsing fails, use as is
+    }
+    
     // Add to active expenses with a flag indicating it came from saved
     setActiveExpenses([
       ...activeExpenses,
       {
         category: savedExpense.category,
-        frequency: savedExpense.frequency,
+        frequency: displayFrequency,
+        customFrequencyData: customFrequencyData,
         cost: savedExpense.cost,
         showFrequency: false,
         fromSaved: true,
@@ -191,6 +277,11 @@ const OperatingExpenses = ({
   const handleFrequencyDone = () => {
     if (activePickerIndex !== null && tempFrequency !== activeExpenses[activePickerIndex].frequency) {
       updateActiveExpense(activePickerIndex, 'frequency', tempFrequency);
+      // If Custom is selected, open the custom modal
+      if (tempFrequency === 'Custom') {
+        setCustomModalExpenseIndex(activePickerIndex);
+        setCustomModalVisible(true);
+      }
     }
     setIsPickerVisible(false);
     setActivePickerIndex(null);
@@ -205,6 +296,29 @@ const OperatingExpenses = ({
     if (infoTitle || infoDescription) {
       setInfoModalVisible(true);
     }
+  };
+
+  const handleCustomEdit = (index) => {
+    setCustomModalExpenseIndex(index);
+    setCustomModalVisible(true);
+  };
+  
+  const showSignupAlert = () => {
+    Alert.alert(
+      'Create an Account',
+      'Create an account to save and manage expenses',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        },
+        {
+          text: 'Sign Up',
+          onPress: () => navigation.navigate('Auth', { screen: 'SignUpFirst' })
+        }
+      ],
+      { cancelable: true }
+    );
   };
 
   const renderExpenseInput = (expense, index) => (
@@ -250,12 +364,25 @@ const OperatingExpenses = ({
             <Text style={styles.inputLabel}>Frequency</Text>
             <TouchableOpacity 
               activeOpacity={0.7}
-              onPress={() => openFrequencyPicker(index)}
+              onPress={() => {
+                if (expense.frequency === 'Custom' && enableCustom) {
+                  handleCustomEdit(index);
+                } else {
+                  openFrequencyPicker(index);
+                }
+              }}
               style={styles.touchableWrapper}
             >
-              <View style={styles.frequencyButton}>
+              <View style={[
+                styles.frequencyButton,
+                expense.frequency === 'Custom' && styles.customFrequencyButton
+              ]}>
                 <Text style={styles.frequencyButtonText}>{expense.frequency}</Text>
-                <ChevronDownIcon size={20} color={colors.primaryBlack} style={styles.icon} />
+                {expense.frequency === 'Custom' && enableCustom ? (
+                  <PencilSquareIcon size={18} color={colors.primaryGreen} style={styles.icon} />
+                ) : (
+                  <ChevronDownIcon size={20} color={colors.primaryBlack} style={styles.icon} />
+                )}
               </View>
             </TouchableOpacity>
           </View>
@@ -289,27 +416,39 @@ const OperatingExpenses = ({
     </React.Fragment>
   );
 
-  const SavedExpenseItem = ({ expense, onAdd }) => (
-    <View style={styles.savedExpenseItem}>
-      <View style={styles.savedExpenseHeader}>
-        <Text numberOfLines={2} style={styles.savedExpenseCategory}>
-          {expense.category}
-        </Text>
-        <Text style={styles.savedExpenseFrequency}>
-          ({expense.frequency})
-        </Text>
+  const SavedExpenseItem = ({ expense, onAdd }) => {
+    // Format frequency display for saved expenses
+    let frequencyDisplay = expense.frequency;
+    try {
+      if (typeof expense.frequency === 'string' && expense.frequency.startsWith('{')) {
+        frequencyDisplay = 'Custom';
+      }
+    } catch (e) {
+      // Use original if parsing fails
+    }
+    
+    return (
+      <View style={styles.savedExpenseItem}>
+        <View style={styles.savedExpenseHeader}>
+          <Text numberOfLines={2} style={styles.savedExpenseCategory}>
+            {expense.category}
+          </Text>
+          <Text style={styles.savedExpenseFrequency}>
+            ({frequencyDisplay})
+          </Text>
+        </View>
+        <View style={styles.savedExpenseBottom}>
+          <Text style={styles.savedExpenseCost}>${expense.cost}</Text>
+          <TouchableOpacity
+            style={styles.addSavedButton}
+            onPress={() => onAdd(expense)}
+          >
+            <PlusIcon size={16} color={colors.iconWhite} />
+          </TouchableOpacity>
+        </View>
       </View>
-      <View style={styles.savedExpenseBottom}>
-        <Text style={styles.savedExpenseCost}>${expense.cost}</Text>
-        <TouchableOpacity
-          style={styles.addSavedButton}
-          onPress={() => onAdd(expense)}
-        >
-          <PlusIcon size={16} color={colors.iconWhite} />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+    );
+  };
 
   const renderSavedExpenses = () => {
     if (savedExpenses.length === 0) {
@@ -371,34 +510,45 @@ const OperatingExpenses = ({
             <Text style={styles.addButtonText}>Add New Expense</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity 
-            style={styles.checkboxContainer}
-            onPress={toggleSaveNewExpenses}
-          >
-            <View style={[
-              styles.checkbox,
-              saveNewExpenses ? styles.activeCheckbox : styles.inactiveCheckbox
-            ]}>
-              {saveNewExpenses && <CheckIcon size={16} color={colors.iconWhite} />}
-            </View>
-            <Text style={styles.checkboxLabel}>
-              Save new expenses for this calculator
-            </Text>
-          </TouchableOpacity>
+          {isAuthenticated ? (
+            <TouchableOpacity 
+              style={styles.checkboxContainer}
+              onPress={toggleSaveNewExpenses}
+            >
+              <View style={[
+                styles.checkbox,
+                saveNewExpenses ? styles.activeCheckbox : styles.inactiveCheckbox
+              ]}>
+                {saveNewExpenses && <CheckIcon size={16} color={colors.iconWhite} />}
+              </View>
+              <Text style={styles.checkboxLabel}>
+                Save new expenses for this calculator
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity 
+              style={styles.authPromptContainer}
+              onPress={showSignupAlert}
+            >
+              <Text style={styles.authPromptText}>Create an account to save expenses</Text>
+            </TouchableOpacity>
+          )}
           
           <View style={styles.divider} />
 
-          <View style={styles.savedExpensesSection}>
-            <Text style={styles.sectionTitle}>Saved Expenses</Text>
-            {renderSavedExpenses()}
-            <TouchableOpacity 
-              style={styles.viewAllButton}
-              onPress={() => navigation.navigate('ExpenseScreen')}
-            >
-              <Text style={styles.viewAllButtonText}>{viewAllButtonText}</Text>
-              <ArrowLongRightIcon size={18} color={colors.primaryGreen} style={{ marginBottom: -2 }}/>
-            </TouchableOpacity>
-          </View>
+          {isAuthenticated && (
+            <View style={styles.savedExpensesSection}>
+              <Text style={styles.sectionTitle}>Saved Expenses</Text>
+              {renderSavedExpenses()}
+              <TouchableOpacity 
+                style={styles.viewAllButton}
+                onPress={() => navigation.navigate('ExpenseScreen')}
+              >
+                <Text style={styles.viewAllButtonText}>{viewAllButtonText}</Text>
+                <ArrowLongRightIcon size={18} color={colors.primaryGreen} style={{ marginBottom: -2 }}/>
+              </TouchableOpacity>
+            </View>
+          )}
           
           <Modal
             visible={isPickerVisible}
@@ -440,6 +590,30 @@ const OperatingExpenses = ({
         onClose={() => setInfoModalVisible(false)}
         title={infoTitle || sectionTitle}
         description={infoDescription || "No additional information available."}
+      />
+
+      <CustomFrequencyModal
+        visible={customModalVisible}
+        onClose={() => {
+          setCustomModalVisible(false);
+          setCustomModalExpenseIndex(null);
+        }}
+        onSave={(customData) => {
+          if (customModalExpenseIndex !== null) {
+            // Store the custom frequency data in the expense
+            const updated = activeExpenses.map((expense, i) => 
+              i === customModalExpenseIndex 
+                ? { ...expense, customFrequencyData: customData }
+                : expense
+            );
+            setActiveExpenses(updated);
+          }
+        }}
+        initialData={
+          customModalExpenseIndex !== null 
+            ? activeExpenses[customModalExpenseIndex]?.customFrequencyData 
+            : null
+        }
       />
     </View>
   );
@@ -758,6 +932,22 @@ const styles = StyleSheet.create({
   },
   picker: {
     backgroundColor: colors.iconWhite,
+  },
+  customFrequencyButton: {
+    borderColor: colors.primaryGreen,
+    backgroundColor: colors.secondaryBrightGreen,
+  },
+  authPromptContainer: {
+    backgroundColor: colors.secondaryGreen,
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
+    alignItems: 'center',
+  },
+  authPromptText: {
+    color: colors.primaryGreen,
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
 

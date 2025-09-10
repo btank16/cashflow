@@ -13,10 +13,12 @@ import OperatingExpenses from '../../Components/OperatingExpenses.Js';
 import calculatorInfo from '../../../assets/text/info.json';
 import { createCalculation, updateCalculation, createExpense, updateExpense } from '../../Utils/AmplifyDataUtils.Js';
 import { getExpenses } from '../../Utils/DataCache.Js';
+import { useAuth } from '../../Utils/AuthContext.Js';
 
 function CommercialCalcIn(props) {
     const navigation = useNavigation();
     const route = useRoute();
+    const { isAuthenticated } = useAuth();
     const [purchasePrice, setPurchasePrice] = useState('');
     const [loanTerm, setLoanTerm] = useState(30);
     const [isFormValid, setIsFormValid] = useState(false);
@@ -156,7 +158,8 @@ function CommercialCalcIn(props) {
     const onCalculatePress = async () => {
         const toNumber = (value) => value === '' ? 0 : Number(value);
 
-        if (saveNewExpenses && operatingExpenses.length > 0) {
+        // Only save expenses if user is authenticated
+        if (isAuthenticated && saveNewExpenses && operatingExpenses.length > 0) {
             try {
                 // Get all existing expenses from DataCache
                 const existingExpenses = await getExpenses();
@@ -257,6 +260,17 @@ function CommercialCalcIn(props) {
             annualCashflow: funcResults[9]
         };
 
+        // Check if user is authenticated
+        if (!isAuthenticated) {
+            // For non-authenticated users, navigate without saving
+            navigation.navigate(resultScreen, {
+                inputValues: {...inputValues, id: null},
+                ...results
+            });
+            return;
+        }
+        
+        // For authenticated users, save the calculation
         try {
             let savedData;
             

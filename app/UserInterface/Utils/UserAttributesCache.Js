@@ -49,6 +49,13 @@ export const refreshUserAttributes = async () => {
 
   isLoading = true;
   try {
+    // Check if there's an active session first
+    const sessionActive = await hasActiveSession();
+    if (!sessionActive) {
+      userAttributesCache = null;
+      return null;
+    }
+    
     const attributes = await fetchUserAttributes();
     userAttributesCache = attributes;
     lastUpdated = new Date();

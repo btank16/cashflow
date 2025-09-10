@@ -6,24 +6,36 @@ import {
   TouchableOpacity, 
   StyleSheet, 
   TouchableWithoutFeedback,
-  Keyboard
+  Keyboard,
+  Modal
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { XMarkIcon } from 'react-native-heroicons/outline';
-import { Ionicons } from '@expo/vector-icons';
+import { XMarkIcon, ChevronDownIcon } from 'react-native-heroicons/outline';
+import { Picker } from '@react-native-picker/picker';
 import ExpenseLogo from '../../../assets/icons/ExpenseLogo.jsx';
 import colors from '../../Colors/colors.Js';
 import PrimaryButton from '../../Components/PrimaryButton.Js';
 import ScreenLayoutWithFooter from '../../UtilScreens/ScreenLayoutWithFooter.Js';
+import CustomFrequencyModal from '../../Components/CustomFrequencyModal.js';
 
 const FirstAddExpense = () => {
   const navigation = useNavigation();
   const [category, setCategory] = useState('');
   const [frequency, setFrequency] = useState('Monthly');
-  const [showFrequencyOptions, setShowFrequencyOptions] = useState(false);
+  const [customFrequencyData, setCustomFrequencyData] = useState(null);
   const [cost, setCost] = useState('');
   const [isCategoryFocused, setIsCategoryFocused] = useState(false);
   const [isCostFocused, setIsCostFocused] = useState(false);
+  const [isPickerVisible, setIsPickerVisible] = useState(false);
+  const [tempFrequency, setTempFrequency] = useState('Monthly');
+  const [customModalVisible, setCustomModalVisible] = useState(false);
+  
+  const frequencies = [
+    { label: 'Monthly', value: 'Monthly' },
+    { label: 'Annually', value: 'Annually' },
+    { label: 'Non-recurring', value: 'Non-recurring' },
+    { label: 'Custom', value: 'Custom' }
+  ];
 
   const formatNumber = (value) => {
     if (!value) return '';
@@ -46,9 +58,31 @@ const FirstAddExpense = () => {
     const formattedCategory = toTitleCase(category);
     navigation.navigate('SecondAddExpense', {
       category: formattedCategory,
-      frequency: frequency,
+      frequency: frequency === 'Custom' && customFrequencyData ? customFrequencyData : frequency,
       cost: cost
     });
+  };
+  
+  const openFrequencyPicker = () => {
+    Keyboard.dismiss();
+    setTempFrequency(frequency);
+    setIsPickerVisible(true);
+  };
+  
+  const handleFrequencyDone = () => {
+    if (tempFrequency !== frequency) {
+      setFrequency(tempFrequency);
+      if (tempFrequency === 'Custom') {
+        setCustomModalVisible(true);
+      } else {
+        setCustomFrequencyData(null);
+      }
+    }
+    setIsPickerVisible(false);
+  };
+  
+  const handleFrequencyCancel = () => {
+    setIsPickerVisible(false);
   };
 
   const renderHeader = () => (
@@ -106,31 +140,18 @@ const FirstAddExpense = () => {
             <View style={styles.frequencyWrapper}>
               <Text style={styles.inputLabel}>Frequency</Text>
               <TouchableOpacity 
-                style={styles.frequencyButton}
+                style={[styles.frequencyButton, frequency === 'Custom' && styles.customFrequencyButton]}
                 onPress={() => {
-                  Keyboard.dismiss();
-                  setShowFrequencyOptions(!showFrequencyOptions);
+                  if (frequency === 'Custom' && customFrequencyData) {
+                    setCustomModalVisible(true);
+                  } else {
+                    openFrequencyPicker();
+                  }
                 }}
               >
                 <Text style={styles.frequencyButtonText}>{frequency}</Text>
-                <Ionicons name="chevron-down" size={16} color={colors.fifthGrey} />
+                <ChevronDownIcon size={20} color={colors.primaryBlack} />
               </TouchableOpacity>
-              {showFrequencyOptions && (
-                <View style={styles.frequencyOptions}>
-                  {['Monthly', 'Annually', 'Non-recurring'].map((option) => (
-                    <TouchableOpacity
-                      key={option}
-                      style={styles.frequencyOption}
-                      onPress={() => {
-                        setFrequency(option);
-                        setShowFrequencyOptions(false);
-                      }}
-                    >
-                      <Text style={styles.frequencyOptionText}>{option}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
             </View>
 
             {/* Cost Input */}
@@ -158,6 +179,48 @@ const FirstAddExpense = () => {
               </View>
             </View>
           </View>
+          
+          <Modal
+            visible={isPickerVisible}
+            transparent={true}
+            animationType="slide"
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <View style={styles.pickerHeader}>
+                  <TouchableOpacity onPress={handleFrequencyCancel} style={styles.headerButton}>
+                    <Text style={styles.cancelButton}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleFrequencyDone} style={styles.headerButton}>
+                    <Text style={styles.doneButton}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+                <Picker
+                  selectedValue={tempFrequency}
+                  onValueChange={setTempFrequency}
+                  style={styles.picker}
+                >
+                  {frequencies.map((option) => (
+                    <Picker.Item 
+                      key={option.value} 
+                      label={option.label} 
+                      value={option.value}
+                      color={colors.primaryBlack}
+                    />
+                  ))}
+                </Picker>
+              </View>
+            </View>
+          </Modal>
+          
+          <CustomFrequencyModal
+            visible={customModalVisible}
+            onClose={() => setCustomModalVisible(false)}
+            onSave={(customData) => {
+              setCustomFrequencyData(customData);
+            }}
+            initialData={customFrequencyData}
+          />
         </View>
       </ScreenLayoutWithFooter>
     </TouchableWithoutFeedback>
@@ -266,6 +329,43 @@ const styles = StyleSheet.create({
   },
   costWrapper: {
     flex: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  modalContent: {
+    backgroundColor: colors.iconWhite,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 20,
+  },
+  pickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.quaternaryGrey,
+    padding: 16,
+  },
+  headerButton: {
+    paddingHorizontal: 8,
+  },
+  doneButton: {
+    color: colors.primaryGreen,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  cancelButton: {
+    color: colors.primaryGrey,
+    fontSize: 16,
+  },
+  picker: {
+    backgroundColor: colors.iconWhite,
+  },
+  customFrequencyButton: {
+    borderColor: colors.primaryGreen,
+    backgroundColor: colors.secondaryBrightGreen,
   }
 });
 

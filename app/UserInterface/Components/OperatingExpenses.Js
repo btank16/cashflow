@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, TextInput, Keyboard, TouchableWithoutFeedback, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, TextInput, Keyboard, TouchableWithoutFeedback, Modal, Alert } from 'react-native';
 import { PlusIcon, CheckIcon, TrashIcon, ArrowLongRightIcon, ChevronDownIcon, PencilSquareIcon } from 'react-native-heroicons/outline';
 import ExpenseLogo from '../../assets/icons/ExpenseLogo.jsx';
 import colors from '../Colors/colors.Js';
@@ -9,6 +9,7 @@ import { Picker } from '@react-native-picker/picker';
 import InfoComponent from './InfoComponent.Js';
 import { getExpenses } from '../Utils/DataCache.Js';
 import CustomFrequencyModal from './CustomFrequencyModal.js';
+import { useAuth } from '../Utils/AuthContext.Js';
 
 const OperatingExpenses = ({ 
   calculatorType, 
@@ -40,6 +41,7 @@ const OperatingExpenses = ({
   const [focusedInputs, setFocusedInputs] = useState({});
   const [removedSavedExpenses, setRemovedSavedExpenses] = useState([]);
   const navigation = useNavigation();
+  const { isAuthenticated } = useAuth();
   const [isPickerVisible, setIsPickerVisible] = useState(false);
   const [activePickerIndex, setActivePickerIndex] = useState(null);
   const [tempFrequency, setTempFrequency] = useState('');
@@ -47,9 +49,10 @@ const OperatingExpenses = ({
   const [customModalVisible, setCustomModalVisible] = useState(false);
   const [customModalExpenseIndex, setCustomModalExpenseIndex] = useState(null);
 
-  // Use a ref to track if we've already initialized from these props
-  const initializedRef = useRef(false);
+  // Use refs to track initialization and prevent loops
+  const isUpdatingFromPropsRef = useRef(false);
   const prevInitialExpensesRef = useRef(null);
+  const hasInitializedRef = useRef(false);
   
   useEffect(() => {
     // Initialize expenses when initialExpenses changes
@@ -58,6 +61,8 @@ const OperatingExpenses = ({
       const serializedInitial = JSON.stringify(initialExpenses);
       if (prevInitialExpensesRef.current !== serializedInitial) {
         prevInitialExpensesRef.current = serializedInitial;
+        isUpdatingFromPropsRef.current = true;
+        hasInitializedRef.current = true;
         
         // Set active expenses
         setActiveExpenses(initialExpenses.map(expense => {
@@ -87,7 +92,15 @@ const OperatingExpenses = ({
             showFrequency: false
           };
         }));
+        
+        // Reset the flag after state update
+        setTimeout(() => {
+          isUpdatingFromPropsRef.current = false;
+        }, 0);
       }
+    } else if (!hasInitializedRef.current) {
+      // No initial expenses, but mark as initialized to allow user changes
+      hasInitializedRef.current = true;
     }
   }, [initialExpenses]); // Re-run when initialExpenses changes
   
@@ -97,6 +110,11 @@ const OperatingExpenses = ({
   }, []); // Only run on mount
 
   useEffect(() => {
+    // Skip if we're updating from props or haven't initialized yet
+    if (isUpdatingFromPropsRef.current || !hasInitializedRef.current) {
+      return;
+    }
+    
     // Pass active expenses with custom frequency data to parent component
     const expensesWithFrequencyData = activeExpenses.map(expense => {
       if (expense.frequency === 'Custom' && expense.customFrequencyData) {
@@ -117,7 +135,7 @@ const OperatingExpenses = ({
       };
     });
     onExpensesChange(expensesWithFrequencyData);
-  }, [activeExpenses]); // Only depend on activeExpenses, not onExpensesChange
+  }, [activeExpenses, onExpensesChange]); // Include onExpensesChange in dependencies
 
   useEffect(() => {
     const keyboardDidHideListener = Keyboard.addListener(
@@ -137,6 +155,11 @@ const OperatingExpenses = ({
   }, []); // Remove activeExpenses dependency - use functional update instead
 
   const loadSavedExpenses = async () => {
+    if (!isAuthenticated) {
+      setSavedExpenses([]);
+      return;
+    }
+    
     try {
       // Get all expenses from DataCache
       const allExpenses = await getExpenses();
@@ -278,6 +301,24 @@ const OperatingExpenses = ({
   const handleCustomEdit = (index) => {
     setCustomModalExpenseIndex(index);
     setCustomModalVisible(true);
+  };
+  
+  const showSignupAlert = () => {
+    Alert.alert(
+      'Create an Account',
+      'Create an account to save and manage expenses',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        },
+        {
+          text: 'Sign Up',
+          onPress: () => navigation.navigate('Auth', { screen: 'SignUpFirst' })
+        }
+      ],
+      { cancelable: true }
+    );
   };
 
   const renderExpenseInput = (expense, index) => (
@@ -469,34 +510,45 @@ const OperatingExpenses = ({
             <Text style={styles.addButtonText}>Add New Expense</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity 
-            style={styles.checkboxContainer}
-            onPress={toggleSaveNewExpenses}
-          >
-            <View style={[
-              styles.checkbox,
-              saveNewExpenses ? styles.activeCheckbox : styles.inactiveCheckbox
-            ]}>
-              {saveNewExpenses && <CheckIcon size={16} color={colors.iconWhite} />}
-            </View>
-            <Text style={styles.checkboxLabel}>
-              Save new expenses for this calculator
-            </Text>
-          </TouchableOpacity>
+          {isAuthenticated ? (
+            <TouchableOpacity 
+              style={styles.checkboxContainer}
+              onPress={toggleSaveNewExpenses}
+            >
+              <View style={[
+                styles.checkbox,
+                saveNewExpenses ? styles.activeCheckbox : styles.inactiveCheckbox
+              ]}>
+                {saveNewExpenses && <CheckIcon size={16} color={colors.iconWhite} />}
+              </View>
+              <Text style={styles.checkboxLabel}>
+                Save new expenses for this calculator
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity 
+              style={styles.authPromptContainer}
+              onPress={showSignupAlert}
+            >
+              <Text style={styles.authPromptText}>Create an account to save expenses</Text>
+            </TouchableOpacity>
+          )}
           
           <View style={styles.divider} />
 
-          <View style={styles.savedExpensesSection}>
-            <Text style={styles.sectionTitle}>Saved Expenses</Text>
-            {renderSavedExpenses()}
-            <TouchableOpacity 
-              style={styles.viewAllButton}
-              onPress={() => navigation.navigate('ExpenseScreen')}
-            >
-              <Text style={styles.viewAllButtonText}>{viewAllButtonText}</Text>
-              <ArrowLongRightIcon size={18} color={colors.primaryGreen} style={{ marginBottom: -2 }}/>
-            </TouchableOpacity>
-          </View>
+          {isAuthenticated && (
+            <View style={styles.savedExpensesSection}>
+              <Text style={styles.sectionTitle}>Saved Expenses</Text>
+              {renderSavedExpenses()}
+              <TouchableOpacity 
+                style={styles.viewAllButton}
+                onPress={() => navigation.navigate('ExpenseScreen')}
+              >
+                <Text style={styles.viewAllButtonText}>{viewAllButtonText}</Text>
+                <ArrowLongRightIcon size={18} color={colors.primaryGreen} style={{ marginBottom: -2 }}/>
+              </TouchableOpacity>
+            </View>
+          )}
           
           <Modal
             visible={isPickerVisible}
@@ -884,6 +936,18 @@ const styles = StyleSheet.create({
   customFrequencyButton: {
     borderColor: colors.primaryGreen,
     backgroundColor: colors.secondaryBrightGreen,
+  },
+  authPromptContainer: {
+    backgroundColor: colors.secondaryGreen,
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
+    alignItems: 'center',
+  },
+  authPromptText: {
+    color: colors.primaryGreen,
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
 

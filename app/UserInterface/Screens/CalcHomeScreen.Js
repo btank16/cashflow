@@ -1,11 +1,12 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, Image } from "react-native";
+import { View, StyleSheet, Text, TouchableOpacity, Image, Alert } from "react-native";
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { InformationCircleIcon, ChevronRightIcon } from 'react-native-heroicons/outline';
 import { getUserAttribute } from '../Utils/UserAttributesCache.Js';
 import colors from '../Colors/colors.Js';
 import { useCalculations } from '../Utils/DataCache.Js';
 import { deleteCalculation as deleteCalculationFromAPI } from '../Utils/AmplifyDataUtils.Js';
+import { useAuth } from '../Utils/AuthContext.Js';
 import RentalIcon from '../../assets/icons/RentalIcon.jsx';
 import FlipIcon from '../../assets/icons/FlipIcon.jsx';
 import BRRRRIcon from '../../assets/icons/BRRRIcon.jsx';
@@ -80,27 +81,53 @@ const ArticleItem = ({ item, onPress }) => (
 
 function CalcHomeScreen() {
   const navigation = useNavigation();
-  const { calculations, isLoading, refreshCalculations } = useCalculations(null, true);
+  const { isAuthenticated } = useAuth();
+  // Only use calculations hook if authenticated
+  const { calculations, isLoading, refreshCalculations } = useCalculations(null, isAuthenticated);
   const [history, setHistory] = useState([]);
   const [firstName, setFirstName] = useState('');
   const [markdownModalVisible, setMarkdownModalVisible] = useState(false);
   const [currentMarkdownContent, setCurrentMarkdownContent] = useState('');
+  
+  // Function to show signup alert for non-authenticated users
+  const showSignupAlert = (feature) => {
+    Alert.alert(
+      'Create an Account',
+      `Create an account to ${feature}`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel'
+        },
+        {
+          text: 'Sign Up',
+          onPress: () => navigation.navigate('Auth', { screen: 'SignUpFirst' })
+        }
+      ],
+      { cancelable: true }
+    );
+  };
 
-  // Update history when calculations change
+  // Update history when calculations change (only for authenticated users)
   useEffect(() => {
-    if (calculations && calculations.length > 0) {
+    if (isAuthenticated && calculations && calculations.length > 0) {
       // Take the 3 most recent calculations
       setHistory(calculations.slice(0, 3));
     } else {
       setHistory([]);
     }
-  }, [calculations]);
+  }, [calculations, isAuthenticated]);
 
-  // Fetch user attributes when component mounts
+  // Fetch user attributes when component mounts (only for authenticated users)
   useEffect(() => {
     let isMounted = true;
     
     const fetchUserData = async () => {
+      if (!isAuthenticated) {
+        setFirstName('');
+        return;
+      }
+      
       try {
         // First try to get given_name attribute
         const givenName = await getUserAttribute('given_name');
@@ -126,23 +153,23 @@ function CalcHomeScreen() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [isAuthenticated]);
 
   // Make sure to limit the number of refreshes when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      // Refresh calculations when screen comes into focus
+      // Refresh calculations when screen comes into focus (only for authenticated users)
       // Only get from cache by default - no need to hit the cloud each time
       let isMounted = true;
       
-      if (isMounted) {
+      if (isMounted && isAuthenticated) {
         refreshCalculations(false);
       }
       
       return () => {
         isMounted = false;
       };
-    }, [refreshCalculations])
+    }, [refreshCalculations, isAuthenticated])
   );
 
   const handleDeleteCalculation = async (id) => {
@@ -208,32 +235,51 @@ function CalcHomeScreen() {
     },
   ];
 
-  const renderHistorySection = () => (
-    <View style={styles.sectionContainer}>
-      <TouchableOpacity 
-        style={styles.sectionTitleContainer}
-        onPress={() => navigation.navigate('HistoryScreen')}
-      >
-        <Text style={styles.sectionTitle}>Recent Calculations</Text>
-        <ChevronRightIcon color={colors.iconWhite} size={24} />
-      </TouchableOpacity>
-      {isLoading ? (
-        <Text style={styles.emptyHistoryText}>Loading calculations...</Text>
-      ) : history.length > 0 ? (
-        history.map((item) => (
-          <HistoryItem
-            key={item.id}
-            item={item}
-            onDelete={() => handleDeleteCalculation(item.id)}
-            navigation={navigation}
-            captureEventName={`${item.calculator_type.toLowerCase()}_history`}
-          />
-        ))
-      ) : (
-        <Text style={styles.emptyHistoryText}>Your recent calculations will appear here</Text>
-      )}
-    </View>
-  );
+  const renderHistorySection = () => {
+    if (!isAuthenticated) {
+      return (
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionTitleContainer}>
+            <Text style={styles.sectionTitle}>Recent Calculations</Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.authPromptContainer}
+            onPress={() => showSignupAlert('save and view calculation history')}
+          >
+            <Text style={styles.authPromptText}>Create an account to save your calculations</Text>
+            <ChevronRightIcon color={colors.primaryGreen} size={20} />
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    
+    return (
+      <View style={styles.sectionContainer}>
+        <TouchableOpacity 
+          style={styles.sectionTitleContainer}
+          onPress={() => navigation.navigate('HistoryScreen')}
+        >
+          <Text style={styles.sectionTitle}>Recent Calculations</Text>
+          <ChevronRightIcon color={colors.iconWhite} size={24} />
+        </TouchableOpacity>
+        {isLoading ? (
+          <Text style={styles.emptyHistoryText}>Loading calculations...</Text>
+        ) : history.length > 0 ? (
+          history.map((item) => (
+            <HistoryItem
+              key={item.id}
+              item={item}
+              onDelete={() => handleDeleteCalculation(item.id)}
+              navigation={navigation}
+              captureEventName={`${item.calculator_type.toLowerCase()}_history`}
+            />
+          ))
+        ) : (
+          <Text style={styles.emptyHistoryText}>Your recent calculations will appear here</Text>
+        )}
+      </View>
+    );
+  };
 
   const handleArticlePress = (article) => {
     if (article.markdownContent) {
@@ -244,14 +290,32 @@ function CalcHomeScreen() {
 
   const renderHeader = () => (
     <View style={styles.header}>
-      <TouchableOpacity style={styles.headerIcon} onPress={() => navigation.navigate('UserScreen')}>
+      <TouchableOpacity 
+        style={styles.headerIcon} 
+        onPress={() => {
+          if (isAuthenticated) {
+            navigation.navigate('UserScreen');
+          } else {
+            showSignupAlert('access user features');
+          }
+        }}
+      >
         <UserIcon color={colors.primary} size={24} />
       </TouchableOpacity>
       <View style={styles.logoContainer}>
         <WhiteTextLogo width={120} height={28} />
       </View>
       <View style={styles.headerIcons}>
-        <TouchableOpacity onPress={() => navigation.navigate('HistoryScreen')} style={styles.headerIcon}>
+        <TouchableOpacity 
+          onPress={() => {
+            if (isAuthenticated) {
+              navigation.navigate('HistoryScreen');
+            } else {
+              showSignupAlert('view calculation history');
+            }
+          }} 
+          style={styles.headerIcon}
+        >
           <HistoryIcon color={colors.primary} size={24} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate('FeedbackScreen')} style={styles.headerIcon}>
@@ -426,6 +490,20 @@ const styles = StyleSheet.create({
   },
   headerIcon: {
     marginLeft: 16,
+  },
+  authPromptContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.secondaryGreen,
+    padding: 16,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  authPromptText: {
+    flex: 1,
+    color: colors.primaryGreen,
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
 

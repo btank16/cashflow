@@ -29,20 +29,6 @@ import SignUpThird from './app/UserInterface/Screens/AuthScreens/SignUpThird.Js'
 import VerificationScreen from './app/UserInterface/Screens/AuthScreens/VerificationScreen.Js';
 import ForgetPassFirst from './app/UserInterface/Screens/AuthScreens/ForgetPassFirst.Js';
 import ForgetPassSec from './app/UserInterface/Screens/AuthScreens/ForgetPassSec.Js';
-import AltCalcHomeScreen from './app/UserInterface/Screens/TutorialScreens/AltCalcHomeScreen.Js';
-import AltFeedbackScreen from './app/UserInterface/Screens/TutorialScreens/AltFeedbackScreen.Js';
-import BRRCalcInTutor from './app/UserInterface/Screens/TutorialScreens/BRRCalcInTutor.Js';
-import BRRCalcOutTutor from './app/UserInterface/Screens/TutorialScreens/BRRCalcOutTutor.Js';
-import CommercialCalcInTutor from './app/UserInterface/Screens/TutorialScreens/CommercialCalcInTutor.Js';
-import CommercialCalcOutTutor from './app/UserInterface/Screens/TutorialScreens/CommercialCalcOutTutor.Js';
-import FlipCalcInTutor from './app/UserInterface/Screens/TutorialScreens/FlipCalcInTutor.Js';
-import FlipCalcOutTutor from './app/UserInterface/Screens/TutorialScreens/FlipCalcOutTutor.Js';
-import ProjectionCalcInTutor from './app/UserInterface/Screens/TutorialScreens/ProjectionCalcInTutor.Js';
-import ProjectionCalcOutTutor from './app/UserInterface/Screens/TutorialScreens/ProjectionCalcOutTutor.Js';
-import RentalCalcInTutor from './app/UserInterface/Screens/TutorialScreens/RentalCalcInTutor.Js';
-import RentalCalcOutTutor from './app/UserInterface/Screens/TutorialScreens/RentalCalcOutTutor.Js';
-import WholesaleCalcInTutor from './app/UserInterface/Screens/TutorialScreens/WholesaleCalcInTutor.Js';
-import WholesaleCalcOutTutor from './app/UserInterface/Screens/TutorialScreens/WholesaleCalcOutTutor.Js';
 
 
 const Stack = createStackNavigator();
@@ -58,20 +44,22 @@ const AuthStack = () => (
     <Stack.Screen name="VerificationScreen" component={VerificationScreen} />
     <Stack.Screen name="ForgetPassFirst" component={ForgetPassFirst} />
     <Stack.Screen name="ForgetPassSec" component={ForgetPassSec} />
-    <Stack.Screen name="AltCalcHomeScreen" component={AltCalcHomeScreen} />
-    <Stack.Screen name="AltFeedbackScreen" component={AltFeedbackScreen} />
-    <Stack.Screen name="BRRCalcInTutor" component={BRRCalcInTutor} />
-    <Stack.Screen name="BRRCalcOutTutor" component={BRRCalcOutTutor} />
-    <Stack.Screen name="CommercialCalcInTutor" component={CommercialCalcInTutor} />
-    <Stack.Screen name="CommercialCalcOutTutor" component={CommercialCalcOutTutor} />
-    <Stack.Screen name="FlipCalcInTutor" component={FlipCalcInTutor} />
-    <Stack.Screen name="FlipCalcOutTutor" component={FlipCalcOutTutor} />
-    <Stack.Screen name="ProjectionCalcInTutor" component={ProjectionCalcInTutor} />
-    <Stack.Screen name="ProjectionCalcOutTutor" component={ProjectionCalcOutTutor} />
-    <Stack.Screen name="RentalCalcInTutor" component={RentalCalcInTutor} />
-    <Stack.Screen name="RentalCalcOutTutor" component={RentalCalcOutTutor} />
-    <Stack.Screen name="WholesaleCalcInTutor" component={WholesaleCalcInTutor} />
-    <Stack.Screen name="WholesaleCalcOutTutor" component={WholesaleCalcOutTutor} />
+    
+    {/* Main app screens available for non-authenticated users */}
+    <Stack.Screen name="CalcHomeScreen" component={CalcHomeScreen} />
+    <Stack.Screen name="FeedbackScreen" component={FeedbackScreen} />
+    <Stack.Screen name="BRRCalcIn" component={BRRCalcIn} />
+    <Stack.Screen name="BRRCalcOut" component={BRRCalcOut} />
+    <Stack.Screen name="FlipCalcIn" component={FlipCalcIn} />
+    <Stack.Screen name="FlipCalcOut" component={FlipCalcOut} />
+    <Stack.Screen name="ProjectionCalcIn" component={ProjectionCalcIn} />
+    <Stack.Screen name="ProjectionCalcOut" component={ProjectionCalcOut} />
+    <Stack.Screen name="RentalCalcIn" component={RentalCalcIn} />
+    <Stack.Screen name="RentalCalcOut" component={RentalCalcOut} />
+    <Stack.Screen name="CommercialCalcIn" component={CommercialCalcIn} />
+    <Stack.Screen name="CommercialCalcOut" component={CommercialCalcOut} />
+    <Stack.Screen name="WholesaleCalcIn" component={WholesaleCalcIn} />
+    <Stack.Screen name="WholesaleCalcOut" component={WholesaleCalcOut} />
   </Stack.Navigator>
 );
 

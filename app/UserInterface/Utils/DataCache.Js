@@ -11,6 +11,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { getExpensesByUserId, getCalculationsByUserId } from './AmplifyDataUtils.Js';
+import { hasActiveSession } from './AuthUtils.Js';
 
 // In-memory caches
 let expensesCache = null;
@@ -28,6 +29,15 @@ let isCalculationsLoading = false;
  */
 export const initDataCache = async () => {
   try {
+    // Check if there's an active session first
+    const sessionActive = await hasActiveSession();
+    if (!sessionActive) {
+      return {
+        expenses: [],
+        calculations: []
+      };
+    }
+    
     const expenses = await refreshExpensesCache();
     const calculations = await refreshCalculationsCache();
     
@@ -55,6 +65,13 @@ export const refreshExpensesCache = async () => {
   
   isExpensesLoading = true;
   try {
+    // Check if there's an active session first
+    const sessionActive = await hasActiveSession();
+    if (!sessionActive) {
+      expensesCache = [];
+      return [];
+    }
+    
     const expenses = await getExpensesByUserId();
     // Sort by updatedAt in descending order (newest first)
     expensesCache = expenses.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
@@ -79,6 +96,13 @@ export const refreshCalculationsCache = async () => {
   
   isCalculationsLoading = true;
   try {
+    // Check if there's an active session first
+    const sessionActive = await hasActiveSession();
+    if (!sessionActive) {
+      calculationsCache = [];
+      return [];
+    }
+    
     const calculations = await getCalculationsByUserId();
     // Sort by updatedAt in descending order (newest first)
     calculationsCache = calculations.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
@@ -342,12 +366,19 @@ export const useExpenses = (calculatorType = null, initialFetch = true) => {
  */
 export const useCalculations = (calculatorType = null, initialFetch = true) => {
   const [calculations, setCalculations] = useState([]);
-  const [isLoading, setIsLoading] = useState(initialFetch);
+  const [isLoading, setIsLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [error, setError] = useState(null);
 
   // Memoize the fetch function to prevent unnecessary re-creation
   const fetchCalculations = useCallback(async (forceRefresh = false) => {
+    // Don't fetch if not authenticated (initialFetch is false)
+    if (!initialFetch) {
+      setCalculations([]);
+      setIsLoading(false);
+      return;
+    }
+    
     setIsLoading(true);
     setError(null);
     try {
@@ -359,10 +390,11 @@ export const useCalculations = (calculatorType = null, initialFetch = true) => {
     } catch (err) {
       console.error('Error fetching calculations:', err);
       setError(err);
+      setCalculations([]);
     } finally {
       setIsLoading(false);
     }
-  }, [calculatorType]);
+  }, [calculatorType, initialFetch]);
 
   // Initial fetch on mount if requested
   useEffect(() => {

@@ -2,7 +2,7 @@ export default {
   expo: {
     name: "Cashflow",
     slug: "cashflow",
-    version: "1.4.0",
+    version: "1.5.0",
     orientation: "portrait",
     icon: "./app/assets//images/CashflowAppIcon.png",
     userInterfaceStyle: "light",
@@ -24,7 +24,7 @@ export default {
         backgroundColor: "#ffffff"
       },
       package: "com.btanski.cashflow",
-      versionCode: 4,
+      versionCode: 5,
       intentFilters: [
         {
           action: "VIEW",
@@ -60,7 +60,7 @@ export default {
       "@config-plugins/react-native-pdf",
       "expo-dev-client"
     ],
-    runtimeVersion: "1.4.0",
+    runtimeVersion: "1.5.0",
     updates: {
       url: "https://u.expo.dev/13cedaf9-9498-4cab-ad7a-81166055290b"
     }

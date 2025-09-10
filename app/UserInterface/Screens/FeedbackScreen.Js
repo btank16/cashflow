@@ -11,6 +11,7 @@ import PrimaryButton from '../Components/PrimaryButton.Js';
 import { getUserAttribute } from '../Utils/UserAttributesCache.Js';
 import secretKeys from '../../../secretkeys.json';
 import ScreenLayout from '../UtilScreens/ScreenLayout.Js';
+import { useAuth } from '../Utils/AuthContext.Js';
 
 const SUBJECT_OPTIONS = [
   "Bug Report", 
@@ -108,6 +109,7 @@ const MAX_FEEDBACK_CHARS = 500;
 
 function FeedbackScreen() {
   const navigation = useNavigation();
+  const { isAuthenticated } = useAuth();
   const [subject, setSubject] = useState('');
   const [feedback, setFeedback] = useState('');
   const [feedbackFocused, setFeedbackFocused] = useState(false);
@@ -115,19 +117,24 @@ function FeedbackScreen() {
   const [userEmail, setUserEmail] = useState('');
 
   useEffect(() => {
-    // Fetch user attributes when component mounts
+    // Fetch user attributes when component mounts (only for authenticated users)
     const fetchUserData = async () => {
+      if (!isAuthenticated) {
+        setUserEmail('');
+        return;
+      }
+      
       try {
         const email = await getUserAttribute('email') || '';
-        
         setUserEmail(email);
       } catch (error) {
         console.error('Error fetching user data:', error);
+        setUserEmail('');
       }
     };
 
     fetchUserData();
-  }, []);
+  }, [isAuthenticated]);
 
   const handleFeedbackChange = (text) => {
     if (text.length <= MAX_FEEDBACK_CHARS) {
